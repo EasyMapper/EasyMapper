@@ -22,4 +22,16 @@ class Mapper_specs {
         UserView actual = sut.map(source, UserView.class);
         assertThat(actual).usingRecursiveComparison().isEqualTo(source);
     }
+
+    @ParameterizedTest
+    @AutoSource
+    void sut_creates_copy_of_complex_object(Mapper sut, Order source) {
+
+        Order actual = sut.map(source, Order.class);
+
+        assertThat(actual.getShippingAddress())
+                .isNotSameAs(source.getShippingAddress())
+                .usingRecursiveComparison()
+                .isEqualTo(source.getShippingAddress());
+    }
 }

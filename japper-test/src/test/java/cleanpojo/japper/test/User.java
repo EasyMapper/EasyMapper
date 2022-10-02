@@ -3,6 +3,7 @@ package cleanpojo.japper.test;
 import java.beans.ConstructorProperties;
 
 public final class User {
+
     private long id;
     private String username;
     private String passwordHash;

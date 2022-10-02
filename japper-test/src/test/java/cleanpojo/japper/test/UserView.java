@@ -4,8 +4,8 @@ import java.beans.ConstructorProperties;
 
 public final class UserView {
 
-    private long id;
-    private String username;
+    private final long id;
+    private final String username;
 
     @ConstructorProperties({ "id", "username" })
     public UserView(long id, String username) {

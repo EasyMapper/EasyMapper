@@ -5,6 +5,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.util.UUID;
 
 public final class Mapper {
 
@@ -17,7 +18,14 @@ public final class Mapper {
         String[] propertyNames = getPropertyNames(constructor);
         for (int i = 0; i < parameters.length; i++) {
             String propertyName = propertyNames[i];
-            arguments[i] = getPropertyValue(methods, source, propertyName);
+            Object propertyValue = getPropertyValue(methods, source, propertyName);
+            Parameter parameter = parameters[i];
+            if (parameter.getType().isPrimitive() || parameter.getType().equals(String.class)
+                    || parameter.getType().equals(UUID.class)) {
+                arguments[i] = propertyValue;
+            } else {
+                arguments[i] = map(propertyValue, parameter.getType());
+            }
         }
         Object instance = createInstance(constructor, arguments);
         return destinationType.cast(instance);
