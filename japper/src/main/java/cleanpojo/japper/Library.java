@@ -1,4 +1,4 @@
-package japper;
+package cleanpojo.japper;
 
 public class Library {
     public boolean someLibraryMethod() {

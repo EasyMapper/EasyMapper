@@ -1,10 +1,10 @@
-package japper.test;
+package cleanpojo.japper.test;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
-import japper.Library;
+import cleanpojo.japper.Library;
 
 class LibraryTest {
     @Test void testSomeLibraryMethod() {
