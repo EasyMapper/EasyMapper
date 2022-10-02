@@ -2,3 +2,4 @@ rootProject.name = 'CleanPojo-Japper'
 
 include 'japper'
 include 'japper-test'
+include 'japper-test-lombok'
