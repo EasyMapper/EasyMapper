@@ -10,6 +10,10 @@ import java.util.UUID;
 public final class Mapper {
 
     public <T> T map(Object source, Class<T> destinationType) {
+        if (source == null) {
+            return null;
+        }
+
         Constructor<?> constructor = getConstructor(destinationType);
         Parameter[] parameters = constructor.getParameters();
         Object[] arguments = new Object[parameters.length];

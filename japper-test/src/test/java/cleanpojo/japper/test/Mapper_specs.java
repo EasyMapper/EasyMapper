@@ -25,6 +25,13 @@ class Mapper_specs {
 
     @ParameterizedTest
     @AutoSource
+    void sut_maps_null_value_to_null_value(Mapper sut) {
+        UserView actual = sut.map(null, UserView.class);
+        assertThat(actual).isNull();
+    }
+
+    @ParameterizedTest
+    @AutoSource
     void sut_creates_copy_of_complex_object(Mapper sut, Order source) {
 
         Order actual = sut.map(source, Order.class);
