@@ -1,0 +1,4 @@
+rootProject.name = 'CleanPojo-Japper'
+
+include 'japper'
+include 'japper-test'
