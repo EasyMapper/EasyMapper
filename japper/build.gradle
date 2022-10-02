@@ -11,6 +11,11 @@ repositories {
 dependencies {
 }
 
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
 jar {
     manifest {
         attributes(
