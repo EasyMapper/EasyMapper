@@ -33,13 +33,21 @@ class Mapper_specs {
     @ParameterizedTest
     @AutoSource
     void sut_creates_copy_of_complex_object(Mapper sut, Order source) {
+        // Arrange
 
+        // Act
         Order actual = sut.map(source, Order.class);
 
-        assertThat(actual.getShippingAddress())
-                .isNotSameAs(source.getShippingAddress())
+        // Assert
+        assertThat(actual.getShipment())
+                .isNotSameAs(source.getShipment())
                 .usingRecursiveComparison()
-                .isEqualTo(source.getShippingAddress());
+                .isEqualTo(source.getShipment());
+
+        assertThat(actual.getShipment().getAddress())
+                .isNotSameAs(source.getShipment().getAddress())
+                .usingRecursiveComparison()
+                .isEqualTo(source.getShipment().getAddress());
     }
 
     @ParameterizedTest

@@ -7,14 +7,14 @@ public final class Order {
     private UUID id;
     private long itemId;
     private int amount;
-    private Address shippingAddress;
+    private Shipment shipment;
 
-    @ConstructorProperties({ "id", "itemId", "amount", "shippingAddress" })
-    public Order(UUID id, long itemId, int amount, Address shippingAddress) {
+    @ConstructorProperties({ "id", "itemId", "amount", "shipment" })
+    public Order(UUID id, long itemId, int amount, Shipment shipment) {
         this.id = id;
         this.itemId = itemId;
         this.amount = amount;
-        this.shippingAddress = shippingAddress;
+        this.shipment = shipment;
     }
 
     public UUID getId() {
@@ -29,7 +29,7 @@ public final class Order {
         return amount;
     }
 
-    public Address getShippingAddress() {
-        return shippingAddress;
+    public Shipment getShipment() {
+        return shipment;
     }
 }
