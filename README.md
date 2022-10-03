@@ -2,7 +2,35 @@
 
 Japper is an easy-to-use object mapping library for Java.
 
-Mapping values between models that represent one object in a domain is painful. When defining the domain model and presentation model to represent users,
+Mapping values between models that represent one object in a domain is painful especially when the model has many properties and the graph of the object is deep. Japper provides automated object mapping so you can focus more on your business logic.
+
+## Requirements
+
+- JDK 1.8 or higher
+
+## Install
+
+### Maven
+
+```xml
+<dependency>
+  <groupId>io.github.cleanpojo</groupId>
+  <artifactId>japper</artifactId>
+  <version>0.0.2</version>
+</dependency>
+```
+
+### Gradle
+
+```groovy
+implementation 'io.github.cleanpojo:japper:0.0.2'
+```
+
+## Features
+
+### Object Projection
+
+When defining the domain model and presentation model to represent users,
 
 ```java
 /*
@@ -102,23 +130,73 @@ public final class UserViewGenerator {
 }
 ```
 
-## Requirements
+### Property Projection
 
-- JDK 1.8 or higher
-## Install
+`Mapper` provides the method to project properties of a source object to an existing destination object.
 
-### Maven
+```java
+/*
+ * /User/me/myapp/src/main/java/account/persistencemodel/UserEntity.java
+ */
 
-```xml
-<dependency>
-  <groupId>io.github.cleanpojo</groupId>
-  <artifactId>japper</artifactId>
-  <version>0.0.1</version>
-</dependency>
+package account.persistencemodel;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.persistence.Version;
+import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+
+@NoArgsConstructor
+@Getter
+@Setter
+@Entity
+@Table
+public final class UserEntity {
+
+    @Id
+    private Long id;
+
+    @Column(unique = true)
+    private String username;
+
+    @Column(unique = true)
+    private String email;
+
+    private String passwordHash;
+
+    private String firstName;
+
+    private String middleName;
+
+    private String lastName;
+
+    @Version
+    private Integer version; // For optimistic concurrency control. Not related to the domain model.
+}
 ```
 
-### Gradle
+```java
+/*
+ * /User/me/myapp/src/main/java/account/persistencemodel/UserRepository.java
+ */
 
-```groovy
-implementation 'io.github.cleanpojo:japper:0.0.1'
+package account.persistencemodel;
+
+import account.domainmodel.User;
+import japper.Mapper;
+
+public final class UserRepository {
+
+    private final Mapper mapper = new Mapper();
+
+    void update(User domainModel) {
+        UserEntity persistenceModel = findById(domainModel.getId());
+        mapper.map(domainModel, persistenceModel); // Map properties of 'domainModel' to 'persistenceModel'.
+        repository.save(dataModel);
+    }
+}
 ```
