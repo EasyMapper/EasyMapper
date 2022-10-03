@@ -1,5 +1,6 @@
 package easymapper;
 
+import static easymapper.ConstructorSelector.getConstructor;
 import static easymapper.Exceptions.argumentNullException;
 
 import java.beans.ConstructorProperties;
@@ -12,12 +13,12 @@ import java.util.UUID;
 public final class Mapper {
 
     public <T> T map(Object source, Class<T> destinationType) {
-        if (source == null) {
-            return null;
-        }
-
         if (destinationType == null) {
             throw argumentNullException("destinationType");
+        }
+
+        if (source == null) {
+            return null;
         }
 
         Object destination = construct(source, destinationType);
@@ -68,11 +69,6 @@ public final class Mapper {
                 destinationProperties.get(propertyName).setValueIfPossible(destination, propertyValue);
             }
         }
-    }
-
-    private <T> Constructor<?> getConstructor(Class<T> destinationType) {
-        Constructor<?>[] constructors = destinationType.getConstructors();
-        return constructors[0];
     }
 
     private String[] getPropertyNames(Constructor<?> constructor) {

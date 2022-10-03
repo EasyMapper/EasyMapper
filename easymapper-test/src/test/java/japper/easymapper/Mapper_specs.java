@@ -91,4 +91,11 @@ class Mapper_specs {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("destinationType");
     }
+
+    @ParameterizedTest
+    @AutoSource
+    void sut_chooses_constructor_with_most_parameters(Mapper sut, User source) {
+        UserEntity actual = sut.map(source, UserEntity.class);
+        assertThat(actual.getId()).isEqualTo(source.getId());
+    }
 }
