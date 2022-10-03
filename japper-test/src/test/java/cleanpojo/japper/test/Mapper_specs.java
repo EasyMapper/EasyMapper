@@ -41,4 +41,19 @@ class Mapper_specs {
                 .usingRecursiveComparison()
                 .isEqualTo(source.getShippingAddress());
     }
+
+    @ParameterizedTest
+    @AutoSource
+    void sut_correctly_projects_settable_properties(
+            Mapper sut,
+            UserView source,
+            User destination) {
+
+        User actual = sut.map(source, destination);
+
+        assertThat(actual)
+                .usingRecursiveComparison()
+                .ignoringFields("passwordHash")
+                .isEqualTo(source);
+    }
 }
