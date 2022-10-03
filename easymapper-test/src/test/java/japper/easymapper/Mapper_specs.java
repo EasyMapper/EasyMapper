@@ -1,6 +1,7 @@
 package japper.easymapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.javaunit.autoparams.AutoSource;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -63,5 +64,31 @@ class Mapper_specs {
                 .usingRecursiveComparison()
                 .ignoringFields("passwordHash")
                 .isEqualTo(source);
+    }
+
+    @ParameterizedTest
+    @AutoSource
+    void sut_has_null_guard_for_source(Mapper sut, User destination) {
+        assertThatThrownBy(() -> sut.map(null, destination))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("source");
+    }
+
+    @ParameterizedTest
+    @AutoSource
+    void sut_has_null_guard_for_destination(Mapper sut, User source) {
+        Object destination = null;
+        assertThatThrownBy(() -> sut.map(source, destination))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("destination");
+    }
+
+    @ParameterizedTest
+    @AutoSource
+    void sut_has_null_guard_for_destination_type(Mapper sut, User source) {
+        Class<User> destinationType = null;
+        assertThatThrownBy(() -> sut.map(source, destinationType))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("destinationType");
     }
 }

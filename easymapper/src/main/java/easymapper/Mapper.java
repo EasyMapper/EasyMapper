@@ -1,5 +1,7 @@
 package easymapper;
 
+import static easymapper.Exceptions.argumentNullException;
+
 import java.beans.ConstructorProperties;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -14,12 +16,24 @@ public final class Mapper {
             return null;
         }
 
+        if (destinationType == null) {
+            throw argumentNullException("destinationType");
+        }
+
         Object destination = construct(source, destinationType);
         project(source, destination);
         return destinationType.cast(destination);
     }
 
     public void map(Object source, Object destination) {
+        if (source == null) {
+            throw argumentNullException("source");
+        }
+
+        if (destination == null) {
+            throw argumentNullException("destination");
+        }
+
         project(source, destination);
     }
 
