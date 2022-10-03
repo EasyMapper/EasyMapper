@@ -1,4 +1,4 @@
-package cleanpojo.japper;
+package easymapper;
 
 import java.beans.ConstructorProperties;
 import java.lang.reflect.Constructor;

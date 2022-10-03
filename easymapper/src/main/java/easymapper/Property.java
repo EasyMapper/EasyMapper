@@ -1,4 +1,4 @@
-package cleanpojo.japper;
+package easymapper;
 
 import static java.lang.Character.isUpperCase;
 import static java.lang.Character.toLowerCase;

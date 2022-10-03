@@ -1,4 +1,4 @@
-package cleanpojo.japper.test;
+package japper.easymapper;
 
 import java.beans.ConstructorProperties;
 

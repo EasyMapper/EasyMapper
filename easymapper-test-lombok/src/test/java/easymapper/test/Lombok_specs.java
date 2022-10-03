@@ -1,11 +1,11 @@
-package cleanpojo.japper.test;
+package easymapper.test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.javaunit.autoparams.AutoSource;
 import org.junit.jupiter.params.ParameterizedTest;
 
-import cleanpojo.japper.Mapper;
+import easymapper.Mapper;
 
 class Lombok_specs {
 

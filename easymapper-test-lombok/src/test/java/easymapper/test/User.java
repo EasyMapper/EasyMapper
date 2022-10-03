@@ -1,4 +1,4 @@
-package cleanpojo.japper.test;
+package easymapper.test;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
