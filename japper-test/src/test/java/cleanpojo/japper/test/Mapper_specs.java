@@ -57,9 +57,9 @@ class Mapper_specs {
             UserView source,
             User destination) {
 
-        User actual = sut.map(source, destination);
+        sut.map(source, destination);
 
-        assertThat(actual)
+        assertThat(destination)
                 .usingRecursiveComparison()
                 .ignoringFields("passwordHash")
                 .isEqualTo(source);
