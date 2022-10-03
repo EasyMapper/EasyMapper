@@ -1,5 +1,5 @@
-rootProject.name = 'CleanPojo-Japper'
+rootProject.name = 'EasyMapper'
 
-include 'japper'
-include 'japper-test'
-include 'japper-test-lombok'
+include 'easymapper'
+include 'easymapper-test'
+include 'easymapper-test-lombok'

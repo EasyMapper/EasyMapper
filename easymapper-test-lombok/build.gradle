@@ -7,7 +7,7 @@ repositories {
 }
 
 dependencies {
-    testImplementation(project(":japper"))
+    testImplementation(project(":easymapper"))
     testCompileOnly 'org.projectlombok:lombok:1.18.24'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.24'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
