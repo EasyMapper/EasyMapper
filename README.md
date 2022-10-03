@@ -1,8 +1,8 @@
-# Japper
+# EasyMapper
 
-Japper is an easy-to-use object mapping library for Java.
+EasyMapper is an easy-to-use object mapping library for Java.
 
-Mapping values between models that represent one object in a domain is painful especially when the model has many properties and the graph of the object is deep. Japper provides automated object mapping so you can focus more on your business logic.
+Mapping values between models that represent one object in a domain is painful especially when the model has many properties and the graph of the object is deep. EasyMapper provides automated object mapping so you can focus more on your business logic.
 
 ## Requirements
 
@@ -102,7 +102,7 @@ public final class UserViewGenerator {
 
 And don't forget that you made a bug.
 
-It is very easy to map between `User` and `UserView` using Japper.
+It is very easy to map properties between `User` and `UserView` using EasyMapper.
 
 Add `lombok.anyConstructor.addConstructorProperties = true` setting to `lombok.config` file so that Lombok add a `@java.beans.ConstructorProperties` to generated constructors.
 
@@ -114,7 +114,7 @@ lombok.anyConstructor.addConstructorProperties = true
 
 If you are not using Lombok, you can put a `@java.beans.ConstructorProperties` to constructors yourself instead.
 
-Now you can easily convert User to UserView using Japper.
+Now you can easily convert an entity to a view object with `Mapper`.
 
 ```java
 package account.presentation;
