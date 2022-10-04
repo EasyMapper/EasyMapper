@@ -72,7 +72,13 @@ public final class Mapper {
     }
 
     private String[] getPropertyNames(Constructor<?> constructor) {
-        return constructor.getAnnotation(ConstructorProperties.class).value();
+        ConstructorProperties annotation = constructor.getAnnotation(ConstructorProperties.class);
+        if (annotation == null) {
+            String message = "The constructor " + constructor.toString()
+                    + " is not decorated with @ConstructorProperties annotation.";
+            throw new RuntimeException(message);
+        }
+        return annotation.value();
     }
 
     private Object createInstance(

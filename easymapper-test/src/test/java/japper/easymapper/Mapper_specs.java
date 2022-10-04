@@ -98,4 +98,14 @@ class Mapper_specs {
         UserEntity actual = sut.map(source, UserEntity.class);
         assertThat(actual.getId()).isEqualTo(source.getId());
     }
+
+    @ParameterizedTest
+    @AutoSource
+    void sut_fails_with_useful_message_if_constructor_not_decorated_with_constructor_properties_annotation(
+            Mapper sut,
+            ItemView source) {
+        assertThatThrownBy(() -> sut.map(source, ItemView.class))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContainingAll("ItemView", "@ConstructorProperties");
+    }
 }
