@@ -2,7 +2,7 @@ package easymapper.test;
 
 import java.beans.ConstructorProperties;
 
-public final class Shipment {
+public class Shipment {
 
     private Recipient recipient;
     private Address address;

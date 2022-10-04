@@ -2,7 +2,7 @@ package easymapper.test;
 
 import java.beans.ConstructorProperties;
 
-public final class User {
+public class User {
 
     private long id;
     private String username;

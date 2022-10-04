@@ -8,7 +8,7 @@ import javax.persistence.Id;
 import javax.persistence.Version;
 
 @Entity
-public final class UserEntity {
+public class UserEntity {
 
     @Id
     private long id;

@@ -3,7 +3,7 @@ package easymapper.test;
 import java.beans.ConstructorProperties;
 import java.math.BigDecimal;
 
-public final class Price {
+public class Price {
 
     private String currency;
     private BigDecimal amount;

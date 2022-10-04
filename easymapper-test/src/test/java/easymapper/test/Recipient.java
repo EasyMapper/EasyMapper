@@ -2,7 +2,7 @@ package easymapper.test;
 
 import java.beans.ConstructorProperties;
 
-public final class Recipient {
+public class Recipient {
 
     private String name;
     private String phoneNumber;

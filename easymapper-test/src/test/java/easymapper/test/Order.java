@@ -3,17 +3,17 @@ package easymapper.test;
 import java.beans.ConstructorProperties;
 import java.util.UUID;
 
-public final class Order {
+public class Order {
     private UUID id;
     private long itemId;
-    private int amount;
+    private int quantity;
     private Shipment shipment;
 
-    @ConstructorProperties({ "id", "itemId", "amount", "shipment" })
-    public Order(UUID id, long itemId, int amount, Shipment shipment) {
+    @ConstructorProperties({ "id", "itemId", "quantity", "shipment" })
+    public Order(UUID id, long itemId, int quantity, Shipment shipment) {
         this.id = id;
         this.itemId = itemId;
-        this.amount = amount;
+        this.quantity = quantity;
         this.shipment = shipment;
     }
 
@@ -25,8 +25,8 @@ public final class Order {
         return itemId;
     }
 
-    public int getAmount() {
-        return amount;
+    public int getQuantity() {
+        return quantity;
     }
 
     public Shipment getShipment() {

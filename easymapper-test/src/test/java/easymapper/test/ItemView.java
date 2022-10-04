@@ -1,6 +1,6 @@
 package easymapper.test;
 
-public final class ItemView {
+public class ItemView {
 
     private long id;
     private String name;
