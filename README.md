@@ -14,16 +14,16 @@ Mapping values between models that represent one object in a domain is painful e
 
 ```xml
 <dependency>
-  <groupId>io.github.cleanpojo</groupId>
-  <artifactId>japper</artifactId>
-  <version>0.1.0</version>
+  <groupId>io.github.easymapper</groupId>
+  <artifactId>easymapper</artifactId>
+  <version>0.0.1</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```groovy
-implementation 'io.github.cleanpojo:japper:0.1.0'
+implementation 'io.github.easymapper:easymapper:0.0.1'
 ```
 
 ## Features
