@@ -58,7 +58,7 @@ class Mapper_specs {
             UserView source,
             User destination) {
 
-        sut.map(source, destination);
+        sut.map(source, destination, UserView.class, User.class);
 
         assertThat(destination)
                 .usingRecursiveComparison()
@@ -69,7 +69,8 @@ class Mapper_specs {
     @ParameterizedTest
     @AutoSource
     void sut_has_null_guard_for_source(Mapper sut, User destination) {
-        assertThatThrownBy(() -> sut.map(null, destination))
+        assertThatThrownBy(
+                () -> sut.map(null, destination, User.class, User.class))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("source");
     }
@@ -78,7 +79,8 @@ class Mapper_specs {
     @AutoSource
     void sut_has_null_guard_for_destination(Mapper sut, User source) {
         Object destination = null;
-        assertThatThrownBy(() -> sut.map(source, destination))
+        assertThatThrownBy(
+                () -> sut.map(source, destination, User.class, User.class))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("destination");
     }

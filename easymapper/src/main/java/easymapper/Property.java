@@ -22,9 +22,9 @@ final class Property {
         this.setter = setter;
     }
 
-    public static Map<String, Property> getProperties(Object instance) {
-        Map<String, Method> getters = getGetters(instance);
-        Map<String, Method> setters = getSetters(instance);
+    public static Map<String, Property> getProperties(Class<?> type) {
+        Map<String, Method> getters = getGetters(type);
+        Map<String, Method> setters = getSetters(type);
 
         return concat(getters.keySet().stream(), setters.keySet().stream())
                 .distinct()
@@ -35,9 +35,9 @@ final class Property {
                 .collect(Collectors.toMap(x -> x.getName(), x -> x));
     }
 
-    private static Map<String, Method> getGetters(Object instance) {
+    private static Map<String, Method> getGetters(Class<?> type) {
         Map<String, Method> getters = new HashMap<>();
-        for (Method method : instance.getClass().getMethods()) {
+        for (Method method : type.getMethods()) {
             String methodName = method.getName();
             if (methodName.startsWith("get") == false) {
                 continue;
@@ -48,9 +48,9 @@ final class Property {
         return getters;
     }
 
-    private static Map<String, Method> getSetters(Object instance) {
+    private static Map<String, Method> getSetters(Class<?> type) {
         Map<String, Method> setters = new HashMap<>();
-        for (Method method : instance.getClass().getMethods()) {
+        for (Method method : type.getMethods()) {
             String methodName = method.getName();
             if (methodName.startsWith("set") == false) {
                 continue;

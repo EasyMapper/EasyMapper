@@ -21,12 +21,17 @@ public final class Mapper {
             return null;
         }
 
-        Object destination = construct(source, destinationType);
-        project(source, destination);
+        Class<?> sourceType = source.getClass();
+        Object destination = construct(source, sourceType, destinationType);
+        project(source, destination, sourceType, destinationType);
         return destinationType.cast(destination);
     }
 
-    public void map(Object source, Object destination) {
+    public void map(
+            Object source,
+            Object destination,
+            Class<?> sourceType,
+            Class<?> destinationType) {
         if (source == null) {
             throw argumentNullException("source");
         }
@@ -35,14 +40,14 @@ public final class Mapper {
             throw argumentNullException("destination");
         }
 
-        project(source, destination);
+        project(source, destination, sourceType, destinationType);
     }
 
-    private <T> Object construct(Object source, Class<T> destinationType) {
+    private Object construct(Object source, Class<?> sourceType, Class<?> destinationType) {
         Constructor<?> constructor = getConstructor(destinationType);
         Parameter[] parameters = constructor.getParameters();
         Object[] arguments = new Object[parameters.length];
-        Map<String, Property> sourceProperties = Property.getProperties(source);
+        Map<String, Property> sourceProperties = Property.getProperties(sourceType);
         String[] destinationPropertyNames = getPropertyNames(constructor);
         for (int i = 0; i < parameters.length; i++) {
             String destinationPropertyName = destinationPropertyNames[i];
@@ -60,9 +65,13 @@ public final class Mapper {
         return createInstance(constructor, arguments);
     }
 
-    private void project(Object source, Object destination) {
-        Map<String, Property> sourceProperties = Property.getProperties(source);
-        Map<String, Property> destinationProperties = Property.getProperties(destination);
+    private void project(
+            Object source,
+            Object destination,
+            Class<?> sourceType,
+            Class<?> destinationType) {
+        Map<String, Property> sourceProperties = Property.getProperties(sourceType);
+        Map<String, Property> destinationProperties = Property.getProperties(destinationType);
         for (String propertyName : destinationProperties.keySet()) {
             if (sourceProperties.containsKey(propertyName)) {
                 Object propertyValue = sourceProperties.get(propertyName).getValue(source);
