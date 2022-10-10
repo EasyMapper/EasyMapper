@@ -10,7 +10,8 @@ dependencies {
     testImplementation(project(":easymapper"))
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.0'
-    testImplementation 'io.github.autoparams:autoparams:1.0.1'
+    testImplementation 'io.github.autoparams:autoparams:1.1.1'
+    testImplementation 'io.github.autoparams:autoparams-mockito:1.1.1'
     testImplementation 'org.assertj:assertj-core:3.23.1'
     testImplementation 'javax.persistence:javax.persistence-api:2.2'
 }
