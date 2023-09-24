@@ -12,6 +12,8 @@ import java.util.UUID;
 
 public final class Mapper {
 
+    private final String[] empty = new String[0];
+
     public <T> T map(Object source, Class<T> destinationType) {
         if (destinationType == null) {
             throw argumentNullException("destinationType");
@@ -88,6 +90,10 @@ public final class Mapper {
     }
 
     private String[] getPropertyNames(Constructor<?> constructor) {
+        if (constructor.getParameterCount() == 0) {
+            return empty;
+        }
+
         ConstructorProperties annotation = constructor.getAnnotation(ConstructorProperties.class);
         if (annotation == null) {
             String message = "The constructor " + constructor

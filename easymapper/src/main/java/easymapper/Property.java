@@ -12,9 +12,9 @@ import java.util.stream.Collectors;
 
 final class Property {
 
-    private String name;
-    private Method getter;
-    private Method setter;
+    private final String name;
+    private final Method getter;
+    private final Method setter;
 
     private Property(String name, Method getter, Method setter) {
         this.name = name;
@@ -32,7 +32,7 @@ final class Property {
                 name,
                 getters.getOrDefault(name, null),
                 setters.getOrDefault(name, null)))
-            .collect(Collectors.toMap(x -> x.getName(), x -> x));
+            .collect(Collectors.toMap(Property::getName, x -> x));
     }
 
     private static Map<String, Method> getGetters(Class<?> type) {

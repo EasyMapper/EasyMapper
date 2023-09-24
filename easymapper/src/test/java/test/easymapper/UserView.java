@@ -1,11 +1,11 @@
 package test.easymapper;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 
-@AllArgsConstructor
 @Getter
+@Setter
 public class UserView {
-    private final long id;
-    private final String username;
+    private long id;
+    private String username;
 }
