@@ -1,49 +1,42 @@
 package test.easymapper;
 
 import java.beans.ConstructorProperties;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Version;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@NoArgsConstructor
 @Entity
 public class UserEntity {
 
+    @Getter
     @Id
     private long id;
 
+    @Getter
     @Column(unique = true)
     private String username;
 
+    @Getter
+    @Setter
     @Column(unique = true)
     private String passwordHash;
 
     @Version
     private int version;
 
-    @ConstructorProperties({ "username", "passwordHash" })
-    public UserEntity(String username, String passwordHash) {
+    @ConstructorProperties({ "username" })
+    public UserEntity(String username) {
         this.username = username;
-        this.passwordHash = passwordHash;
     }
 
-    @ConstructorProperties({ "id", "username", "passwordHash" })
-    public UserEntity(long id, String username, String passwordHash) {
+    @ConstructorProperties({ "id", "username" })
+    public UserEntity(long id, String username) {
         this.id = id;
         this.username = username;
-        this.passwordHash = passwordHash;
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public String getPasswordHash() {
-        return passwordHash;
     }
 }

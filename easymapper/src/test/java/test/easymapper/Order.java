@@ -1,35 +1,14 @@
 package test.easymapper;
 
-import java.beans.ConstructorProperties;
 import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
+@AllArgsConstructor
+@Getter
 public class Order {
-    private UUID id;
-    private long itemId;
-    private int quantity;
-    private Shipment shipment;
-
-    @ConstructorProperties({ "id", "itemId", "quantity", "shipment" })
-    public Order(UUID id, long itemId, int quantity, Shipment shipment) {
-        this.id = id;
-        this.itemId = itemId;
-        this.quantity = quantity;
-        this.shipment = shipment;
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public long getItemId() {
-        return itemId;
-    }
-
-    public int getQuantity() {
-        return quantity;
-    }
-
-    public Shipment getShipment() {
-        return shipment;
-    }
+    private final UUID id;
+    private final long itemId;
+    private final int quantity;
+    private final Shipment shipment;
 }

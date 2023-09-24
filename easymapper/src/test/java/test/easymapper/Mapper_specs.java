@@ -4,9 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import autoparams.AutoSource;
-import org.junit.jupiter.params.ParameterizedTest;
-
 import easymapper.Mapper;
+import org.junit.jupiter.params.ParameterizedTest;
 
 class Mapper_specs {
 
@@ -55,10 +54,9 @@ class Mapper_specs {
     @AutoSource
     void sut_correctly_projects_settable_properties(
         Mapper sut,
-        UserView source,
-        User destination
+        UserEntity source
     ) {
-        sut.map(source, destination, UserView.class, User.class);
+        UserEntity destination = sut.map(source, UserEntity.class);
 
         assertThat(destination)
             .usingRecursiveComparison()

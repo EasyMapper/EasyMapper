@@ -1,26 +1,17 @@
 package test.easymapper;
 
+import lombok.Getter;
+
+@Getter
 public class ItemView {
 
-    private long id;
-    private String name;
-    private Price listPrice;
+    private final long id;
+    private final String name;
+    private final Price listPrice;
 
     public ItemView(long id, String name, Price listPrice) {
         this.id = id;
         this.name = name;
         this.listPrice = listPrice;
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public Price getListPrice() {
-        return listPrice;
     }
 }
