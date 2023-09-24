@@ -1,4 +1,4 @@
-package easymapper.test;
+package test.easymapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

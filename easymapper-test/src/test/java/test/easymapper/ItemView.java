@@ -1,4 +1,4 @@
-package easymapper.test;
+package test.easymapper;
 
 public class ItemView {
 

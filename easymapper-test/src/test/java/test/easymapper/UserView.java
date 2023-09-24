@@ -1,4 +1,4 @@
-package easymapper.test;
+package test.easymapper;
 
 import java.beans.ConstructorProperties;
 
