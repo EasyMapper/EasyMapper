@@ -27,12 +27,12 @@ final class Property {
         Map<String, Method> setters = getSetters(type);
 
         return concat(getters.keySet().stream(), setters.keySet().stream())
-                .distinct()
-                .map(name -> new Property(
-                        name,
-                        getters.getOrDefault(name, null),
-                        setters.getOrDefault(name, null)))
-                .collect(Collectors.toMap(x -> x.getName(), x -> x));
+            .distinct()
+            .map(name -> new Property(
+                name,
+                getters.getOrDefault(name, null),
+                setters.getOrDefault(name, null)))
+            .collect(Collectors.toMap(x -> x.getName(), x -> x));
     }
 
     private static Map<String, Method> getGetters(Class<?> type) {
@@ -42,7 +42,7 @@ final class Property {
             if (methodName.startsWith("get") == false) {
                 continue;
             }
-            String propertyName = decapitalizeHead(methodName.substring(3));
+            String propertyName = camelize(methodName.substring(3));
             getters.put(propertyName, method);
         }
         return getters;
@@ -55,13 +55,13 @@ final class Property {
             if (methodName.startsWith("set") == false) {
                 continue;
             }
-            String propertyName = decapitalizeHead(methodName.substring(3));
+            String propertyName = camelize(methodName.substring(3));
             setters.put(propertyName, method);
         }
         return setters;
     }
 
-    private static String decapitalizeHead(String s) {
+    private static String camelize(String s) {
         char head = s.charAt(0);
         if (isUpperCase(head)) {
             return toLowerCase(head) + s.substring(1);
@@ -78,8 +78,8 @@ final class Property {
         try {
             return getter.invoke(instance);
         } catch (IllegalAccessException
-                | IllegalArgumentException
-                | InvocationTargetException exception) {
+            | IllegalArgumentException
+            | InvocationTargetException exception) {
             throw new RuntimeException(exception);
         }
     }
@@ -92,8 +92,8 @@ final class Property {
         try {
             setter.invoke(instance, value);
         } catch (IllegalAccessException
-                | IllegalArgumentException
-                | InvocationTargetException exception) {
+            | IllegalArgumentException
+            | InvocationTargetException exception) {
             throw new RuntimeException(exception);
         }
     }

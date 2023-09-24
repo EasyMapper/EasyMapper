@@ -5,6 +5,7 @@ import java.util.Arrays;
 
 final class ConstructorSelector {
 
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
     static <T> Constructor<?> getConstructor(Class<T> destinationType) {
         return Arrays
             .stream(destinationType.getConstructors())

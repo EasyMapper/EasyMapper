@@ -41,38 +41,38 @@ class Mapper_specs {
 
         // Assert
         assertThat(actual.getShipment())
-                .isNotSameAs(source.getShipment())
-                .usingRecursiveComparison()
-                .isEqualTo(source.getShipment());
+            .isNotSameAs(source.getShipment())
+            .usingRecursiveComparison()
+            .isEqualTo(source.getShipment());
 
         assertThat(actual.getShipment().getAddress())
-                .isNotSameAs(source.getShipment().getAddress())
-                .usingRecursiveComparison()
-                .isEqualTo(source.getShipment().getAddress());
+            .isNotSameAs(source.getShipment().getAddress())
+            .usingRecursiveComparison()
+            .isEqualTo(source.getShipment().getAddress());
     }
 
     @ParameterizedTest
     @AutoSource
     void sut_correctly_projects_settable_properties(
-            Mapper sut,
-            UserView source,
-            User destination) {
-
+        Mapper sut,
+        UserView source,
+        User destination
+    ) {
         sut.map(source, destination, UserView.class, User.class);
 
         assertThat(destination)
-                .usingRecursiveComparison()
-                .ignoringFields("passwordHash")
-                .isEqualTo(source);
+            .usingRecursiveComparison()
+            .ignoringFields("passwordHash")
+            .isEqualTo(source);
     }
 
     @ParameterizedTest
     @AutoSource
     void sut_has_null_guard_for_source(Mapper sut, User destination) {
         assertThatThrownBy(
-                () -> sut.map(null, destination, User.class, User.class))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("source");
+            () -> sut.map(null, destination, User.class, User.class))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("source");
     }
 
     @ParameterizedTest
@@ -80,18 +80,19 @@ class Mapper_specs {
     void sut_has_null_guard_for_destination(Mapper sut, User source) {
         Object destination = null;
         assertThatThrownBy(
-                () -> sut.map(source, destination, User.class, User.class))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("destination");
+            () -> sut.map(source, destination, User.class, User.class))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("destination");
     }
 
     @ParameterizedTest
     @AutoSource
     void sut_has_null_guard_for_destination_type(Mapper sut, User source) {
         Class<User> destinationType = null;
-        assertThatThrownBy(() -> sut.map(source, destinationType))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("destinationType");
+        assertThatThrownBy(
+            () -> sut.map(source, destinationType))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("destinationType");
     }
 
     @ParameterizedTest
@@ -104,10 +105,11 @@ class Mapper_specs {
     @ParameterizedTest
     @AutoSource
     void sut_fails_with_useful_message_if_constructor_not_decorated_with_constructor_properties_annotation(
-            Mapper sut,
-            ItemView source) {
+        Mapper sut,
+        ItemView source
+    ) {
         assertThatThrownBy(() -> sut.map(source, ItemView.class))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessageContainingAll("ItemView", "@ConstructorProperties");
+            .isInstanceOf(RuntimeException.class)
+            .hasMessageContainingAll("ItemView", "@ConstructorProperties");
     }
 }

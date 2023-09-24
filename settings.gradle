@@ -1,5 +1,4 @@
 rootProject.name = 'EasyMapper'
 
 include 'easymapper'
-include 'easymapper-test-lombok'
 include 'easymapper-test-kotlin'

@@ -28,10 +28,11 @@ public final class Mapper {
     }
 
     public void map(
-            Object source,
-            Object destination,
-            Class<?> sourceType,
-            Class<?> destinationType) {
+        Object source,
+        Object destination,
+        Class<?> sourceType,
+        Class<?> destinationType
+    ) {
         if (source == null) {
             throw argumentNullException("source");
         }
@@ -43,7 +44,11 @@ public final class Mapper {
         project(source, destination, sourceType, destinationType);
     }
 
-    private Object construct(Object source, Class<?> sourceType, Class<?> destinationType) {
+    private Object construct(
+        Object source,
+        Class<?> sourceType,
+        Class<?> destinationType
+    ) {
         Constructor<?> constructor = getConstructor(destinationType);
         Parameter[] parameters = constructor.getParameters();
         Object[] arguments = new Object[parameters.length];
@@ -54,8 +59,9 @@ public final class Mapper {
             Property sourceProperty = sourceProperties.get(destinationPropertyName);
             Object sourcePropertyValue = sourceProperty.getValue(source);
             Parameter parameter = parameters[i];
-            if (parameter.getType().isPrimitive() || parameter.getType().equals(String.class)
-                    || parameter.getType().equals(UUID.class)) {
+            if (parameter.getType().isPrimitive()
+                || parameter.getType().equals(String.class)
+                || parameter.getType().equals(UUID.class)) {
                 arguments[i] = sourcePropertyValue;
             } else {
                 arguments[i] = map(sourcePropertyValue, parameter.getType());
@@ -66,10 +72,11 @@ public final class Mapper {
     }
 
     private void project(
-            Object source,
-            Object destination,
-            Class<?> sourceType,
-            Class<?> destinationType) {
+        Object source,
+        Object destination,
+        Class<?> sourceType,
+        Class<?> destinationType
+    ) {
         Map<String, Property> sourceProperties = Property.getProperties(sourceType);
         Map<String, Property> destinationProperties = Property.getProperties(destinationType);
         for (String propertyName : destinationProperties.keySet()) {
@@ -91,14 +98,15 @@ public final class Mapper {
     }
 
     private Object createInstance(
-            Constructor<?> constructor,
-            Object[] arguments) {
+        Constructor<?> constructor,
+        Object[] arguments
+    ) {
         try {
             return constructor.newInstance(arguments);
         } catch (InstantiationException
-                | IllegalAccessException
-                | IllegalArgumentException
-                | InvocationTargetException exception) {
+            | IllegalAccessException
+            | IllegalArgumentException
+            | InvocationTargetException exception) {
             throw new RuntimeException(exception);
         }
     }
