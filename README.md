@@ -1,42 +1,40 @@
 # EasyMapper
 
-EasyMapper is an easy-to-use object mapping library for Java.
-
-Mapping values between models that represent one object in a domain is painful especially when the model has many properties and the graph of the object is deep. EasyMapper provides automated object mapping so you can focus more on your business logic.
+EasyMapper is an easy-to-use object mapping library for Java, designed to simplify the process of mapping values between models representing objects in a domain. This is especially helpful when dealing with models that have many properties and deep object graphs. EasyMapper automates the object mapping process, allowing you to focus more on your business logic.
 
 ## Requirements
 
 - JDK 1.8 or higher
 
-## Install
+## Installation
 
 ### Maven
+
+To include EasyMapper in your Maven project, add the following dependency to your `pom.xml` file:
 
 ```xml
 <dependency>
   <groupId>io.github.easymapper</groupId>
   <artifactId>easymapper</artifactId>
-  <version>0.0.1</version>
+  <version>0.1.1</version>
 </dependency>
 ```
 
 ### Gradle
 
+If you are using Gradle, include EasyMapper by adding the following line to your `build.gradle` file:
+
 ```groovy
-implementation 'io.github.easymapper:easymapper:0.0.1'
+implementation 'io.github.easymapper:easymapper:0.1.1'
 ```
 
 ## Features
 
 ### Object Projection
 
-When defining the domain model and presentation model to represent users,
+Suppose you have domain and presentation models to represent users as follows:
 
 ```java
-/*
- * /User/me/myapp/src/main/java/account/domainmodel/User.java
- */
-
 package account.domainmodel;
 
 import lombok.AllArgsConstructor;
@@ -45,22 +43,17 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public final class User {
-
-    private long id;
-    private String username;
-    private String email;
-    private String passwordHash;
-    private String firstName;
-    private String middleName;
-    private String lastName;
+    private final long id;
+    private final String username;
+    private final String email;
+    private final String passwordHash;
+    private final String firstName;
+    private final String middleName;
+    private final String lastName;
 }
 ```
 
 ```java
-/*
- * /User/me/myapp/src/main/java/account/presentation/UserView.java
- */
-
 package account.presentation;
 
 import lombok.AllArgsConstructor;
@@ -69,16 +62,16 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public final class UserView {
-
-    private long id;
-    private String username;
-    private String email;
-    private String firstName;
-    private String middleName;
-    private String lastName;
+    private final long id;
+    private final String username;
+    private final String email;
+    private final String firstName;
+    private final String middleName;
+    private final String lastName;
 }
 ```
-you didn't just want to expose password information to the presentation layer, but you had to go through the following efforts.
+
+If your goal is to expose user information to the presentation layer while avoiding the exposure of sensitive data such as the password, you might initially create a UserViewGenerator class as shown below:
 
 ```java
 package account.presentation;
@@ -100,27 +93,21 @@ public final class UserViewGenerator {
 }
 ```
 
-And don't forget that you made a bug.
+However, it's crucial to note that there's a bug in the code above.
 
-It is very easy to map properties between `User` and `UserView` using EasyMapper.
-
-Add `lombok.anyConstructor.addConstructorProperties = true` setting to `lombok.config` file so that Lombok add a `@java.beans.ConstructorProperties` to generated constructors.
+Mapping properties between `User` and `UserView` becomes a breeze with EasyMapper. To enhance the process further, you can add the `lombok.anyConstructor.addConstructorProperties = true` setting to your `lombok.config` file, allowing Lombok to automatically add a `@java.beans.ConstructorProperties` annotation to the generated constructors. If you're not using Lombok, you can manually add the `@java.beans.ConstructorProperties` annotation to the constructors yourself.
 
 ```text
-# /User/me/myapp/lombok.config
-
 lombok.anyConstructor.addConstructorProperties = true
 ```
 
-If you are not using Lombok, you can put a `@java.beans.ConstructorProperties` to constructors yourself instead.
-
-Now you can easily convert an entity to a view object with `Mapper`.
+With this configuration in place, you can easily convert an entity to a view object using the `Mapper` class:
 
 ```java
 package account.presentation;
 
 import account.domainmodel.User;
-import japper.Mapper;
+import easymapper.Mapper;
 
 public final class UserViewGenerator {
 
@@ -130,15 +117,15 @@ public final class UserViewGenerator {
 }
 ```
 
+Now, mapping properties between `User` and `UserView` is simplified and more efficient, thanks to EasyMapper and the added Lombok configuration.
+
 ### Property Projection
 
-`Mapper` provides the method to project properties of a source object to an existing destination object.
+The `Mapper` class offers a method for projecting properties from a source object to an existing destination object. This can be particularly useful when you need to update properties of an existing object based on another object.
+
+Let's consider an example using `UserEntity` and `User` classes:
 
 ```java
-/*
- * /User/me/myapp/src/main/java/account/persistencemodel/UserEntity.java
- */
-
 package account.persistencemodel;
 
 import javax.persistence.Column;
@@ -174,29 +161,48 @@ public final class UserEntity {
 
     private String lastName;
 
+    // For optimistic concurrency control. Not related to the domain model.
     @Version
-    private Integer version; // For optimistic concurrency control. Not related to the domain model.
+    private Integer version;
 }
 ```
 
 ```java
-/*
- * /User/me/myapp/src/main/java/account/persistencemodel/UserRepository.java
- */
-
 package account.persistencemodel;
 
 import account.domainmodel.User;
-import japper.Mapper;
+import easymapper.Mapper;
+import java.util.function.Consumer;
 
 public final class UserRepository {
 
     private final Mapper mapper = new Mapper();
 
-    void update(User domainModel) {
-        UserEntity persistenceModel = findById(domainModel.getId());
-        mapper.map(domainModel, persistenceModel); // Map properties of 'domainModel' to 'persistenceModel'.
+    void update(long id, Consumer<User> updater) {
+        // Find the entity by id.
+        UserEntity persistenceModel = findById(id);
+        
+        // Map properties of 'persistenceModel' to 'domainModel'.
+        User domainModel = mapper.map(persistenceModel, User.class);
+
+        // Update properties of 'domainModel'.
+        updater.accept(domainModel);
+
+        // Map properties of 'domainModel' to 'persistenceModel'.
+        mapper.map(domainModel, persistenceModel);
+
+        // Save the entity.
         repository.save(dataModel);
     }
 }
 ```
+
+In this example, the `update` method in the `UserRepository` class updates a `UserEntity` based on a provided `Consumer` function that modifies a `User` domain model. Here's how it works:
+
+1. It retrieves the `UserEntity` from the database based on the provided `id`.
+1. The `Mapper` class is used to map properties from `UserEntity` to a `User` domain model.
+1. The provided `updater` function is invoked to update properties on the `User` domain model.
+1. The `Mapper` class is again used to project properties from the updated `User` domain model back to the original `UserEntity`.
+1. Finally, the updated `UserEntity` is saved back to the repository.
+
+This demonstrates how EasyMapper can simplify property projection when working with objects in different layers of an application.
