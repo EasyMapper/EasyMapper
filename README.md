@@ -44,7 +44,7 @@ To include EasyMapper in your Maven project, add the following dependency to you
 <dependency>
   <groupId>io.github.easymapper</groupId>
   <artifactId>easymapper</artifactId>
-  <version>0.1.3</version>
+  <version>0.1.4</version>
 </dependency>
 ```
 
@@ -53,7 +53,7 @@ To include EasyMapper in your Maven project, add the following dependency to you
 If you are using Gradle, include EasyMapper by adding the following line to your `build.gradle` file:
 
 ```groovy
-implementation 'io.github.easymapper:easymapper:0.1.3'
+implementation 'io.github.easymapper:easymapper:0.1.4'
 ```
 
 ## Features
