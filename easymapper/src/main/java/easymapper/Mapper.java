@@ -131,6 +131,31 @@ public final class Mapper {
             return empty;
         }
 
+        Parameter[] parameters = constructor.getParameters();
+
+        return allParametersHaveNames(parameters)
+            ? getParameterNames(parameters)
+            : getAnnotatedPropertyNames(constructor);
+    }
+
+    private static boolean allParametersHaveNames(Parameter[] parameters) {
+        for (Parameter parameter : parameters) {
+            if (parameter.isNamePresent() == false) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static String[] getParameterNames(Parameter[] parameters) {
+        String[] parameterNames = new String[parameters.length];
+        for (int i = 0; i < parameters.length; i++) {
+            parameterNames[i] = parameters[i].getName();
+        }
+        return parameterNames;
+    }
+
+    private static String[] getAnnotatedPropertyNames(Constructor<?> constructor) {
         ConstructorProperties annotation = constructor.getAnnotation(ConstructorProperties.class);
         if (annotation == null) {
             String message = "The constructor " + constructor

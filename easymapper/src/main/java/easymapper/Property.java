@@ -37,13 +37,17 @@ final class Property {
 
     private static Map<String, Method> getGetters(Class<?> type) {
         Map<String, Method> getters = new HashMap<>();
-        for (Method method : type.getMethods()) {
-            String methodName = method.getName();
-            if (methodName.startsWith("get") == false) {
+        for (Method method : type.getDeclaredMethods()) {
+            if (method.getParameterCount() > 0) {
                 continue;
             }
-            String propertyName = camelize(methodName.substring(3));
-            getters.put(propertyName, method);
+            String methodName = method.getName();
+            if (methodName.startsWith("get")) {
+                String propertyName = camelize(methodName.substring(3));
+                getters.put(propertyName, method);
+            } else {
+                getters.put(methodName, method);
+            }
         }
         return getters;
     }
