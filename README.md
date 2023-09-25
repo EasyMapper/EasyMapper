@@ -2,6 +2,38 @@
 
 EasyMapper is an easy-to-use object mapping library for Java, designed to simplify the process of mapping values between models representing objects in a domain. This is especially helpful when dealing with models that have many properties and deep object graphs. EasyMapper automates the object mapping process, allowing you to focus more on your business logic.
 
+Here is a concise example demonstrating how EasyMapper simplifies property mapping between two objects:
+
+```java
+@Getter
+@Setter
+public class User {
+    private long id;
+    private String email;
+    private String passwordHash;
+}
+```
+
+```java
+@Getter
+@Setter
+public class UserView {
+    private long id;
+    private String email;
+}
+```
+
+```java
+public class UserViewGenerator {
+
+    public UserView generateView(User entity) {
+        return new Mapper().map(entity, UserView.class);
+    }
+}
+```
+
+In this example, EasyMapper effortlessly handles the mapping of properties from a `User` object to a `UserView` object, ensuring a seamless transfer of data.
+
 ## Requirements
 
 - JDK 1.8 or higher
@@ -16,7 +48,7 @@ To include EasyMapper in your Maven project, add the following dependency to you
 <dependency>
   <groupId>io.github.easymapper</groupId>
   <artifactId>easymapper</artifactId>
-  <version>0.1.1</version>
+  <version>0.1.2</version>
 </dependency>
 ```
 
@@ -25,7 +57,7 @@ To include EasyMapper in your Maven project, add the following dependency to you
 If you are using Gradle, include EasyMapper by adding the following line to your `build.gradle` file:
 
 ```groovy
-implementation 'io.github.easymapper:easymapper:0.1.1'
+implementation 'io.github.easymapper:easymapper:0.1.2'
 ```
 
 ## Features
@@ -206,3 +238,61 @@ In this example, the `update` method in the `UserRepository` class updates a `Us
 1. Finally, the updated `UserEntity` is saved back to the repository.
 
 This demonstrates how EasyMapper can simplify property projection when working with objects in different layers of an application.
+
+### Property Mapping Customization
+
+EasyMapper allows you to customize the mapping of properties between objects by providing a `MappingConfiguration` object to the `Mapper` class. This configuration object allows you to specify how properties should be mapped between objects.
+
+Here is an example of how you can customize the mapping of properties between two objects:
+
+```java
+package account.domainmodel;
+
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+public class Order {
+    private UUID id;
+    private long itemId;
+    private int quantity;
+}
+```
+
+```java
+package account.presentation;
+
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+public class OrderView {
+    private UUID orderId;
+    private long itemId;
+    private int numberOfItems;
+}
+```
+
+```java
+package account.presentation;
+
+import account.domainmodel.Order;
+import easymapper.Mapper;
+import static easymapper.MapperConfiguration.configureMapper;
+
+public class OrderViewGenerator {
+
+    private static Mapper mapper = new Mapper(configureMapper(config -> config
+        .addMapping(Order.class, OrderView.class, mapping -> mapping
+            .map("id", "orderId")
+            .map("quantity", "numberOfItems"))));
+
+    public OrderView generateView(Order entity) {
+        return mapper.map(entity, OrderView.class);
+    }
+}
+```
+
+In the provided example, EasyMapper's `MappingConfiguration` allows you to specify custom mapping rules. Here, we've customized the mapping for the `id` property to be mapped to `orderId` and the `quantity` property to be mapped to `numberOfItems` when transferring data from the `Order` object to the `OrderView` object. This flexibility enables you to fine-tune the mapping process to precisely meet your requirements.
