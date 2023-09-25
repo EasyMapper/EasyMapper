@@ -15,11 +15,7 @@ public class User {
 ```
 
 ```java
-@Getter
-@Setter
-public class UserView {
-    private long id;
-    private String email;
+public record UserView(long id, String email) {
 }
 ```
 
@@ -32,7 +28,7 @@ public class UserViewGenerator {
 }
 ```
 
-In this example, EasyMapper effortlessly handles the mapping of properties from a `User` object to a `UserView` object, ensuring a seamless transfer of data.
+In this example, EasyMapper effortlessly manages property mapping from a `User` object to a `UserView` object, guaranteeing a smooth data transfer process. With EasyMapper, you can reap the advantages of effortless object mapping, irrespective of whether your object is structured as a class or a record.
 
 ## Requirements
 
