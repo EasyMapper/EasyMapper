@@ -1,6 +1,7 @@
 package test.easymapper;
 
 import easymapper.Mapper;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -8,7 +9,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class Mapper_specs {
 
     @AutoParameterizedTest
-    void sut_correctly_maps_object(Mapper sut, User source) {
+    void sut_correctly_maps_object(User source) {
+        Mapper sut = new Mapper();
         User actual = sut.map(source, User.class);
         assertThat(actual).usingRecursiveComparison().isEqualTo(source);
     }
@@ -103,5 +105,12 @@ class Mapper_specs {
         assertThatThrownBy(() -> sut.map(source, ItemView.class))
             .isInstanceOf(RuntimeException.class)
             .hasMessageContainingAll("ItemView", "@ConstructorProperties");
+    }
+
+    @Test
+    void sut_has_guard_against_null_configuration() {
+        assertThatThrownBy(() -> new Mapper(null))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("configuration");
     }
 }

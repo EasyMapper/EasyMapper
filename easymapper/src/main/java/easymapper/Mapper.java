@@ -12,7 +12,21 @@ import java.util.UUID;
 
 public final class Mapper {
 
-    private final String[] empty = new String[0];
+    private static final String[] empty = new String[0];
+
+    private final MapperConfiguration configuration;
+
+    public Mapper() {
+        this(MapperConfiguration.configureMapper(config -> { }));
+    }
+
+    public Mapper(MapperConfiguration configuration) {
+        if (configuration == null) {
+            throw argumentNullException("configuration");
+        }
+
+        this.configuration = configuration;
+    }
 
     public <T> T map(Object source, Class<T> destinationType) {
         if (destinationType == null) {
@@ -58,7 +72,11 @@ public final class Mapper {
         String[] destinationPropertyNames = getPropertyNames(constructor);
         for (int i = 0; i < parameters.length; i++) {
             String destinationPropertyName = destinationPropertyNames[i];
-            Property sourceProperty = sourceProperties.get(destinationPropertyName);
+            String sourcePropertyName = getSourcePropertyName(
+                sourceType,
+                destinationType,
+                destinationPropertyName);
+            Property sourceProperty = sourceProperties.get(sourcePropertyName);
             Object sourcePropertyValue = sourceProperty.getValue(source);
             Parameter parameter = parameters[i];
             if (parameter.getType().isPrimitive()
@@ -81,12 +99,31 @@ public final class Mapper {
     ) {
         Map<String, Property> sourceProperties = Property.getProperties(sourceType);
         Map<String, Property> destinationProperties = Property.getProperties(destinationType);
-        for (String propertyName : destinationProperties.keySet()) {
-            if (sourceProperties.containsKey(propertyName)) {
-                Object propertyValue = sourceProperties.get(propertyName).getValue(source);
-                destinationProperties.get(propertyName).setValueIfPossible(destination, propertyValue);
+        for (String destinationPropertyName : destinationProperties.keySet()) {
+            String sourcePropertyName = getSourcePropertyName(
+                sourceType,
+                destinationType,
+                destinationPropertyName);
+            if (sourceProperties.containsKey(sourcePropertyName)) {
+                Object sourcePropertyValue = sourceProperties
+                    .get(sourcePropertyName)
+                    .getValue(source);
+                destinationProperties
+                    .get(destinationPropertyName)
+                    .setValueIfPossible(destination, sourcePropertyValue);
             }
         }
+    }
+
+    private String getSourcePropertyName(
+        Class<?> sourceType,
+        Class<?> destinationType,
+        String destinationPropertyName
+    ) {
+        return configuration
+            .getMapping(sourceType, destinationType)
+            .flatMap(mapping -> mapping.getSourcePropertyName(destinationPropertyName))
+            .orElse(destinationPropertyName);
     }
 
     private String[] getPropertyNames(Constructor<?> constructor) {
