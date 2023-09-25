@@ -6,15 +6,15 @@ import java.util.function.Consumer;
 
 public final class MapperConfiguration {
 
-    private final Collection<Mapping> mappings;
     private final ConstructorExtractor constructorExtractor;
+    private final Collection<Mapping> mappings;
 
     private MapperConfiguration(
-        Collection<Mapping> mappings,
-        ConstructorExtractor constructorExtractor
+        ConstructorExtractor constructorExtractor,
+        Collection<Mapping> mappings
     ) {
-        this.mappings = mappings;
         this.constructorExtractor = constructorExtractor;
+        this.mappings = mappings;
     }
 
     public static MapperConfiguration configureMapper(
@@ -27,8 +27,13 @@ public final class MapperConfiguration {
         MapperConfigurationBuilder builder = new MapperConfigurationBuilder();
         configurer.accept(builder);
         return new MapperConfiguration(
-            builder.getMappings(),
-            builder.getConstructorExtractor());
+            builder.getConstructorExtractor(),
+            builder.getMappings()
+        );
+    }
+
+    public ConstructorExtractor getConstructorExtractor() {
+        return constructorExtractor;
     }
 
     public Optional<Mapping> getMapping(Class<?> source, Class<?> target) {
@@ -36,9 +41,5 @@ public final class MapperConfiguration {
             .filter(mapping -> mapping.getSourceType().equals(source))
             .filter(mapping -> mapping.getDestinationType().equals(target))
             .findFirst();
-    }
-
-    public ConstructorExtractor getConstructorExtractor() {
-        return constructorExtractor;
     }
 }

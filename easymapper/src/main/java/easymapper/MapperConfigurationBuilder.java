@@ -12,12 +12,25 @@ import static java.util.stream.Collectors.toList;
 
 public final class MapperConfigurationBuilder {
 
-    private final List<MappingBuilder<?, ?>> mappingBuilders;
     private ConstructorExtractor constructorExtractor;
+    private final List<MappingBuilder<?, ?>> mappingBuilders;
 
     MapperConfigurationBuilder() {
         constructorExtractor = type -> Arrays.asList(type.getConstructors());
         mappingBuilders = new ArrayList<>();
+    }
+
+    public ConstructorExtractor getConstructorExtractor() {
+        return constructorExtractor;
+    }
+
+    public MapperConfigurationBuilder setConstructorExtractor(ConstructorExtractor value) {
+        if (value == null) {
+            throw argumentNullException("value");
+        }
+
+        this.constructorExtractor = value;
+        return this;
     }
 
     public <T, S> void addMapping(
@@ -47,18 +60,5 @@ public final class MapperConfigurationBuilder {
             .stream()
             .map(MappingBuilder::build)
             .collect(toList()));
-    }
-
-    public ConstructorExtractor getConstructorExtractor() {
-        return constructorExtractor;
-    }
-
-    public MapperConfigurationBuilder setConstructorExtractor(ConstructorExtractor value) {
-        if (value == null) {
-            throw argumentNullException("value");
-        }
-
-        this.constructorExtractor = value;
-        return this;
     }
 }
