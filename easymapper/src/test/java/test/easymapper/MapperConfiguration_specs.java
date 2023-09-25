@@ -1,10 +1,15 @@
 package test.easymapper;
 
+import easymapper.ConstructorExtractor;
 import easymapper.Mapper;
 import easymapper.MapperConfiguration;
+import java.lang.reflect.Constructor;
 import org.junit.jupiter.api.Test;
 
 import static easymapper.MapperConfiguration.configureMapper;
+import static java.util.Arrays.stream;
+import static java.util.Comparator.comparingInt;
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -106,5 +111,34 @@ public class MapperConfiguration_specs {
             configureMapper(config -> config
                 .addMapping(Order.class, OrderView.class, mapping -> mapping
                     .map("quantity", null))));
+    }
+
+    @AutoParameterizedTest
+    void constructor_extractor_correctly_works(User source) {
+        // Arrange
+        ConstructorExtractor extractor = type -> stream(type.getConstructors())
+            .sorted(comparingInt(Constructor::getParameterCount))
+            .limit(1)
+            .collect(toList());
+        Mapper mapper = new Mapper(configureMapper(c -> c.setConstructorExtractor(extractor)));
+
+        // Act
+        HasBrokenConstructor actual = mapper.map(source, HasBrokenConstructor.class);
+
+        // Assert
+        assertThat(actual.getId()).isEqualTo(source.getId());
+        assertThat(actual.getUsername()).isEqualTo(HasBrokenConstructor.DEFAULT_USERNAME);
+    }
+
+    @AutoParameterizedTest
+    void setConstructorExtractor_is_fluent() {
+        new Mapper(configureMapper(c -> assertThat(
+            c.setConstructorExtractor(c.getConstructorExtractor())).isSameAs(c)));
+    }
+
+    @AutoParameterizedTest
+    void setConstructorExtractor_has_guard_against_null_value() {
+        assertThatThrownBy(() -> configureMapper(c -> c.setConstructorExtractor(null)))
+            .isInstanceOf(IllegalArgumentException.class);
     }
 }

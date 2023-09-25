@@ -1,14 +1,14 @@
 package easymapper;
 
-import static easymapper.ConstructorSelector.getConstructor;
-import static easymapper.Exceptions.argumentNullException;
-
 import java.beans.ConstructorProperties;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Parameter;
 import java.util.Map;
 import java.util.UUID;
+
+import static easymapper.Exceptions.argumentNullException;
+import static java.util.Comparator.comparingInt;
 
 public final class Mapper {
 
@@ -89,6 +89,16 @@ public final class Mapper {
         }
 
         return createInstance(constructor, arguments);
+    }
+
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
+    private Constructor<?> getConstructor(Class<?> destinationType) {
+        return configuration
+            .getConstructorExtractor()
+            .extract(destinationType)
+            .stream()
+            .max(comparingInt(Constructor::getParameterCount))
+            .get();
     }
 
     private void project(

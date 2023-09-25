@@ -1,6 +1,7 @@
 package easymapper;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
@@ -12,9 +13,11 @@ import static java.util.stream.Collectors.toList;
 public final class MapperConfigurationBuilder {
 
     private final List<MappingBuilder<?, ?>> mappingBuilders;
+    private ConstructorExtractor constructorExtractor;
 
     MapperConfigurationBuilder() {
-        this.mappingBuilders = new ArrayList<>();
+        constructorExtractor = type -> Arrays.asList(type.getConstructors());
+        mappingBuilders = new ArrayList<>();
     }
 
     public <T, S> void addMapping(
@@ -44,5 +47,18 @@ public final class MapperConfigurationBuilder {
             .stream()
             .map(MappingBuilder::build)
             .collect(toList()));
+    }
+
+    public ConstructorExtractor getConstructorExtractor() {
+        return constructorExtractor;
+    }
+
+    public MapperConfigurationBuilder setConstructorExtractor(ConstructorExtractor value) {
+        if (value == null) {
+            throw argumentNullException("value");
+        }
+
+        this.constructorExtractor = value;
+        return this;
     }
 }
