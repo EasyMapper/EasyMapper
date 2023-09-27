@@ -36,10 +36,10 @@ public final class MapperConfiguration {
         return constructorExtractor;
     }
 
-    public Optional<Mapping> getMapping(Class<?> source, Class<?> target) {
+    public Optional<Mapping> getMapping(Class<?> source, Class<?> destination) {
         return mappings.stream()
             .filter(mapping -> mapping.getSourceType().equals(source))
-            .filter(mapping -> mapping.getDestinationType().equals(target))
+            .filter(mapping -> mapping.getDestinationType().equals(destination))
             .findFirst();
     }
 }
