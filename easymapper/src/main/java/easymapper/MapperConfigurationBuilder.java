@@ -35,10 +35,10 @@ public final class MapperConfigurationBuilder {
         return this;
     }
 
-    public <T, S> void addMapping(
-        Class<T> sourceType,
-        Class<S> destinationType,
-        Consumer<MappingBuilder<T, S>> configurer
+    public <S, D> void addMapping(
+        Class<S> sourceType,
+        Class<D> destinationType,
+        Consumer<MappingBuilder<S, D>> configurer
     ) {
         if (sourceType == null) {
             throw argumentNullException("sourceType");
@@ -52,7 +52,7 @@ public final class MapperConfigurationBuilder {
             throw argumentNullException("configurer");
         }
 
-        MappingBuilder<T, S> builder = new MappingBuilder<>(sourceType, destinationType);
+        MappingBuilder<S, D> builder = new MappingBuilder<>(sourceType, destinationType);
         configurer.accept(builder);
         this.mappingBuilders.add(builder);
     }
