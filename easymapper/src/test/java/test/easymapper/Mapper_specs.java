@@ -1,6 +1,9 @@
 package test.easymapper;
 
+import autoparams.Repeat;
 import easymapper.Mapper;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -112,5 +115,92 @@ class Mapper_specs {
         assertThatThrownBy(() -> new Mapper(null))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("configuration");
+    }
+
+    @AutoParameterizedTest
+    void sut_transforms_uuid_to_string(
+        Mapper sut,
+        Post source
+    ) {
+        PostView actual = sut.map(source, PostView.class);
+
+        assertThat(actual.getId()).isEqualTo(source.getId().toString());
+        assertThat(actual.getAuthorId()).isEqualTo(source.getAuthorId().toString());
+    }
+
+    @AllArgsConstructor
+    public static class BooleanBag {
+        private final boolean value;
+
+        public boolean getValue() {
+            return value;
+        }
+    }
+
+    @AutoParameterizedTest
+    @Repeat(10)
+    void sut_correctly_transforms_boolean_value(Mapper sut, BooleanBag source) {
+        BooleanBag actual = sut.map(source, BooleanBag.class);
+        assertThat(actual.getValue()).isEqualTo(source.getValue());
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class ByteBag {
+        private final byte value;
+    }
+
+    @AutoParameterizedTest
+    void sut_correctly_transforms_byte_value(Mapper sut, ByteBag source) {
+        ByteBag actual = sut.map(source, ByteBag.class);
+        assertThat(actual.getValue()).isEqualTo(source.getValue());
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class ShortBag {
+        private final short value;
+    }
+
+    @AutoParameterizedTest
+    void sut_correctly_transforms_short_value(Mapper sut, ShortBag source) {
+        ShortBag actual = sut.map(source, ShortBag.class);
+        assertThat(actual.getValue()).isEqualTo(source.getValue());
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class FloatBag {
+        private final float value;
+    }
+
+    @AutoParameterizedTest
+    void suit_correctly_transforms_float_value(Mapper sut, FloatBag source) {
+        FloatBag actual = sut.map(source, FloatBag.class);
+        assertThat(actual.getValue()).isEqualTo(source.getValue());
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class DoubleBag {
+        private final double value;
+    }
+
+    @AutoParameterizedTest
+    void sut_correctly_transforms_double_value(Mapper sut, DoubleBag source) {
+        DoubleBag actual = sut.map(source, DoubleBag.class);
+        assertThat(actual.getValue()).isEqualTo(source.getValue());
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class CharBag {
+        private final char value;
+    }
+
+    @AutoParameterizedTest
+    void sut_correctly_transforms_char_value(Mapper sut, CharBag source) {
+        CharBag actual = sut.map(source, CharBag.class);
+        assertThat(actual.getValue()).isEqualTo(source.getValue());
     }
 }

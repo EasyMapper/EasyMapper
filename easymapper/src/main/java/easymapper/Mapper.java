@@ -5,7 +5,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Parameter;
 import java.util.Map;
-import java.util.UUID;
+import java.util.function.Function;
 
 import static easymapper.Exceptions.argumentNullException;
 import static easymapper.Property.getProperties;
@@ -77,74 +77,26 @@ public final class Mapper {
                 sourceType,
                 destinationType,
                 destinationPropertyNames[i]);
-            Object sourcePropertyValue = sourceProperties.get(sourcePropertyName).getValue(source);
-            arguments[i] = transform(sourcePropertyValue, parameters[i].getType());
+            Property sourceProperty = sourceProperties.get(sourcePropertyName);
+            arguments[i] = transform(
+                sourceProperty.getType(),
+                parameters[i].getType(),
+                sourceProperty.getValue(source));
         }
 
         return createInstance(constructor, arguments);
     }
 
-    private Object transform(
-        Object sourceValue,
-        Class<?> destinationType
-    ) {
-        return destinationType.isPrimitive()
-            || destinationType.equals(String.class)
-            || destinationType.equals(UUID.class)
-            ? sourceValue
-            : map(sourceValue, destinationType);
-    }
-
-    @SuppressWarnings("OptionalGetWithoutIsPresent")
     private Constructor<?> getConstructor(Class<?> destinationType) {
         return configuration
             .getConstructorExtractor()
             .extract(destinationType)
             .stream()
             .max(comparingInt(Constructor::getParameterCount))
-            .get();
-    }
-
-    private void project(
-        Object source,
-        Object destination,
-        Class<?> sourceType,
-        Class<?> destinationType
-    ) {
-        Map<String, Property> sourceProperties = getProperties(sourceType);
-        Map<String, Property> destinationProperties = getProperties(destinationType);
-
-        for (String destinationPropertyName : destinationProperties.keySet()) {
-            String sourcePropertyName = getSourcePropertyName(
-                sourceType,
-                destinationType,
-                destinationPropertyName);
-
-            Property sourceProperty = sourceProperties.getOrDefault(sourcePropertyName, null);
-
-            if (sourceProperty == null) {
-                continue;
-            }
-
-            Property destinationProperty = destinationProperties.get(destinationPropertyName);
-            Class<?> destinationPropertyType = destinationProperty.getType();
-            Object destinationPropertyValue = transform(
-                sourceProperty.getValue(source),
-                destinationPropertyType);
-
-            destinationProperty.setValueIfPossible(destination, destinationPropertyValue);
-        }
-    }
-
-    private String getSourcePropertyName(
-        Class<?> sourceType,
-        Class<?> destinationType,
-        String destinationPropertyName
-    ) {
-        return configuration
-            .findMapping(sourceType, destinationType)
-            .flatMap(mapping -> mapping.getSourcePropertyName(destinationPropertyName))
-            .orElse(destinationPropertyName);
+            .orElseThrow(() -> {
+                String message = "No constructor found for " + destinationType;
+                return new RuntimeException(message);
+            });
     }
 
     private String[] getPropertyNames(Constructor<?> constructor) {
@@ -186,6 +138,29 @@ public final class Mapper {
         return annotation.value();
     }
 
+    private String getSourcePropertyName(
+        Class<?> sourceType,
+        Class<?> destinationType,
+        String destinationPropertyName
+    ) {
+        return configuration
+            .findMapping(sourceType, destinationType)
+            .flatMap(mapping -> mapping.getSourcePropertyName(destinationPropertyName))
+            .orElse(destinationPropertyName);
+    }
+
+    private Object transform(
+        Class<?> sourceType,
+        Class<?> destinationType,
+        Object sourceValue
+    ) {
+        return configuration
+            .findTransform(sourceType, destinationType)
+            .map(x -> (Function<Object, Object>)x::transform)
+            .orElse(x -> map(x, destinationType))
+            .apply(sourceValue);
+    }
+
     private Object createInstance(
         Constructor<?> constructor,
         Object[] arguments
@@ -193,10 +168,42 @@ public final class Mapper {
         try {
             return constructor.newInstance(arguments);
         } catch (InstantiationException
-            | IllegalAccessException
-            | IllegalArgumentException
-            | InvocationTargetException exception) {
+             | IllegalAccessException
+             | IllegalArgumentException
+             | InvocationTargetException exception) {
             throw new RuntimeException(exception);
+        }
+    }
+
+    private void project(
+        Object source,
+        Object destination,
+        Class<?> sourceType,
+        Class<?> destinationType
+    ) {
+        Map<String, Property> sourceProperties = getProperties(sourceType);
+        Map<String, Property> destinationProperties = getProperties(destinationType);
+
+        for (String destinationPropertyName : destinationProperties.keySet()) {
+            String sourcePropertyName = getSourcePropertyName(
+                sourceType,
+                destinationType,
+                destinationPropertyName);
+
+            Property sourceProperty = sourceProperties.getOrDefault(sourcePropertyName, null);
+
+            if (sourceProperty == null) {
+                continue;
+            }
+
+            Property destinationProperty = destinationProperties.get(destinationPropertyName);
+
+            Object destinationPropertyValue = transform(
+                sourceProperty.getType(),
+                destinationProperty.getType(),
+                sourceProperty.getValue(source));
+
+            destinationProperty.setValueIfPossible(destination, destinationPropertyValue);
         }
     }
 }
