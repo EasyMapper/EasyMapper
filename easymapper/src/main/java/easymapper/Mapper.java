@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static easymapper.Exceptions.argumentNullException;
+import static easymapper.Property.getProperties;
 import static java.util.Comparator.comparingInt;
 
 public final class Mapper {
@@ -67,28 +68,31 @@ public final class Mapper {
     ) {
         Constructor<?> constructor = getConstructor(destinationType);
         Parameter[] parameters = constructor.getParameters();
-        Object[] arguments = new Object[parameters.length];
-        Map<String, Property> sourceProperties = Property.getProperties(sourceType);
         String[] destinationPropertyNames = getPropertyNames(constructor);
+        Map<String, Property> sourceProperties = getProperties(sourceType);
+
+        Object[] arguments = new Object[parameters.length];
         for (int i = 0; i < parameters.length; i++) {
-            String destinationPropertyName = destinationPropertyNames[i];
             String sourcePropertyName = getSourcePropertyName(
                 sourceType,
                 destinationType,
-                destinationPropertyName);
-            Property sourceProperty = sourceProperties.get(sourcePropertyName);
-            Object sourcePropertyValue = sourceProperty.getValue(source);
-            Parameter parameter = parameters[i];
-            if (parameter.getType().isPrimitive()
-                || parameter.getType().equals(String.class)
-                || parameter.getType().equals(UUID.class)) {
-                arguments[i] = sourcePropertyValue;
-            } else {
-                arguments[i] = map(sourcePropertyValue, parameter.getType());
-            }
+                destinationPropertyNames[i]);
+            Object sourcePropertyValue = sourceProperties.get(sourcePropertyName).getValue(source);
+            arguments[i] = transform(sourcePropertyValue, parameters[i].getType());
         }
 
         return createInstance(constructor, arguments);
+    }
+
+    private Object transform(
+        Object sourceValue,
+        Class<?> destinationType
+    ) {
+        return destinationType.isPrimitive()
+            || destinationType.equals(String.class)
+            || destinationType.equals(UUID.class)
+            ? sourceValue
+            : map(sourceValue, destinationType);
     }
 
     @SuppressWarnings("OptionalGetWithoutIsPresent")
@@ -107,21 +111,28 @@ public final class Mapper {
         Class<?> sourceType,
         Class<?> destinationType
     ) {
-        Map<String, Property> sourceProperties = Property.getProperties(sourceType);
-        Map<String, Property> destinationProperties = Property.getProperties(destinationType);
+        Map<String, Property> sourceProperties = getProperties(sourceType);
+        Map<String, Property> destinationProperties = getProperties(destinationType);
+
         for (String destinationPropertyName : destinationProperties.keySet()) {
             String sourcePropertyName = getSourcePropertyName(
                 sourceType,
                 destinationType,
                 destinationPropertyName);
-            if (sourceProperties.containsKey(sourcePropertyName)) {
-                Object sourcePropertyValue = sourceProperties
-                    .get(sourcePropertyName)
-                    .getValue(source);
-                destinationProperties
-                    .get(destinationPropertyName)
-                    .setValueIfPossible(destination, sourcePropertyValue);
+
+            Property sourceProperty = sourceProperties.getOrDefault(sourcePropertyName, null);
+
+            if (sourceProperty == null) {
+                continue;
             }
+
+            Property destinationProperty = destinationProperties.get(destinationPropertyName);
+            Class<?> destinationPropertyType = destinationProperty.getType();
+            Object destinationPropertyValue = transform(
+                sourceProperty.getValue(source),
+                destinationPropertyType);
+
+            destinationProperty.setValueIfPossible(destination, destinationPropertyValue);
         }
     }
 

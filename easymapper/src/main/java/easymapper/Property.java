@@ -78,6 +78,10 @@ final class Property {
         return name;
     }
 
+    public Class<?> getType() {
+        return getter.getReturnType();
+    }
+
     public Object getValue(Object instance) {
         try {
             return getter.invoke(instance);
