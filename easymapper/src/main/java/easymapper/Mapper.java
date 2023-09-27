@@ -131,7 +131,7 @@ public final class Mapper {
         String destinationPropertyName
     ) {
         return configuration
-            .getMapping(sourceType, destinationType)
+            .findMapping(sourceType, destinationType)
             .flatMap(mapping -> mapping.getSourcePropertyName(destinationPropertyName))
             .orElse(destinationPropertyName);
     }
