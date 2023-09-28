@@ -73,7 +73,11 @@ public final class MapperConfigurationBuilder {
         addIdentityTransform(transforms, UUID.class);
         addIdentityTransform(transforms, String.class);
 
-        transforms.add(Transform.create(UUID.class, String.class, UUID::toString));
+        transforms.add(
+            Transform.create(
+                UUID.class,
+                String.class,
+                x -> x == null ? null : x.toString()));
 
         return transforms;
     }

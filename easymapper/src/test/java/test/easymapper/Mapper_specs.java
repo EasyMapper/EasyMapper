@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.junit.jupiter.api.Test;
 
+import java.util.UUID;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -126,6 +128,19 @@ class Mapper_specs {
 
         assertThat(actual.getId()).isEqualTo(source.getId().toString());
         assertThat(actual.getAuthorId()).isEqualTo(source.getAuthorId().toString());
+    }
+
+    @AutoParameterizedTest
+    void sut_transforms_null_uuid_to_null_string(
+        Mapper sut,
+        UUID authorId,
+        String title,
+        String text
+    ) {
+        Post source = new Post(null, authorId, title, text);
+        PostView actual = sut.map(source, PostView.class);
+
+        assertThat(actual.getId()).isNull();
     }
 
     @AllArgsConstructor
