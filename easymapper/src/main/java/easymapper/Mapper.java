@@ -39,26 +39,20 @@ public final class Mapper {
         }
 
         Class<?> sourceType = source.getClass();
-        Object destination = construct(source, sourceType, destinationType);
+        Object destination = createFrom(source, sourceType, destinationType);
         project(source, destination, sourceType, destinationType);
         return destinationType.cast(destination);
     }
 
-    public void map(
+    private Object createFrom(
         Object source,
-        Object destination,
         Class<?> sourceType,
         Class<?> destinationType
     ) {
-        if (source == null) {
-            throw argumentNullException("source");
-        }
-
-        if (destination == null) {
-            throw argumentNullException("destination");
-        }
-
-        project(source, destination, sourceType, destinationType);
+        return configuration
+            .findTransform(sourceType, destinationType)
+            .map(x -> x.transform(source))
+            .orElseGet(() -> construct(source, sourceType, destinationType));
     }
 
     private Object construct(
@@ -77,7 +71,15 @@ public final class Mapper {
                 sourceType,
                 destinationType,
                 destinationPropertyNames[i]);
+
             Property sourceProperty = sourceProperties.get(sourcePropertyName);
+
+            if (sourceProperty == null) {
+                String message = "No property found for '"
+                    + sourcePropertyName + "' from " + sourceType + ".";
+                throw new RuntimeException(message);
+            }
+
             arguments[i] = transform(
                 sourceProperty.getType(),
                 parameters[i].getType(),
@@ -173,6 +175,23 @@ public final class Mapper {
              | InvocationTargetException exception) {
             throw new RuntimeException(exception);
         }
+    }
+
+    public void map(
+        Object source,
+        Object destination,
+        Class<?> sourceType,
+        Class<?> destinationType
+    ) {
+        if (source == null) {
+            throw argumentNullException("source");
+        }
+
+        if (destination == null) {
+            throw argumentNullException("destination");
+        }
+
+        project(source, destination, sourceType, destinationType);
     }
 
     private void project(

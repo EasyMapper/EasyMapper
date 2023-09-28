@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import static easymapper.MapperConfiguration.configureMapper;
 import static java.util.Arrays.stream;
 import static java.util.Comparator.comparingInt;
+import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -146,5 +147,52 @@ public class MapperConfiguration_specs {
     void addMapping_is_fluent() {
         new Mapper(configureMapper(c -> assertThat(
             c.addMapping(Order.class, OrderView.class, m -> { })).isSameAs(c)));
+    }
+
+    @Test
+    void addTransform_is_fluent() {
+        new Mapper(configureMapper(c -> assertThat(
+            c.addTransform(int.class, int.class, identity())).isSameAs(c)));
+    }
+
+    @Test
+    void addTransform_has_guard_against_null_source_type() {
+        assertThatThrownBy(() ->
+            configureMapper(c -> c.addTransform(null, int.class, identity())))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void addTransform_has_guard_against_null_destination_type() {
+        assertThatThrownBy(() ->
+            configureMapper(c -> c.addTransform(int.class, null, identity())))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void addTransform_has_guard_against_null_function() {
+        assertThatThrownBy(() ->
+            configureMapper(c -> c.addTransform(int.class, int.class, null)))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @AutoParameterizedTest
+    void addTransform_correctly_adds_transform(Pricing source) {
+        // Arrange
+        Mapper sut = new Mapper(configureMapper(config -> config
+            .addTransform(
+                Pricing.class,
+                PricingView.class,
+                pricing -> new PricingView(
+                    pricing.getListPrice(),
+                    pricing.getDiscount(),
+                    pricing.getListPrice() - pricing.getDiscount()))));
+
+        // Act
+        PricingView actual = sut.map(source, PricingView.class);
+
+        // Assert
+        assertThat(actual.getSalePrice())
+            .isEqualTo(source.getListPrice() - source.getDiscount());
     }
 }
