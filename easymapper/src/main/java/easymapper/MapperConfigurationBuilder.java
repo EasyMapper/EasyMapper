@@ -35,7 +35,7 @@ public final class MapperConfigurationBuilder {
         return this;
     }
 
-    public <S, D> void addMapping(
+    public <S, D> MapperConfigurationBuilder addMapping(
         Class<S> sourceType,
         Class<D> destinationType,
         Consumer<MappingBuilder<S, D>> configurer
@@ -55,6 +55,8 @@ public final class MapperConfigurationBuilder {
         MappingBuilder<S, D> builder = new MappingBuilder<>(sourceType, destinationType);
         configurer.accept(builder);
         this.mappingBuilders.add(builder);
+
+        return this;
     }
 
     public Collection<Transform> getTransforms() {

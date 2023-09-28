@@ -141,4 +141,10 @@ public class MapperConfiguration_specs {
         assertThatThrownBy(() -> configureMapper(c -> c.setConstructorExtractor(null)))
             .isInstanceOf(IllegalArgumentException.class);
     }
+
+    @Test
+    void addMapping_is_fluent() {
+        new Mapper(configureMapper(c -> assertThat(
+            c.addMapping(Order.class, OrderView.class, m -> { })).isSameAs(c)));
+    }
 }
