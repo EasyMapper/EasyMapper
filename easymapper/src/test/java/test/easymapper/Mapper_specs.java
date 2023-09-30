@@ -26,7 +26,7 @@ class Mapper_specs {
     }
 
     @AutoParameterizedTest
-    void suit_works_with_default_constructor(Mapper sut, User source) {
+    void sut_works_with_default_constructor(Mapper sut, User source) {
         UserView actual = sut.map(source, UserView.class);
         assertThat(actual).isNotNull();
     }
