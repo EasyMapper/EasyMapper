@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+import static easymapper.Exceptions.argumentNullException;
+
 public final class MappingBuilder<S, D> {
 
     private final Class<S> sourceType;
@@ -29,11 +31,11 @@ public final class MappingBuilder<S, D> {
         Function<S, Object> calculator
     ) {
         if (destinationPropertyName == null) {
-            throw Exceptions.argumentNullException("destinationPropertyName");
+            throw argumentNullException("destinationPropertyName");
         }
 
         if (calculator == null) {
-            throw Exceptions.argumentNullException("calculator");
+            throw argumentNullException("calculator");
         }
 
         if (calculators.containsKey(destinationPropertyName)) {
