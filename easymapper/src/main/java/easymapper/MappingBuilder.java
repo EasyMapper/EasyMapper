@@ -16,6 +16,14 @@ public final class MappingBuilder<S, D> {
         this.calculators = new HashMap<>();
     }
 
+    public Class<S> getSourceType() {
+        return sourceType;
+    }
+
+    public Class<D> getDestinationType() {
+        return destinationType;
+    }
+
     public MappingBuilder<S, D> set(
         String destinationPropertyName,
         Function<S, Object> calculator

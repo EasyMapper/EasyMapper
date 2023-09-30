@@ -1,5 +1,6 @@
 package test.easymapper;
 
+import autoparams.Repeat;
 import easymapper.ConstructorExtractor;
 import easymapper.Mapper;
 import easymapper.MapperConfiguration;
@@ -208,5 +209,19 @@ public class MapperConfiguration_specs {
         String actual = sut.map(source, String.class);
 
         assertThat(actual).isEqualTo(source + "2");
+    }
+
+    @AutoParameterizedTest
+    @Repeat(10)
+    void addMapping_overrides_existing_mapping(Order source, int quantity) {
+        Mapper sut = new Mapper(configureMapper(config -> config
+            .addMapping(Order.class, OrderView.class, mapping -> mapping
+                .set("numberOfItems", x -> quantity))
+            .addMapping(Order.class, OrderView.class, mapping -> mapping
+                .set("numberOfItems", Order::getQuantity))));
+
+        OrderView actual = sut.map(source, OrderView.class);
+
+        assertThat(actual.getNumberOfItems()).isEqualTo(source.getQuantity());
     }
 }

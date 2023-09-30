@@ -124,7 +124,14 @@ public final class MapperConfigurationBuilder {
 
         MappingBuilder<S, D> builder = new MappingBuilder<>(sourceType, destinationType);
         configurer.accept(builder);
-        this.mappingBuilders.add(builder);
+
+        mappingBuilders.stream()
+            .filter(m -> m.getSourceType().equals(sourceType))
+            .filter(m -> m.getDestinationType().equals(destinationType))
+            .findFirst()
+            .ifPresent(mappingBuilders::remove);
+
+        mappingBuilders.add(builder);
 
         return this;
     }
