@@ -3,18 +3,18 @@ package easymapper;
 import java.util.HashMap;
 import java.util.Map;
 
-public final class MappingBuilder<T, S> {
+public final class MappingBuilder<S, D> {
 
-    private final Class<T> sourceType;
-    private final Class<S> destinationType;
+    private final Class<S> sourceType;
+    private final Class<D> destinationType;
     private final Map<String, String> map = new HashMap<>();
 
-    MappingBuilder(Class<T> sourceType, Class<S> destinationType) {
+    MappingBuilder(Class<S> sourceType, Class<D> destinationType) {
         this.sourceType = sourceType;
         this.destinationType = destinationType;
     }
 
-    public MappingBuilder<T, S> map(
+    public MappingBuilder<S, D> map(
         String sourcePropertyName,
         String destinationPropertyName
     ) {
