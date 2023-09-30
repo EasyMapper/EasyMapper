@@ -198,4 +198,15 @@ public class MapperConfiguration_specs {
                 .addMapping(Order.class, OrderView.class, mapping -> mapping
                     .set("numberOfItems", null))));
     }
+
+    @AutoParameterizedTest
+    void addTransform_overrides_existing_transform(String source) {
+        Mapper sut = new Mapper(configureMapper(config -> config
+            .addTransform(String.class, String.class, x -> x + "1")
+            .addTransform(String.class, String.class, x -> x + "2")));
+
+        String actual = sut.map(source, String.class);
+
+        assertThat(actual).isEqualTo(source + "2");
+    }
 }

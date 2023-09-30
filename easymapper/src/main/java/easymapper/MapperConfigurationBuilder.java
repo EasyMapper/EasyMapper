@@ -94,6 +94,12 @@ public final class MapperConfigurationBuilder {
             throw argumentNullException("function");
         }
 
+        transforms.stream()
+            .filter(t -> t.getSourceType().equals(sourceType))
+            .filter(t -> t.getDestinationType().equals(destinationType))
+            .findFirst()
+            .ifPresent(transforms::remove);
+
         transforms.add(Transform.create(sourceType, destinationType, function));
 
         return this;
