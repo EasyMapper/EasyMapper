@@ -4,9 +4,9 @@ import autoparams.Repeat;
 import easymapper.ConstructorExtractor;
 import easymapper.Mapper;
 import easymapper.MapperConfiguration;
+import easymapper.ParameterNameResolver;
 import java.lang.reflect.Constructor;
 import java.util.Optional;
-import easymapper.ParameterNameResolver;
 import org.junit.jupiter.api.Test;
 
 import static easymapper.MapperConfiguration.configureMapper;
