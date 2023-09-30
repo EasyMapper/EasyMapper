@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigInteger;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -217,5 +218,14 @@ class Mapper_specs {
     void sut_correctly_transforms_char_value(Mapper sut, CharBag source) {
         CharBag actual = sut.map(source, CharBag.class);
         assertThat(actual.getValue()).isEqualTo(source.getValue());
+    }
+
+    @AutoParameterizedTest
+    void sut_correctly_transforms_big_integer_value(
+        Mapper sut,
+        BigInteger source
+    ) {
+        BigInteger actual = sut.map(source, BigInteger.class);
+        assertThat(actual).isEqualTo(source);
     }
 }
