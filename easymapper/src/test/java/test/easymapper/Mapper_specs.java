@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.UUID;
 
@@ -226,6 +227,15 @@ class Mapper_specs {
         BigInteger source
     ) {
         BigInteger actual = sut.map(source, BigInteger.class);
+        assertThat(actual).isEqualTo(source);
+    }
+
+    @AutoParameterizedTest
+    void sut_correctly_transforms_big_decimal_value(
+        Mapper sut,
+        BigDecimal source
+    ) {
+        BigDecimal actual = sut.map(source, BigDecimal.class);
         assertThat(actual).isEqualTo(source);
     }
 }

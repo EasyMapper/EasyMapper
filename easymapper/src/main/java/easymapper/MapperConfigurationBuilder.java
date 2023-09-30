@@ -1,5 +1,6 @@
 package easymapper;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,6 +41,7 @@ public final class MapperConfigurationBuilder {
         addIdentityTransform(transforms, UUID.class);
         addIdentityTransform(transforms, String.class);
         addIdentityTransform(transforms, BigInteger.class);
+        addIdentityTransform(transforms, BigDecimal.class);
 
         transforms.add(
             Transform.create(
