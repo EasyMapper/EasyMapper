@@ -5,7 +5,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Parameter;
 import java.util.Map;
-import java.util.function.Function;
 
 import static easymapper.Exceptions.argumentNullException;
 import static easymapper.Property.getProperties;
@@ -38,21 +37,29 @@ public final class Mapper {
             return null;
         }
 
-        Class<?> sourceType = source.getClass();
-        Object destination = createFrom(source, sourceType, destinationType);
-        project(source, destination, sourceType, destinationType);
-        return destinationType.cast(destination);
+        return map(source, source.getClass(), destinationType);
     }
 
-    private Object createFrom(
+    @SuppressWarnings("unchecked")
+    private <T> T map(
         Object source,
         Class<?> sourceType,
-        Class<?> destinationType
+        Class<T> destinationType
     ) {
         return configuration
             .findTransform(sourceType, destinationType)
-            .map(x -> x.transform(source))
-            .orElseGet(() -> construct(source, sourceType, destinationType));
+            .map(x -> (T) x.transform(source))
+            .orElseGet(() -> constructThenProject(source, sourceType, destinationType));
+    }
+
+    private <T> T constructThenProject(
+        Object source,
+        Class<?> sourceType,
+        Class<T> destinationType
+    ) {
+        Object destination = construct(source, sourceType, destinationType);
+        project(source, destination, sourceType, destinationType);
+        return destinationType.cast(destination);
     }
 
     private Object construct(
@@ -80,10 +87,9 @@ public final class Mapper {
                 throw new RuntimeException(message);
             }
 
-            arguments[i] = transform(
-                sourceProperty.getType(),
-                parameters[i].getType(),
-                sourceProperty.getValue(source));
+            arguments[i] = map(
+                sourceProperty.getValue(source),
+                parameters[i].getType());
         }
 
         return createInstance(constructor, arguments);
@@ -151,18 +157,6 @@ public final class Mapper {
             .orElse(destinationPropertyName);
     }
 
-    private Object transform(
-        Class<?> sourceType,
-        Class<?> destinationType,
-        Object sourceValue
-    ) {
-        return configuration
-            .findTransform(sourceType, destinationType)
-            .map(x -> (Function<Object, Object>)x::transform)
-            .orElse(x -> map(x, destinationType))
-            .apply(sourceValue);
-    }
-
     private Object createInstance(
         Constructor<?> constructor,
         Object[] arguments
@@ -175,23 +169,6 @@ public final class Mapper {
              | InvocationTargetException exception) {
             throw new RuntimeException(exception);
         }
-    }
-
-    public void map(
-        Object source,
-        Object destination,
-        Class<?> sourceType,
-        Class<?> destinationType
-    ) {
-        if (source == null) {
-            throw argumentNullException("source");
-        }
-
-        if (destination == null) {
-            throw argumentNullException("destination");
-        }
-
-        project(source, destination, sourceType, destinationType);
     }
 
     private void project(
@@ -217,12 +194,28 @@ public final class Mapper {
 
             Property destinationProperty = destinationProperties.get(destinationPropertyName);
 
-            Object destinationPropertyValue = transform(
-                sourceProperty.getType(),
-                destinationProperty.getType(),
-                sourceProperty.getValue(source));
+            Object destinationPropertyValue = map(
+                sourceProperty.getValue(source),
+                destinationProperty.getType());
 
             destinationProperty.setValueIfPossible(destination, destinationPropertyValue);
         }
+    }
+
+    public void map(
+        Object source,
+        Object destination,
+        Class<?> sourceType,
+        Class<?> destinationType
+    ) {
+        if (source == null) {
+            throw argumentNullException("source");
+        }
+
+        if (destination == null) {
+            throw argumentNullException("destination");
+        }
+
+        project(source, destination, sourceType, destinationType);
     }
 }

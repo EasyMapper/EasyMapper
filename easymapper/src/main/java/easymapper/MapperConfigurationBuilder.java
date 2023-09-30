@@ -28,14 +28,14 @@ public final class MapperConfigurationBuilder {
     private static List<Transform> initializeTransforms() {
         List<Transform> transforms = new ArrayList<>();
 
-        addIdentityTransform(transforms, boolean.class);
-        addIdentityTransform(transforms, byte.class);
-        addIdentityTransform(transforms, short.class);
-        addIdentityTransform(transforms, int.class);
-        addIdentityTransform(transforms, long.class);
-        addIdentityTransform(transforms, float.class);
-        addIdentityTransform(transforms, double.class);
-        addIdentityTransform(transforms, char.class);
+        addIdentityTransform(transforms, Boolean.class, boolean.class);
+        addIdentityTransform(transforms, Byte.class, byte.class);
+        addIdentityTransform(transforms, Short.class, short.class);
+        addIdentityTransform(transforms, Integer.class, int.class);
+        addIdentityTransform(transforms, Long.class, long.class);
+        addIdentityTransform(transforms, Float.class, float.class);
+        addIdentityTransform(transforms, Double.class, double.class);
+        addIdentityTransform(transforms, Character.class, char.class);
         addIdentityTransform(transforms, UUID.class);
         addIdentityTransform(transforms, String.class);
 
@@ -50,9 +50,17 @@ public final class MapperConfigurationBuilder {
 
     private static void addIdentityTransform(
         Collection<Transform> transforms,
+        Class<?> sourceType,
+        Class<?> destinationType
+    ) {
+        transforms.add(new Transform(sourceType, destinationType, identity()));
+    }
+
+    private static void addIdentityTransform(
+        Collection<Transform> transforms,
         Class<?> type
     ) {
-        transforms.add(new Transform(type, type, identity()));
+        addIdentityTransform(transforms, type, type);
     }
 
     public ConstructorExtractor getConstructorExtractor() {
