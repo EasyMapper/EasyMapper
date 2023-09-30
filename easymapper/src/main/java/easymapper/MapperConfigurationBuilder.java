@@ -3,6 +3,7 @@ package easymapper;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,6 +47,7 @@ public final class MapperConfigurationBuilder {
         addIdentityTransform(transforms, BigDecimal.class);
         addIdentityTransform(transforms, LocalDate.class);
         addIdentityTransform(transforms, LocalTime.class);
+        addIdentityTransform(transforms, LocalDateTime.class);
 
         transforms.add(
             Transform.create(

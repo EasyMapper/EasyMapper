@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.UUID;
 
@@ -256,6 +257,15 @@ class Mapper_specs {
         LocalTime source
     ) {
         LocalTime actual = sut.map(source, LocalTime.class);
+        assertThat(actual).isEqualTo(source);
+    }
+
+    @AutoParameterizedTest
+    void sut_correctly_transforms_local_date_time_value(
+        Mapper sut,
+        LocalDateTime source
+    ) {
+        LocalDateTime actual = sut.map(source, LocalDateTime.class);
         assertThat(actual).isEqualTo(source);
     }
 }
