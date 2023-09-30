@@ -73,6 +73,7 @@ public final class MapperConfigurationBuilder {
         }
 
         this.constructorExtractor = value;
+
         return this;
     }
 

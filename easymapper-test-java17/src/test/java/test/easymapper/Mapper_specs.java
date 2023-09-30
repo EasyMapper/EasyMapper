@@ -17,8 +17,8 @@ public class Mapper_specs {
     void sut_correctly_maps_from_record(Recipient source) {
         var sut = new Mapper(configureMapper(mapper -> mapper
             .addMapping(Recipient.class, RecipientView.class, mapping -> mapping
-                .map("name", "recipientName")
-                .map("phoneNumber", "recipientPhoneNumber"))));
+                .set("recipientName", Recipient::name)
+                .set("recipientPhoneNumber", Recipient::phoneNumber))));
 
         var actual = sut.map(source, RecipientView.class);
 

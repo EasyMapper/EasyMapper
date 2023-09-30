@@ -5,6 +5,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Parameter;
 import java.util.Map;
+import java.util.Optional;
 
 import static easymapper.Exceptions.argumentNullException;
 import static easymapper.Property.getProperties;
@@ -71,25 +72,24 @@ public final class Mapper {
         Parameter[] parameters = constructor.getParameters();
         String[] destinationPropertyNames = getPropertyNames(constructor);
         Map<String, Property> sourceProperties = getProperties(sourceType);
-
         Object[] arguments = new Object[parameters.length];
+
         for (int i = 0; i < parameters.length; i++) {
-            String sourcePropertyName = getSourcePropertyName(
-                sourceType,
-                destinationType,
-                destinationPropertyNames[i]);
+            String propertyName = destinationPropertyNames[i];
+            Parameter parameter = parameters[i];
 
-            Property sourceProperty = sourceProperties.get(sourcePropertyName);
-
-            if (sourceProperty == null) {
-                String message = "No property found for '"
-                    + sourcePropertyName + "' from " + sourceType + ".";
-                throw new RuntimeException(message);
-            }
-
-            arguments[i] = map(
-                sourceProperty.getValue(source),
-                parameters[i].getType());
+            arguments[i] = configuration
+                .findMapping(sourceType, destinationType)
+                .flatMap(mapping -> mapping.tryCalculate(source, propertyName))
+                .orElseGet(() -> {
+                    Property sourceProperty = sourceProperties.get(propertyName);
+                    if (sourceProperty == null) {
+                        String message = "No property found for '"
+                            + propertyName + "' from " + sourceType + ".";
+                        throw new RuntimeException(message);
+                    }
+                    return map(sourceProperty.getValue(source), parameter.getType());
+                });
         }
 
         return createInstance(constructor, arguments);
@@ -146,17 +146,6 @@ public final class Mapper {
         return annotation.value();
     }
 
-    private String getSourcePropertyName(
-        Class<?> sourceType,
-        Class<?> destinationType,
-        String destinationPropertyName
-    ) {
-        return configuration
-            .findMapping(sourceType, destinationType)
-            .flatMap(mapping -> mapping.getSourcePropertyName(destinationPropertyName))
-            .orElse(destinationPropertyName);
-    }
-
     private Object createInstance(
         Constructor<?> constructor,
         Object[] arguments
@@ -180,19 +169,26 @@ public final class Mapper {
         Map<String, Property> sourceProperties = getProperties(sourceType);
         Map<String, Property> destinationProperties = getProperties(destinationType);
 
-        for (String destinationPropertyName : destinationProperties.keySet()) {
-            String sourcePropertyName = getSourcePropertyName(
-                sourceType,
-                destinationType,
-                destinationPropertyName);
+        for (String propertyName : destinationProperties.keySet()) {
+            Optional<Object> calculated = configuration
+                .findMapping(sourceType, destinationType)
+                .flatMap(mapping -> mapping.tryCalculate(source, propertyName));
 
-            Property sourceProperty = sourceProperties.getOrDefault(sourcePropertyName, null);
+            if (calculated.isPresent()) {
+                Property destinationProperty = destinationProperties.get(propertyName);
+                destinationProperty.setValueIfPossible(
+                    destination,
+                    calculated.get());
+                continue;
+            }
+
+            Property sourceProperty = sourceProperties.get(propertyName);
 
             if (sourceProperty == null) {
                 continue;
             }
 
-            Property destinationProperty = destinationProperties.get(destinationPropertyName);
+            Property destinationProperty = destinationProperties.get(propertyName);
 
             Object destinationPropertyValue = map(
                 sourceProperty.getValue(source),

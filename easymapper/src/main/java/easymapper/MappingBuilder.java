@@ -2,43 +2,44 @@ package easymapper;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 public final class MappingBuilder<S, D> {
 
     private final Class<S> sourceType;
     private final Class<D> destinationType;
-    private final Map<String, String> map = new HashMap<>();
+    private final Map<String, Function<Object, Object>> calculators;
 
     MappingBuilder(Class<S> sourceType, Class<D> destinationType) {
         this.sourceType = sourceType;
         this.destinationType = destinationType;
+        this.calculators = new HashMap<>();
     }
 
-    public MappingBuilder<S, D> map(
-        String sourcePropertyName,
-        String destinationPropertyName
+    public MappingBuilder<S, D> set(
+        String destinationPropertyName,
+        Function<S, Object> calculator
     ) {
-        if (sourcePropertyName == null) {
-            throw Exceptions.argumentNullException("sourcePropertyName");
-        }
-
         if (destinationPropertyName == null) {
             throw Exceptions.argumentNullException("destinationPropertyName");
         }
 
-        if (map.containsValue(sourcePropertyName)) {
-            throw new IllegalArgumentException("Source property name already mapped");
+        if (calculator == null) {
+            throw Exceptions.argumentNullException("calculator");
         }
 
-        if (map.containsKey(destinationPropertyName)) {
-            throw new IllegalArgumentException("Destination property name already mapped");
+        if (calculators.containsKey(destinationPropertyName)) {
+            throw new IllegalArgumentException("Destination property already mapped");
         }
 
-        map.put(destinationPropertyName, sourcePropertyName);
+        calculators.put(
+            destinationPropertyName,
+            x -> calculator.apply(sourceType.cast(x)));
+
         return this;
     }
 
     Mapping build() {
-        return new Mapping(sourceType, destinationType, map);
+        return new Mapping(sourceType, destinationType, calculators);
     }
 }

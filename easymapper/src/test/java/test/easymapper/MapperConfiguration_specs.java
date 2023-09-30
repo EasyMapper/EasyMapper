@@ -22,54 +22,6 @@ public class MapperConfiguration_specs {
         assertThat(actual).isNotNull();
     }
 
-    @AutoParameterizedTest
-    void sut_correctly_configures_constructor_property_mapping(Order source) {
-        // Arrange
-        Mapper mapper = new Mapper(configureMapper(config -> config
-            .addMapping(Order.class, OrderView.class, mapping -> mapping
-                .map("quantity", "numberOfItems"))));
-
-        // Act
-        OrderView actual = mapper.map(source, OrderView.class);
-
-        // Assert
-        assertThat(actual.getNumberOfItems()).isEqualTo(source.getQuantity());
-    }
-
-    @AutoParameterizedTest
-    void sut_correctly_configures_settable_property_mapping(Recipient source) {
-        // Arrange
-        Mapper mapper = new Mapper(configureMapper(config -> config
-            .addMapping(Recipient.class, RecipientView.class, mapping -> mapping
-                .map("name", "recipientName")
-                .map("phoneNumber", "recipientPhoneNumber"))));
-
-        // Act
-        RecipientView actual = mapper.map(source, RecipientView.class);
-
-        // Assert
-        assertThat(actual.getRecipientName()).isEqualTo(source.getName());
-        assertThat(actual.getRecipientPhoneNumber()).isEqualTo(source.getPhoneNumber());
-    }
-
-    @AutoParameterizedTest
-    void sut_does_not_allow_duplicate_source_property_name(String destinationPropertyName) {
-        assertThatThrownBy(() ->
-            configureMapper(config -> config
-                .addMapping(Order.class, OrderView.class, mapping -> mapping
-                    .map("quantity", "numberOfItems")
-                    .map("quantity", destinationPropertyName))));
-    }
-
-    @AutoParameterizedTest
-    void sut_does_not_allow_duplicate_destination_property_name(String sourcePropertyName) {
-        assertThatThrownBy(() ->
-            configureMapper(config -> config
-                .addMapping(Order.class, OrderView.class, mapping -> mapping
-                    .map("quantity", "numberOfItems")
-                    .map(sourcePropertyName, "numberOfItems"))));
-    }
-
     @Test
     void sut_has_guard_against_null_mapper_configurer() {
         assertThatThrownBy(() -> configureMapper(null))
@@ -96,22 +48,6 @@ public class MapperConfiguration_specs {
             configureMapper(config -> config
                 .addMapping(Order.class, OrderView.class, null)))
             .isInstanceOf(IllegalArgumentException.class);
-    }
-
-    @Test
-    void sut_has_guard_against_source_property_name() {
-        assertThatThrownBy(() ->
-            configureMapper(config -> config
-                .addMapping(Order.class, OrderView.class, mapping -> mapping
-                    .map(null, "numberOfItems"))));
-    }
-
-    @Test
-    void sut_has_guard_against_destination_property_name() {
-        assertThatThrownBy(() ->
-            configureMapper(config -> config
-                .addMapping(Order.class, OrderView.class, mapping -> mapping
-                    .map("quantity", null))));
     }
 
     @AutoParameterizedTest
@@ -194,5 +130,72 @@ public class MapperConfiguration_specs {
         // Assert
         assertThat(actual.getSalePrice())
             .isEqualTo(source.getListPrice() - source.getDiscount());
+    }
+
+    @AutoParameterizedTest
+    void set_is_fluent(User source) {
+        configureMapper(config -> config.addMapping(
+            User.class,
+            UserView.class,
+            mapping -> assertThat(mapping.set("id", User::getId)).isSameAs(mapping)));
+    }
+
+    @AutoParameterizedTest
+    void set_correctly_configures_constructor_property_mapping(Pricing source) {
+        // Arrange
+        Mapper mapper = new Mapper(configureMapper(config -> config
+            .addMapping(Pricing.class, PricingView.class, mapping -> mapping
+                .set("salePrice", x -> x.getListPrice() - x.getDiscount()))));
+
+        // Act
+        PricingView actual = mapper.map(source, PricingView.class);
+
+        // Assert
+        assertThat(actual.getSalePrice())
+            .isEqualTo(source.getListPrice() - source.getDiscount());
+    }
+
+    @AutoParameterizedTest
+    void set_correctly_configures_settable_property_mapping(Recipient source) {
+        // Arrange
+        Mapper mapper = new Mapper(configureMapper(config -> config
+            .addMapping(Recipient.class, RecipientView.class, mapping -> mapping
+                .set("recipientName", Recipient::getName)
+                .set("recipientPhoneNumber", Recipient::getPhoneNumber))));
+
+        // Act
+        RecipientView actual = mapper.map(source, RecipientView.class);
+
+        // Assert
+        assertThat(actual.getRecipientName()).isEqualTo(source.getName());
+        assertThat(actual.getRecipientPhoneNumber()).isEqualTo(source.getPhoneNumber());
+    }
+
+    @AutoParameterizedTest
+    void set_does_not_allow_duplicate_destination_property_name(
+        String sourcePropertyName,
+        int destinationPropertyValue
+    ) {
+        assertThatThrownBy(() ->
+            configureMapper(config -> config
+                .addMapping(Order.class, OrderView.class, mapping -> mapping
+                    .set("numberOfItems", Order::getQuantity)
+                    .set("numberOfItems", x -> destinationPropertyValue))));
+    }
+
+    @Test
+    void set_has_guard_against_destination_property_name() {
+        assertThatThrownBy(() ->
+            configureMapper(config -> config
+                .addMapping(Order.class, OrderView.class, mapping -> mapping
+                    .set(null, x -> null))));
+    }
+
+    @Test
+    void set_has_guard_against_calculator() {
+        assertThatThrownBy(() ->
+            configureMapper(config -> config
+                .addMapping(Order.class, OrderView.class, mapping -> mapping
+                    .set("numberOfItems", null))));
     }
 }
