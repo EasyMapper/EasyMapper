@@ -4,12 +4,15 @@ import java.beans.ConstructorProperties;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Parameter;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import static easymapper.Exceptions.argumentNullException;
 import static easymapper.Property.getProperties;
+import static java.util.Arrays.stream;
 import static java.util.Comparator.comparingInt;
+import static java.util.stream.Collectors.toList;
 
 public final class Mapper {
 
@@ -112,28 +115,16 @@ public final class Mapper {
             return empty;
         }
 
-        Parameter[] parameters = constructor.getParameters();
+        ParameterNameResolver resolver = configuration.getParameterNameResolver();
 
-        return allParametersHaveNames(parameters)
-            ? getParameterNames(parameters)
-            : getAnnotatedPropertyNames(constructor);
-    }
+        List<String> names = stream(constructor.getParameters())
+            .map(resolver::tryResolveName)
+            .map(x -> x.orElse(null))
+            .collect(toList());
 
-    private static boolean allParametersHaveNames(Parameter[] parameters) {
-        for (Parameter parameter : parameters) {
-            if (parameter.isNamePresent() == false) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private static String[] getParameterNames(Parameter[] parameters) {
-        String[] parameterNames = new String[parameters.length];
-        for (int i = 0; i < parameters.length; i++) {
-            parameterNames[i] = parameters[i].getName();
-        }
-        return parameterNames;
+        return names.contains(null)
+            ? getAnnotatedPropertyNames(constructor)
+            : names.toArray(new String[0]);
     }
 
     private static String[] getAnnotatedPropertyNames(Constructor<?> constructor) {

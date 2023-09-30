@@ -5,6 +5,8 @@ import easymapper.ConstructorExtractor;
 import easymapper.Mapper;
 import easymapper.MapperConfiguration;
 import java.lang.reflect.Constructor;
+import java.util.Optional;
+import easymapper.ParameterNameResolver;
 import org.junit.jupiter.api.Test;
 
 import static easymapper.MapperConfiguration.configureMapper;
@@ -223,5 +225,42 @@ public class MapperConfiguration_specs {
         OrderView actual = sut.map(source, OrderView.class);
 
         assertThat(actual.getNumberOfItems()).isEqualTo(source.getQuantity());
+    }
+
+    @AutoParameterizedTest
+    void setParameterNameResolver_is_fluent(String name) {
+        new Mapper(configureMapper(c -> assertThat(
+            c.setParameterNameResolver(p -> Optional.of(name))).isSameAs(c)));
+    }
+
+    @Test
+    void setParameterNameResolver_has_guard_against_null_value() {
+        assertThatThrownBy(() -> configureMapper(c -> c.setParameterNameResolver(null)))
+            .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @AutoParameterizedTest
+    void setParameterNameResolver_correctly_configures_resolver(ItemView source) {
+        // Arrange
+        ParameterNameResolver resolver = p -> {
+            if (p.getType().equals(long.class)) {
+                return Optional.of("id");
+            } else if (p.getType().equals(String.class)) {
+                return Optional.of("name");
+            } else if (p.getType().equals(Price.class)) {
+                return Optional.of("listPrice");
+            } else {
+                return Optional.empty();
+            }
+        };
+
+        Mapper sut = new Mapper(configureMapper(c -> c
+            .setParameterNameResolver(resolver)));
+
+        // Act
+        ItemView actual = sut.map(source, ItemView.class);
+
+        // Assert
+        assertThat(actual).usingRecursiveComparison().isEqualTo(source);
     }
 }

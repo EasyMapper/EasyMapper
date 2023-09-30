@@ -7,15 +7,18 @@ import java.util.function.Consumer;
 public final class MapperConfiguration {
 
     private final ConstructorExtractor constructorExtractor;
+    private final ParameterNameResolver parameterNameResolver;
     private final Collection<Transform> transforms;
     private final Collection<Mapping> mappings;
 
     private MapperConfiguration(
         ConstructorExtractor constructorExtractor,
+        ParameterNameResolver parameterNameResolver,
         Collection<Transform> transforms,
         Collection<Mapping> mappings
     ) {
         this.constructorExtractor = constructorExtractor;
+        this.parameterNameResolver = parameterNameResolver;
         this.transforms = transforms;
         this.mappings = mappings;
     }
@@ -31,6 +34,7 @@ public final class MapperConfiguration {
         configurer.accept(builder);
         return new MapperConfiguration(
             builder.getConstructorExtractor(),
+            builder.getParameterNameResolver(),
             builder.getTransforms(),
             builder.getMappings()
         );
@@ -38,6 +42,10 @@ public final class MapperConfiguration {
 
     public ConstructorExtractor getConstructorExtractor() {
         return constructorExtractor;
+    }
+
+    public ParameterNameResolver getParameterNameResolver() {
+        return parameterNameResolver;
     }
 
     public Optional<Transform> findTransform(

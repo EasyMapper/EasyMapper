@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -20,14 +21,22 @@ import static java.util.stream.Collectors.toList;
 
 public final class MapperConfigurationBuilder {
 
+    private static final ConstructorExtractor defaultConstructorExtractor =
+        t -> Arrays.asList(t.getConstructors());
+
+    private static final ParameterNameResolver defaultParameterNameResolver =
+        p -> p.isNamePresent() ? Optional.of(p.getName()) : Optional.empty();
+
     private static final Function<Object, Object> identity = identity();
 
     private ConstructorExtractor constructorExtractor;
+    private ParameterNameResolver parameterNameResolver;
     private final List<Transform> transforms;
     private final List<MappingBuilder<?, ?>> mappingBuilders;
 
     MapperConfigurationBuilder() {
-        constructorExtractor = type -> Arrays.asList(type.getConstructors());
+        constructorExtractor = defaultConstructorExtractor;
+        parameterNameResolver = defaultParameterNameResolver;
         transforms = initializeTransforms();
         mappingBuilders = new ArrayList<>();
     }
@@ -85,6 +94,20 @@ public final class MapperConfigurationBuilder {
         }
 
         this.constructorExtractor = value;
+
+        return this;
+    }
+
+    public ParameterNameResolver getParameterNameResolver() {
+        return parameterNameResolver;
+    }
+
+    public MapperConfigurationBuilder setParameterNameResolver(ParameterNameResolver value) {
+        if (value == null) {
+            throw argumentNullException("value");
+        }
+
+        this.parameterNameResolver = value;
 
         return this;
     }
