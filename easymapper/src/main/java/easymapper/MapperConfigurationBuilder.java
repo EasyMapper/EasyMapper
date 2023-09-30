@@ -20,6 +20,8 @@ import static java.util.stream.Collectors.toList;
 
 public final class MapperConfigurationBuilder {
 
+    private static final Function<Object, Object> identity = identity();
+
     private ConstructorExtractor constructorExtractor;
     private final List<Transform> transforms;
     private final List<MappingBuilder<?, ?>> mappingBuilders;
@@ -63,7 +65,7 @@ public final class MapperConfigurationBuilder {
         Class<?> sourceType,
         Class<?> destinationType
     ) {
-        transforms.add(new Transform(sourceType, destinationType, identity()));
+        transforms.add(new Transform(sourceType, destinationType, identity));
     }
 
     private static void addIdentityTransform(
