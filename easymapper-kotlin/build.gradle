@@ -1,0 +1,30 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+plugins {
+    id "org.jetbrains.kotlin.jvm" version "1.7.20"
+}
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    api(project(":easymapper"))
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    implementation "org.jetbrains.kotlin:kotlin-reflect"
+    testImplementation "org.junit.jupiter:junit-jupiter-api:5.6.0"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.6.0"
+    testImplementation "org.assertj:assertj-core:3.23.1"
+    testImplementation "io.github.autoparams:autoparams:3.1.0"
+    testImplementation "io.github.autoparams:autoparams-kotlin:3.1.0"
+}
+
+tasks.withType(KotlinCompile).configureEach {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+
+test {
+    useJUnitPlatform()
+}

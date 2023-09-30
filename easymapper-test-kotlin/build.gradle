@@ -1,5 +1,5 @@
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.7.20'
+    id "org.jetbrains.kotlin.jvm" version "1.7.20"
 }
 
 repositories {
@@ -7,12 +7,12 @@ repositories {
 }
 
 dependencies {
-    testImplementation(project(':easymapper'))
-    testImplementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.0'
-    testImplementation 'org.assertj:assertj-core:3.23.1'
-    testImplementation 'io.github.autoparams:autoparams:1.0.1'
+    testImplementation(project(":easymapper"))
+    testImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    testImplementation "org.junit.jupiter:junit-jupiter-api:5.6.0"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.6.0"
+    testImplementation "org.assertj:assertj-core:3.23.1"
+    testImplementation "io.github.autoparams:autoparams:1.0.1"
 }
 
 test {

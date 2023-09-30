@@ -1,5 +1,5 @@
 plugins {
-    id 'java'
+    id "java"
 }
 
 repositories {
@@ -11,12 +11,12 @@ targetCompatibility = JavaVersion.VERSION_17
 
 dependencies {
     testImplementation(project(":easymapper"))
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.0'
-    testImplementation 'io.github.autoparams:autoparams:3.0.3'
-    testImplementation 'org.assertj:assertj-core:3.23.1'
-    testCompileOnly 'org.projectlombok:lombok:1.18.24'
-    testAnnotationProcessor 'org.projectlombok:lombok:1.18.24'
+    testImplementation "org.junit.jupiter:junit-jupiter-api:5.6.0"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.6.0"
+    testImplementation "io.github.autoparams:autoparams:3.0.3"
+    testImplementation "org.assertj:assertj-core:3.23.1"
+    testCompileOnly "org.projectlombok:lombok:1.18.24"
+    testAnnotationProcessor "org.projectlombok:lombok:1.18.24"
 }
 
 test {
