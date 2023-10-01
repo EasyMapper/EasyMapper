@@ -32,6 +32,10 @@ public class Mapper {
     }
 
     public Mapper(Consumer<MapperConfiguration> configurer) {
+        if (configurer == null) {
+            throw argumentNullException("configurer");
+        }
+
         MapperConfiguration builder = new MapperConfiguration();
 
         configurer.accept(builder);
@@ -230,6 +234,14 @@ public class Mapper {
 
         if (destination == null) {
             throw argumentNullException("destination");
+        }
+
+        if (sourceType == null) {
+            throw argumentNullException("sourceType");
+        }
+
+        if (destinationType == null) {
+            throw argumentNullException("destinationType");
         }
 
         project(source, destination, sourceType, destinationType);

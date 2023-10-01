@@ -10,11 +10,18 @@ import java.time.LocalTime;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class Mapper_specs {
+
+    @Test
+    void constructor_has_guard_against_null_configurer() {
+        assertThatThrownBy(() -> new Mapper(null))
+            .isInstanceOf(IllegalArgumentException.class);
+    }
 
     @AutoParameterizedTest
     void sut_correctly_maps_object(User source) {
@@ -82,7 +89,31 @@ class Mapper_specs {
     }
 
     @AutoParameterizedTest
-    void sut_has_null_guard_for_destination(Mapper sut, User source) {
+    void sut_has_null_guard_for_destination_type(Mapper sut, User source) {
+        Class<User> destinationType = null;
+        assertThatThrownBy(
+            () -> sut.map(source, destinationType))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("destinationType");
+    }
+
+    @AutoParameterizedTest
+    void map_with_destination_has_null_guard_for_source(
+        Mapper sut,
+        User destination
+    ) {
+        Object source = null;
+        assertThatThrownBy(
+            () -> sut.map(source, destination, User.class, User.class))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("source");
+    }
+
+    @AutoParameterizedTest
+    void map_with_destination_has_null_guard_for_destination(
+        Mapper sut,
+        User source
+    ) {
         Object destination = null;
         assertThatThrownBy(
             () -> sut.map(source, destination, User.class, User.class))
@@ -91,10 +122,27 @@ class Mapper_specs {
     }
 
     @AutoParameterizedTest
-    void sut_has_null_guard_for_destination_type(Mapper sut, User source) {
+    void map_with_destination_has_null_guard_for_source_type(
+        Mapper sut,
+        User source,
+        User destination
+    ) {
+        Class<User> sourceType = null;
+        assertThatThrownBy(
+            () -> sut.map(source, destination, sourceType, User.class))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("sourceType");
+    }
+
+    @AutoParameterizedTest
+    void map_with_destination_has_null_guard_for_destination_type(
+        Mapper sut,
+        User source,
+        User destination
+    ) {
         Class<User> destinationType = null;
         assertThatThrownBy(
-            () -> sut.map(source, destinationType))
+            () -> sut.map(source, destination, User.class, destinationType))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("destinationType");
     }
