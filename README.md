@@ -44,7 +44,7 @@ To include EasyMapper in your Maven project, add the following dependency to you
 <dependency>
   <groupId>io.github.easymapper</groupId>
   <artifactId>easymapper</artifactId>
-  <version>0.3.0</version>
+  <version>0.3.1</version>
 </dependency>
 ```
 
@@ -53,7 +53,7 @@ To include EasyMapper in your Maven project, add the following dependency to you
 If you are using Gradle, include EasyMapper by adding the following line to your `build.gradle` file:
 
 ```groovy
-implementation 'io.github.easymapper:easymapper:0.3.0'
+implementation 'io.github.easymapper:easymapper:0.3.1'
 ```
 
 ## Features
@@ -353,7 +353,7 @@ To include EasyMapper Kotlin in your Maven project, add the following dependency
 <dependency>
   <groupId>io.github.easymapper</groupId>
   <artifactId>easymapper-kotlin</artifactId>
-  <version>0.3.0</version>
+  <version>0.3.1</version>
 </dependency>
 ```
 
@@ -362,7 +362,7 @@ To include EasyMapper Kotlin in your Maven project, add the following dependency
 If you are using Gradle, include EasyMapper Kotlin by adding the following line to your `build.gradle` file:
 
 ```groovy
-implementation 'io.github.easymapper:easymapper-kotlin:0.3.0'
+implementation 'io.github.easymapper:easymapper-kotlin:0.3.1'
 ```
 
 ### `KotlinMapper` Class
@@ -422,9 +422,9 @@ import listing.domainmodel.Pricing
 
 class PricingViewGenerator {
 
-    private val mapper = KotlinMapper { config -> config
+    private val mapper: KotlinMapper = KotlinMapper { config -> config
         .addMapping<Pricing, PricingView> { mapping -> mapping
-            .set(PricingView::salePrice.name) { it.listPrice - it.discount }
+            .set(PricingView::salePrice) { it.listPrice - it.discount }
         }
     }
 
