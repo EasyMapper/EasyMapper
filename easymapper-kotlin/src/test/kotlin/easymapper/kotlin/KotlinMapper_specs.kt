@@ -30,12 +30,12 @@ class KotlinMapper_specs {
     fun `sut correctly applies configuration`(source: Pricing) {
         val sut = KotlinMapper { c -> c
             .addMapping(Pricing::class.java, PricingView::class.java) {
-                m -> m.set(PricingView::salePrice.name) { it.listPrice - it.discount }
+                m -> m.set(PricingView::salePrice.name) { it.calculateSalePrice() }
             }
         }
 
         val actual: PricingView = sut.map(source, PricingView::class.java)
 
-        assertThat(actual.salePrice).isEqualTo(source.listPrice - source.discount)
+        assertThat(actual.salePrice).isEqualTo(source.calculateSalePrice())
     }
 }

@@ -33,4 +33,52 @@ class MapperConfigurationExtensions_specs {
         val actual: PricingView = mapper.map(source, PricingView::class.java)
         assertThat(actual).usingRecursiveComparison().isEqualTo(source)
     }
+
+    @Test
+    fun `addMapping returns the same builder`() {
+        Mapper { assertThat(it.addMapping<Pricing, PricingView> { }).isSameAs(it) }
+    }
+
+    @AutoParameterizedTest
+    fun `addMapping correctly works`(source: Pricing) {
+        val mapper = KotlinMapper { c -> c
+            .addMapping<Pricing, PricingView> {
+                m -> m.set(PricingView::salePrice.name) { it.calculateSalePrice() }
+            }
+        }
+
+        val actual: PricingView = mapper.map(source, PricingView::class.java)
+
+        assertThat(actual.salePrice).isEqualTo(source.calculateSalePrice())
+    }
+
+    @Test
+    fun `addTransform returns the same builder`() {
+        Mapper { c ->
+            assertThat(c.addTransform<Pricing, PricingView> {
+                PricingView(
+                    it.listPrice,
+                    it.discount,
+                    it.calculateSalePrice(),
+                )
+            }).isSameAs(c)
+        }
+    }
+
+    @AutoParameterizedTest
+    fun `addTransform correctly works`(source: Pricing) {
+        val mapper = KotlinMapper { c ->
+            c.addTransform<Pricing, PricingView> {
+                PricingView(
+                    it.listPrice,
+                    it.discount,
+                    it.calculateSalePrice(),
+                )
+            }
+        }
+
+        val actual: PricingView = mapper.map(source, PricingView::class.java)
+
+        assertThat(actual.salePrice).isEqualTo(source.calculateSalePrice())
+    }
 }
