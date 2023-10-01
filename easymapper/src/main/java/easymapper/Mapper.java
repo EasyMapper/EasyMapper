@@ -18,7 +18,7 @@ import static java.util.Collections.unmodifiableList;
 import static java.util.Comparator.comparingInt;
 import static java.util.stream.Collectors.toList;
 
-public final class Mapper {
+public class Mapper {
 
     private static final String[] empty = new String[0];
 
