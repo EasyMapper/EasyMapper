@@ -42,8 +42,31 @@ class MapperConfigurationExtensions_specs {
     @AutoParameterizedTest
     fun `addMapping correctly works`(source: Pricing) {
         val mapper = KotlinMapper { c -> c
-            .addMapping<Pricing, PricingView> {
-                m -> m.set(PricingView::salePrice.name) { it.calculateSalePrice() }
+            .addMapping<Pricing, PricingView> { m -> m
+                .set(PricingView::salePrice.name) { it.calculateSalePrice() }
+            }
+        }
+
+        val actual: PricingView = mapper.map(source, PricingView::class.java)
+
+        assertThat(actual.salePrice).isEqualTo(source.calculateSalePrice())
+    }
+
+    @Test
+    fun `set returns the same builder`() {
+        Mapper { c ->
+            c.addMapping<Pricing, PricingView> { m ->
+                assertThat(m.set(PricingView::salePrice) { it.calculateSalePrice() })
+                    .isSameAs(m)
+            }
+        }
+    }
+
+    @AutoParameterizedTest
+    fun `set correctly works`(source: Pricing) {
+        val mapper = KotlinMapper { c -> c
+            .addMapping<Pricing, PricingView> { m -> m
+                .set(PricingView::salePrice) { it.calculateSalePrice() }
             }
         }
 
