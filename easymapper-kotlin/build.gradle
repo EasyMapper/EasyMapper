@@ -2,6 +2,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id "org.jetbrains.kotlin.jvm" version "1.7.20"
+    id 'maven-publish'
+    id 'signing'
 }
 
 repositories {
@@ -9,7 +11,7 @@ repositories {
 }
 
 dependencies {
-    api(project(":easymapper"))
+    api "io.github.easymapper:easymapper:[0.3.0, 0.4.0)"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     implementation "org.jetbrains.kotlin:kotlin-reflect"
     testImplementation "org.junit.jupiter:junit-jupiter-api:5.6.0"
@@ -27,4 +29,74 @@ tasks.withType(KotlinCompile).configureEach {
 
 test {
     useJUnitPlatform()
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+jar {
+    manifest {
+        attributes(
+            'Specification-Title': artifactName,
+            'Specification-Version': artifactVersion,
+            'Specification-Vendor': vendor,
+            'Implementation-Title': artifactName,
+            'Implementation-Version': artifactVersion,
+            'Implementation-Vendor': vendor
+        )
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            name "OSSRH"
+            url "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+            credentials {
+                username System.getenv("MAVEN_USERNAME")
+                password System.getenv("MAVEN_PASSWORD")
+            }
+        }
+    }
+
+    publications {
+        maven(MavenPublication) {
+            groupId 'io.github.easymapper'
+            artifactId artifactId
+            version artifactVersion
+            from components.java
+            pom {
+                name = artifactName
+                description = artifactDescription
+                url = "https://github.com/EasyMapper/EasyMapper"
+                licenses {
+                    license {
+                        name = "MIT License"
+                        url = "https://github.com/EasyMapper/EasyMapper/blob/main/LICENSE"
+                    }
+                }
+                developers {
+                    developer {
+                        id = "gyuwon"
+                        name = "Yi Gyuwon"
+                        email = "gyuwon@live.com"
+                    }
+                }
+                scm {
+                    connection = "https://github.com/EasyMapper/EasyMapper.git"
+                    developerConnection = "https://github.com/EasyMapper/EasyMapper.git"
+                    url = "https://github.com/EasyMapper/EasyMapper"
+                }
+            }
+        }
+    }
+}
+
+signing {
+    def signingKey = System.getenv("SIGNING_KEY")
+    def signingPassword = System.getenv("SIGNING_PASSWORD")
+    useInMemoryPgpKeys(signingKey, signingPassword)
+    sign publishing.publications.maven
 }
