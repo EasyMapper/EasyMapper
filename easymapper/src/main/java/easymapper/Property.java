@@ -43,8 +43,9 @@ final class Property {
             }
             String methodName = method.getName();
             if (methodName.startsWith("get")) {
-                String propertyName = camelize(methodName.substring(3));
-                getters.put(propertyName, method);
+                getters.put(camelize(methodName.substring(3)), method);
+            } else if (methodName.startsWith("is")) {
+                getters.put(camelize(methodName.substring(2)), method);
             } else {
                 getters.put(methodName, method);
             }

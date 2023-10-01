@@ -259,4 +259,14 @@ class Mapper_specs {
         LocalDateTime actual = sut.map(source, LocalDateTime.class);
         assertThat(actual).isEqualTo(source);
     }
+
+    @AutoParameterizedTest
+    @Repeat(10)
+    void sut_accepts_is_prefix_for_getter_of_boolean_properties(
+        Mapper sut,
+        DiscountPolicy source
+    ) {
+        DiscountPolicy actual = sut.map(source, DiscountPolicy.class);
+        assertThat(actual.isEnabled()).isEqualTo(source.isEnabled());
+    }
 }
