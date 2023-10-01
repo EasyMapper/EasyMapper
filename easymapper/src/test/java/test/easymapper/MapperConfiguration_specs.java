@@ -3,13 +3,11 @@ package test.easymapper;
 import autoparams.Repeat;
 import easymapper.ConstructorExtractor;
 import easymapper.Mapper;
-import easymapper.MapperConfiguration;
 import easymapper.ParameterNameResolver;
 import java.lang.reflect.Constructor;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
-import static easymapper.MapperConfiguration.configureMapper;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static java.util.Comparator.comparingInt;
@@ -21,35 +19,23 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class MapperConfiguration_specs {
 
     @Test
-    void configureMapper_returns_mapper_configuration() {
-        MapperConfiguration actual = configureMapper(builder -> { });
-        assertThat(actual).isNotNull();
-    }
-
-    @Test
-    void sut_has_guard_against_null_mapper_configurer() {
-        assertThatThrownBy(() -> configureMapper(null))
-            .isInstanceOf(IllegalArgumentException.class);
-    }
-
-    @Test
     void sut_has_guard_against_null_source_type() {
         assertThatThrownBy(() ->
-            configureMapper(config -> config
+            new Mapper(config -> config
                 .addMapping(null, OrderView.class, mapping -> { })));
     }
 
     @Test
     void sut_has_guard_against_null_destination_type() {
         assertThatThrownBy(() ->
-            configureMapper(config -> config
+            new Mapper(config -> config
                 .addMapping(Order.class, null, mapping -> { })));
     }
 
     @Test
     void sut_has_guard_against_null_mapping_configurer() {
         assertThatThrownBy(() ->
-            configureMapper(config -> config
+            new Mapper(config -> config
                 .addMapping(Order.class, OrderView.class, null)))
             .isInstanceOf(IllegalArgumentException.class);
     }
@@ -79,7 +65,7 @@ public class MapperConfiguration_specs {
 
     @AutoParameterizedTest
     void setConstructorExtractor_has_guard_against_null_value() {
-        assertThatThrownBy(() -> configureMapper(c -> c.setConstructorExtractor(null)))
+        assertThatThrownBy(() -> new Mapper(c -> c.setConstructorExtractor(null)))
             .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -98,21 +84,21 @@ public class MapperConfiguration_specs {
     @Test
     void addTransform_has_guard_against_null_source_type() {
         assertThatThrownBy(() ->
-            configureMapper(c -> c.addTransform(null, int.class, identity())))
+            new Mapper(c -> c.addTransform(null, int.class, identity())))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void addTransform_has_guard_against_null_destination_type() {
         assertThatThrownBy(() ->
-            configureMapper(c -> c.addTransform(int.class, null, identity())))
+            new Mapper(c -> c.addTransform(int.class, null, identity())))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void addTransform_has_guard_against_null_function() {
         assertThatThrownBy(() ->
-            configureMapper(c -> c.addTransform(int.class, int.class, null)))
+            new Mapper(c -> c.addTransform(int.class, int.class, null)))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -138,7 +124,7 @@ public class MapperConfiguration_specs {
 
     @AutoParameterizedTest
     void set_is_fluent(User source) {
-        configureMapper(config -> config.addMapping(
+        new Mapper(config -> config.addMapping(
             User.class,
             UserView.class,
             mapping -> assertThat(mapping.set("id", User::getId)).isSameAs(mapping)));
@@ -181,7 +167,7 @@ public class MapperConfiguration_specs {
         int destinationPropertyValue
     ) {
         assertThatThrownBy(() ->
-            configureMapper(config -> config
+            new Mapper(config -> config
                 .addMapping(Order.class, OrderView.class, mapping -> mapping
                     .set("numberOfItems", Order::getQuantity)
                     .set("numberOfItems", x -> destinationPropertyValue))));
@@ -190,7 +176,7 @@ public class MapperConfiguration_specs {
     @Test
     void set_has_guard_against_destination_property_name() {
         assertThatThrownBy(() ->
-            configureMapper(config -> config
+            new Mapper(config -> config
                 .addMapping(Order.class, OrderView.class, mapping -> mapping
                     .set(null, x -> null))));
     }
@@ -198,7 +184,7 @@ public class MapperConfiguration_specs {
     @Test
     void set_has_guard_against_calculator() {
         assertThatThrownBy(() ->
-            configureMapper(config -> config
+            new Mapper(config -> config
                 .addMapping(Order.class, OrderView.class, mapping -> mapping
                     .set("numberOfItems", null))));
     }
@@ -236,7 +222,7 @@ public class MapperConfiguration_specs {
 
     @Test
     void setParameterNameResolver_has_guard_against_null_value() {
-        assertThatThrownBy(() -> configureMapper(c -> c.setParameterNameResolver(null)))
+        assertThatThrownBy(() -> new Mapper(c -> c.setParameterNameResolver(null)))
             .isInstanceOf(IllegalArgumentException.class);
     }
 

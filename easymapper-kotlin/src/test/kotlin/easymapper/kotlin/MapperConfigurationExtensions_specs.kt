@@ -1,7 +1,6 @@
 package easymapper.kotlin
 
 import easymapper.Mapper
-import easymapper.MapperConfiguration.configureMapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -9,7 +8,7 @@ class MapperConfigurationExtensions_specs {
 
     @Test
     fun `useKotlin returns the same builder`() {
-        configureMapper { config ->
+        Mapper { config ->
             assertThat(config.useKotlin()).isSameAs(config)
         }
     }

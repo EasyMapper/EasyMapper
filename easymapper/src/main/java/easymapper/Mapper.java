@@ -4,6 +4,7 @@ import java.beans.ConstructorProperties;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Parameter;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,7 @@ import java.util.function.Consumer;
 import static easymapper.Exceptions.argumentNullException;
 import static easymapper.Property.getProperties;
 import static java.util.Arrays.stream;
+import static java.util.Collections.unmodifiableList;
 import static java.util.Comparator.comparingInt;
 import static java.util.stream.Collectors.toList;
 
@@ -29,13 +31,21 @@ public final class Mapper {
         this(config -> { });
     }
 
-    public Mapper(Consumer<MapperConfigurationBuilder> configurer) {
-        MapperConfigurationBuilder builder = new MapperConfigurationBuilder();
+    public Mapper(Consumer<MapperConfiguration> configurer) {
+        MapperConfiguration builder = new MapperConfiguration();
+
         configurer.accept(builder);
+
         constructorExtractor = builder.getConstructorExtractor();
         parameterNameResolver = builder.getParameterNameResolver();
-        transforms = builder.getTransforms();
-        mappings = builder.getMappings();
+
+        transforms = unmodifiableList(new ArrayList<>(builder.getTransforms()));
+
+        mappings = unmodifiableList(builder
+            .getMappings()
+            .stream()
+            .map(MappingBuilder::build)
+            .collect(toList()));
     }
 
     public <T> T map(Object source, Class<T> destinationType) {

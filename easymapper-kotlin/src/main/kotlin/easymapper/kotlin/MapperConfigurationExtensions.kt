@@ -1,9 +1,9 @@
 package easymapper.kotlin
 
 import easymapper.CompositeParameterNameResolver
-import easymapper.MapperConfigurationBuilder
+import easymapper.MapperConfiguration
 
-fun MapperConfigurationBuilder.useKotlin(): MapperConfigurationBuilder {
+fun MapperConfiguration.useKotlin(): MapperConfiguration {
     this.constructorExtractor = KotlinConstructorExtractor()
 
     this.parameterNameResolver = CompositeParameterNameResolver(
