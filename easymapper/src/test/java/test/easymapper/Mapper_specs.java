@@ -2,16 +2,14 @@ package test.easymapper;
 
 import autoparams.Repeat;
 import easymapper.Mapper;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import org.junit.jupiter.api.Test;
-
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -115,13 +113,6 @@ class Mapper_specs {
         assertThatThrownBy(() -> sut.map(source, ItemView.class))
             .isInstanceOf(RuntimeException.class)
             .hasMessageContainingAll("ItemView", "@ConstructorProperties");
-    }
-
-    @Test
-    void sut_has_guard_against_null_configuration() {
-        assertThatThrownBy(() -> new Mapper(null))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("configuration");
     }
 
     @AutoParameterizedTest

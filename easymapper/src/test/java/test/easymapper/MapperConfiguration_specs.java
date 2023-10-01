@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import static easymapper.MapperConfiguration.configureMapper;
 import static java.util.Arrays.stream;
+import static java.util.Collections.emptyList;
 import static java.util.Comparator.comparingInt;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toList;
@@ -60,7 +61,7 @@ public class MapperConfiguration_specs {
             .sorted(comparingInt(Constructor::getParameterCount))
             .limit(1)
             .collect(toList());
-        Mapper mapper = new Mapper(configureMapper(c -> c.setConstructorExtractor(extractor)));
+        Mapper mapper = new Mapper(c -> c.setConstructorExtractor(extractor));
 
         // Act
         HasBrokenConstructor actual = mapper.map(source, HasBrokenConstructor.class);
@@ -72,8 +73,8 @@ public class MapperConfiguration_specs {
 
     @AutoParameterizedTest
     void setConstructorExtractor_is_fluent() {
-        new Mapper(configureMapper(c -> assertThat(
-            c.setConstructorExtractor(c.getConstructorExtractor())).isSameAs(c)));
+        new Mapper(c -> assertThat(
+            c.setConstructorExtractor(t -> emptyList())).isSameAs(c));
     }
 
     @AutoParameterizedTest
@@ -84,14 +85,14 @@ public class MapperConfiguration_specs {
 
     @Test
     void addMapping_is_fluent() {
-        new Mapper(configureMapper(c -> assertThat(
-            c.addMapping(Order.class, OrderView.class, m -> { })).isSameAs(c)));
+        new Mapper(c -> assertThat(
+            c.addMapping(Order.class, OrderView.class, m -> { })).isSameAs(c));
     }
 
     @Test
     void addTransform_is_fluent() {
-        new Mapper(configureMapper(c -> assertThat(
-            c.addTransform(int.class, int.class, identity())).isSameAs(c)));
+        new Mapper(c -> assertThat(
+            c.addTransform(int.class, int.class, identity())).isSameAs(c));
     }
 
     @Test
@@ -118,14 +119,14 @@ public class MapperConfiguration_specs {
     @AutoParameterizedTest
     void addTransform_correctly_adds_transform(Pricing source) {
         // Arrange
-        Mapper sut = new Mapper(configureMapper(config -> config
+        Mapper sut = new Mapper(config -> config
             .addTransform(
                 Pricing.class,
                 PricingView.class,
                 pricing -> new PricingView(
                     pricing.getListPrice(),
                     pricing.getDiscount(),
-                    pricing.getListPrice() - pricing.getDiscount()))));
+                    pricing.getListPrice() - pricing.getDiscount())));
 
         // Act
         PricingView actual = sut.map(source, PricingView.class);
@@ -146,9 +147,9 @@ public class MapperConfiguration_specs {
     @AutoParameterizedTest
     void set_correctly_configures_constructor_property_mapping(Pricing source) {
         // Arrange
-        Mapper mapper = new Mapper(configureMapper(config -> config
+        Mapper mapper = new Mapper(config -> config
             .addMapping(Pricing.class, PricingView.class, mapping -> mapping
-                .set("salePrice", x -> x.getListPrice() - x.getDiscount()))));
+                .set("salePrice", x -> x.getListPrice() - x.getDiscount())));
 
         // Act
         PricingView actual = mapper.map(source, PricingView.class);
@@ -161,10 +162,10 @@ public class MapperConfiguration_specs {
     @AutoParameterizedTest
     void set_correctly_configures_settable_property_mapping(Recipient source) {
         // Arrange
-        Mapper mapper = new Mapper(configureMapper(config -> config
+        Mapper mapper = new Mapper(config -> config
             .addMapping(Recipient.class, RecipientView.class, mapping -> mapping
                 .set("recipientName", Recipient::getName)
-                .set("recipientPhoneNumber", Recipient::getPhoneNumber))));
+                .set("recipientPhoneNumber", Recipient::getPhoneNumber)));
 
         // Act
         RecipientView actual = mapper.map(source, RecipientView.class);
@@ -204,9 +205,9 @@ public class MapperConfiguration_specs {
 
     @AutoParameterizedTest
     void addTransform_overrides_existing_transform(String source) {
-        Mapper sut = new Mapper(configureMapper(config -> config
+        Mapper sut = new Mapper(config -> config
             .addTransform(String.class, String.class, x -> x + "1")
-            .addTransform(String.class, String.class, x -> x + "2")));
+            .addTransform(String.class, String.class, x -> x + "2"));
 
         String actual = sut.map(source, String.class);
 
@@ -216,11 +217,11 @@ public class MapperConfiguration_specs {
     @AutoParameterizedTest
     @Repeat(10)
     void addMapping_overrides_existing_mapping(Order source, int quantity) {
-        Mapper sut = new Mapper(configureMapper(config -> config
+        Mapper sut = new Mapper(config -> config
             .addMapping(Order.class, OrderView.class, mapping -> mapping
                 .set("numberOfItems", x -> quantity))
             .addMapping(Order.class, OrderView.class, mapping -> mapping
-                .set("numberOfItems", Order::getQuantity))));
+                .set("numberOfItems", Order::getQuantity)));
 
         OrderView actual = sut.map(source, OrderView.class);
 
@@ -229,8 +230,8 @@ public class MapperConfiguration_specs {
 
     @AutoParameterizedTest
     void setParameterNameResolver_is_fluent(String name) {
-        new Mapper(configureMapper(c -> assertThat(
-            c.setParameterNameResolver(p -> Optional.of(name))).isSameAs(c)));
+        new Mapper(c -> assertThat(
+            c.setParameterNameResolver(p -> Optional.of(name))).isSameAs(c));
     }
 
     @Test
@@ -254,8 +255,7 @@ public class MapperConfiguration_specs {
             }
         };
 
-        Mapper sut = new Mapper(configureMapper(c -> c
-            .setParameterNameResolver(resolver)));
+        Mapper sut = new Mapper(c -> c.setParameterNameResolver(resolver));
 
         // Act
         ItemView actual = sut.map(source, ItemView.class);

@@ -2,7 +2,6 @@ package test.easymapper;
 
 import easymapper.Mapper;
 
-import static easymapper.MapperConfiguration.configureMapper;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class Mapper_specs {
@@ -15,10 +14,10 @@ public class Mapper_specs {
 
     @AutoParameterizedTest
     void sut_correctly_maps_from_record(Recipient source) {
-        var sut = new Mapper(configureMapper(mapper -> mapper
+        var sut = new Mapper(config -> config
             .addMapping(Recipient.class, RecipientView.class, mapping -> mapping
                 .set("recipientName", Recipient::name)
-                .set("recipientPhoneNumber", Recipient::phoneNumber))));
+                .set("recipientPhoneNumber", Recipient::phoneNumber)));
 
         var actual = sut.map(source, RecipientView.class);
 

@@ -16,21 +16,21 @@ class MapperConfigurationExtensions_specs {
 
     @AutoParameterizedTest
     fun `useKotlin makes mapper map Kotlin classes`(source: User) {
-        val mapper = Mapper(configureMapper { config -> config.useKotlin() })
+        val mapper = Mapper { config -> config.useKotlin() }
         val actual: UserView = mapper.map(source, UserView::class.java)
         assertThat(actual).usingRecursiveComparison().isEqualTo(source)
     }
 
     @AutoParameterizedTest
     fun `useKotlin makes mapper map data classes`(source: Pricing) {
-        val mapper = Mapper(configureMapper { config -> config.useKotlin() })
+        val mapper = Mapper { config -> config.useKotlin() }
         val actual: Pricing = mapper.map(source, Pricing::class.java)
         assertThat(actual).usingRecursiveComparison().isEqualTo(source)
     }
 
     @AutoParameterizedTest
     fun `useKotlin makes mapper map data classes with default arguments`(source: PricingView) {
-        val mapper = Mapper(configureMapper { config -> config.useKotlin() })
+        val mapper = Mapper { config -> config.useKotlin() }
         val actual: PricingView = mapper.map(source, PricingView::class.java)
         assertThat(actual).usingRecursiveComparison().isEqualTo(source)
     }

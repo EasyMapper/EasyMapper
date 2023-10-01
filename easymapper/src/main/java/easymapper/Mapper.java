@@ -4,9 +4,11 @@ import java.beans.ConstructorProperties;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Parameter;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import static easymapper.Exceptions.argumentNullException;
 import static easymapper.Property.getProperties;
@@ -18,18 +20,22 @@ public final class Mapper {
 
     private static final String[] empty = new String[0];
 
-    private final MapperConfiguration configuration;
+    private final ConstructorExtractor constructorExtractor;
+    private final ParameterNameResolver parameterNameResolver;
+    private final Collection<Transform> transforms;
+    private final Collection<Mapping> mappings;
 
     public Mapper() {
-        this(MapperConfiguration.configureMapper(config -> { }));
+        this(config -> { });
     }
 
-    public Mapper(MapperConfiguration configuration) {
-        if (configuration == null) {
-            throw argumentNullException("configuration");
-        }
-
-        this.configuration = configuration;
+    public Mapper(Consumer<MapperConfigurationBuilder> configurer) {
+        MapperConfigurationBuilder builder = new MapperConfigurationBuilder();
+        configurer.accept(builder);
+        constructorExtractor = builder.getConstructorExtractor();
+        parameterNameResolver = builder.getParameterNameResolver();
+        transforms = builder.getTransforms();
+        mappings = builder.getMappings();
     }
 
     public <T> T map(Object source, Class<T> destinationType) {
@@ -50,12 +56,20 @@ public final class Mapper {
         Class<?> sourceType,
         Class<T> destinationType
     ) {
-        return configuration
-            .findTransform(sourceType, destinationType)
+        return findTransform(sourceType, destinationType)
             .map(x -> (T) x.transform(source))
             .orElseGet(() -> constructThenProject(source, sourceType, destinationType));
     }
 
+    private Optional<Transform> findTransform(
+        Class<?> source,
+        Class<?> destination
+    ) {
+        return transforms.stream()
+            .filter(transform -> transform.getSourceType().equals(source))
+            .filter(transform -> transform.getDestinationType().equals(destination))
+            .findFirst();
+    }
     private <T> T constructThenProject(
         Object source,
         Class<?> sourceType,
@@ -81,8 +95,7 @@ public final class Mapper {
             String propertyName = destinationPropertyNames[i];
             Parameter parameter = parameters[i];
 
-            arguments[i] = configuration
-                .findMapping(sourceType, destinationType)
+            arguments[i] = findMapping(sourceType, destinationType)
                 .flatMap(mapping -> mapping.tryCalculate(source, propertyName))
                 .orElseGet(() -> {
                     Property sourceProperty = sourceProperties.get(propertyName);
@@ -98,9 +111,18 @@ public final class Mapper {
         return createInstance(constructor, arguments);
     }
 
+    private Optional<Mapping> findMapping(
+        Class<?> source,
+        Class<?> destination
+    ) {
+        return mappings.stream()
+            .filter(mapping -> mapping.getSourceType().equals(source))
+            .filter(mapping -> mapping.getDestinationType().equals(destination))
+            .findFirst();
+    }
+
     private Constructor<?> getConstructor(Class<?> destinationType) {
-        return configuration
-            .getConstructorExtractor()
+        return constructorExtractor
             .extract(destinationType)
             .stream()
             .max(comparingInt(Constructor::getParameterCount))
@@ -115,10 +137,8 @@ public final class Mapper {
             return empty;
         }
 
-        ParameterNameResolver resolver = configuration.getParameterNameResolver();
-
         List<String> names = stream(constructor.getParameters())
-            .map(resolver::tryResolveName)
+            .map(parameterNameResolver::tryResolveName)
             .map(x -> x.orElse(null))
             .collect(toList());
 
@@ -161,8 +181,7 @@ public final class Mapper {
         Map<String, Property> destinationProperties = getProperties(destinationType);
 
         for (String propertyName : destinationProperties.keySet()) {
-            Optional<Object> calculated = configuration
-                .findMapping(sourceType, destinationType)
+            Optional<Object> calculated = findMapping(sourceType, destinationType)
                 .flatMap(mapping -> mapping.tryCalculate(source, propertyName));
 
             if (calculated.isPresent()) {
