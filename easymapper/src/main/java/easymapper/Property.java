@@ -1,96 +1,37 @@
 package easymapper;
 
-import static java.lang.Character.isUpperCase;
-import static java.lang.Character.toLowerCase;
-import static java.util.stream.Stream.concat;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 final class Property {
 
+    private final Class<?> type;
     private final String name;
-    private final Method getter;
-    private final Method setter;
+    private final Function<Object, Object> getter;
+    private final BiConsumer<Object, Object> setter;
 
-    private Property(String name, Method getter, Method setter) {
+    public Property(
+        Class<?> type,
+        String name,
+        Function<Object, Object> getter,
+        BiConsumer<Object, Object> setter
+    ) {
+        this.type = type;
         this.name = name;
         this.getter = getter;
         this.setter = setter;
     }
 
-    public static Map<String, Property> getProperties(Class<?> type) {
-        Map<String, Method> getters = getGetters(type);
-        Map<String, Method> setters = getSetters(type);
-
-        return concat(getters.keySet().stream(), setters.keySet().stream())
-            .distinct()
-            .map(name -> new Property(
-                name,
-                getters.getOrDefault(name, null),
-                setters.getOrDefault(name, null)))
-            .collect(Collectors.toMap(Property::getName, x -> x));
-    }
-
-    private static Map<String, Method> getGetters(Class<?> type) {
-        Map<String, Method> getters = new HashMap<>();
-        for (Method method : type.getDeclaredMethods()) {
-            if (method.getParameterCount() > 0) {
-                continue;
-            }
-            String methodName = method.getName();
-            if (methodName.startsWith("get")) {
-                getters.put(camelize(methodName.substring(3)), method);
-            } else if (methodName.startsWith("is")) {
-                getters.put(camelize(methodName.substring(2)), method);
-            } else {
-                getters.put(methodName, method);
-            }
-        }
-        return getters;
-    }
-
-    private static Map<String, Method> getSetters(Class<?> type) {
-        Map<String, Method> setters = new HashMap<>();
-        for (Method method : type.getMethods()) {
-            String methodName = method.getName();
-            if (methodName.startsWith("set") == false) {
-                continue;
-            }
-            String propertyName = camelize(methodName.substring(3));
-            setters.put(propertyName, method);
-        }
-        return setters;
-    }
-
-    private static String camelize(String s) {
-        char head = s.charAt(0);
-        if (isUpperCase(head)) {
-            return toLowerCase(head) + s.substring(1);
-        } else {
-            return s;
-        }
+    public Class<?> getType() {
+        return type;
     }
 
     public String getName() {
         return name;
     }
 
-    public Class<?> getType() {
-        return getter.getReturnType();
-    }
-
     public Object getValue(Object instance) {
-        try {
-            return getter.invoke(instance);
-        } catch (IllegalAccessException
-            | IllegalArgumentException
-            | InvocationTargetException exception) {
-            throw new RuntimeException(exception);
-        }
+        return getter.apply(instance);
     }
 
     public void setValueIfPossible(Object instance, Object value) {
@@ -98,12 +39,6 @@ final class Property {
             return;
         }
 
-        try {
-            setter.invoke(instance, value);
-        } catch (IllegalAccessException
-            | IllegalArgumentException
-            | InvocationTargetException exception) {
-            throw new RuntimeException(exception);
-        }
+        setter.accept(instance, value);
     }
 }

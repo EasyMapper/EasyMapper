@@ -7,12 +7,10 @@ import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 
 import static easymapper.Exceptions.argumentNullException;
-import static easymapper.Property.getProperties;
 import static java.util.Arrays.stream;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Comparator.comparingInt;
@@ -102,7 +100,7 @@ public class Mapper {
         Constructor<?> constructor = getConstructor(destinationType);
         Parameter[] parameters = constructor.getParameters();
         String[] destinationPropertyNames = getPropertyNames(constructor);
-        Map<String, Property> sourceProperties = getProperties(sourceType);
+        Properties sourceProperties = Properties.get(sourceType);
         Object[] arguments = new Object[parameters.length];
 
         for (int i = 0; i < parameters.length; i++) {
@@ -113,11 +111,6 @@ public class Mapper {
                 .flatMap(mapping -> mapping.tryCalculate(source, propertyName))
                 .orElseGet(() -> {
                     Property sourceProperty = sourceProperties.get(propertyName);
-                    if (sourceProperty == null) {
-                        String message = "No property found for '"
-                            + propertyName + "' from " + sourceType + ".";
-                        throw new RuntimeException(message);
-                    }
                     return map(sourceProperty.getValue(source), parameter.getType());
                 });
         }
@@ -191,10 +184,10 @@ public class Mapper {
         Class<?> sourceType,
         Class<?> destinationType
     ) {
-        Map<String, Property> sourceProperties = getProperties(sourceType);
-        Map<String, Property> destinationProperties = getProperties(destinationType);
+        Properties sourceProperties = Properties.get(sourceType);
+        Properties destinationProperties = Properties.get(destinationType);
 
-        for (String propertyName : destinationProperties.keySet()) {
+        for (String propertyName : destinationProperties.getNames()) {
             Optional<Object> calculated = findMapping(sourceType, destinationType)
                 .flatMap(mapping -> mapping.tryCalculate(source, propertyName));
 
@@ -206,7 +199,7 @@ public class Mapper {
                 continue;
             }
 
-            Property sourceProperty = sourceProperties.get(propertyName);
+            Property sourceProperty = sourceProperties.find(propertyName);
 
             if (sourceProperty == null) {
                 continue;
