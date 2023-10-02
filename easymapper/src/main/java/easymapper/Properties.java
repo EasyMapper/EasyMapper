@@ -134,6 +134,35 @@ class Properties {
     }
 
     public Property find(String name) {
-        return declaredProperties.getOrDefault(name, null);
+        Property declaredProperty = declaredProperties.getOrDefault(name, null);
+        return declaredProperty != null
+            ? declaredProperty
+            : findFlattened(this, identity(), name, name);
+    }
+
+    private static Property findFlattened(
+        Properties properties,
+        Function<Object, Object> resolver,
+        String path,
+        String unresolvedPath
+    ) {
+        for (Property property : properties.declaredProperties.values()) {
+            String propertyName = property.getName();
+            if (unresolvedPath.equalsIgnoreCase(propertyName)) {
+                return new Property(
+                    property.getType(),
+                    path,
+                    instance -> property.getValue(resolver.apply(instance)),
+                    null);
+            } else if (path.toLowerCase().startsWith(propertyName.toLowerCase())) {
+                return findFlattened(
+                    Properties.get(property.getType()),
+                    instance -> property.getValue(resolver.apply(instance)),
+                    path,
+                    path.substring(propertyName.length()));
+            }
+        }
+
+        return null;
     }
 }

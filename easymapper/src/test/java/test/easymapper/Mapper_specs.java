@@ -317,4 +317,34 @@ class Mapper_specs {
         DiscountPolicy actual = sut.map(source, DiscountPolicy.class);
         assertThat(actual.isEnabled()).isEqualTo(source.isEnabled());
     }
+
+    @AutoParameterizedTest
+    void sut_correctly_flattens_nested_properties_for_constructors(
+        Mapper sut,
+        Shipment source
+    ) {
+        // Act
+        ShipmentView actual = sut.map(source, ShipmentView.class);
+
+        // Assert
+        assertThat(actual.getRecipientName())
+            .isEqualTo(source.getRecipient().getName());
+        assertThat(actual.getRecipientPhoneNumber())
+            .isEqualTo(source.getRecipient().getPhoneNumber());
+    }
+
+    @AutoParameterizedTest
+    void sut_correctly_flattens_nested_properties_for_setters(
+        Mapper sut,
+        Shipment source
+    ) {
+        // Act
+        ShipmentEntity actual = sut.map(source, ShipmentEntity.class);
+
+        // Assert
+        assertThat(actual.getRecipientName())
+            .isEqualTo(source.getRecipient().getName());
+        assertThat(actual.getRecipientPhoneNumber())
+            .isEqualTo(source.getRecipient().getPhoneNumber());
+    }
 }
