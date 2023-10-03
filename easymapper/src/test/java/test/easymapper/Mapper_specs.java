@@ -361,4 +361,26 @@ class Mapper_specs {
         assertThat(actual.getRecipientName()).isNull();
         assertThat(actual.getRecipientPhoneNumber()).isNull();
     }
+
+    @AutoParameterizedTest
+    void sut_correctly_sets_inherited_properties_through_setters(
+        Mapper sut,
+        Employee source
+    ) {
+        EmployeeView actual = sut.map(source, EmployeeView.class);
+        assertThat(actual.getUsername()).isEqualTo(source.getUsername());
+    }
+
+    @AutoParameterizedTest
+    void sut_correctly_sets_inherited_properties_through_constructors(
+        EmployeeView source
+    ) {
+        Mapper sut = new Mapper(config -> config
+            .addMapping(EmployeeView.class, Employee.class, mapping -> mapping
+                .set("passwordHash", x -> null)));
+
+        Employee actual = sut.map(source, Employee.class);
+
+        assertThat(actual.getUsername()).isEqualTo(source.getUsername());
+    }
 }

@@ -34,11 +34,11 @@ final class Property {
         return getter.apply(instance);
     }
 
-    public void setValueIfPossible(Object instance, Object value) {
-        if (setter == null) {
-            return;
-        }
+    public boolean isSettable() {
+        return setter != null;
+    }
 
+    public void setValue(Object instance, Object value) {
         setter.accept(instance, value);
     }
 }

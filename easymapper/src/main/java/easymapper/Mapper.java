@@ -188,8 +188,13 @@ public class Mapper {
         Properties sourceProperties = Properties.get(sourceType);
         Properties destinationProperties = Properties.get(destinationType);
 
-        for (Property destinationProperty : destinationProperties.properties()) {
+        for (Property destinationProperty : destinationProperties.statedProperties()) {
+            if (destinationProperty.isSettable() == false) {
+                continue;
+            }
+
             String propertyName = destinationProperty.getName();
+
             findMapping(sourceType, destinationType)
                 .map(mapping -> mapping.findCalculator(propertyName))
                 .orElseGet(() -> {
@@ -203,7 +208,7 @@ public class Mapper {
                 })
                 .ifPresent(calculator -> {
                     Object value = calculator.apply(source);
-                    destinationProperty.setValueIfPossible(destination, value);
+                    destinationProperty.setValue(destination, value);
                 });
         }
     }

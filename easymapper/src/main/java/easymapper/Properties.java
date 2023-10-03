@@ -16,47 +16,41 @@ import static java.util.stream.Collectors.toMap;
 class Properties {
 
     private final Class<?> sourceType;
-    private final Map<String, Property> declaredProperties;
+    private final Map<String, Property> statedProperties;
 
     private Properties(
         Class<?> sourceType,
-        Map<String, Property> declaredProperties
+        Map<String, Property> statedProperties
     ) {
         this.sourceType = sourceType;
-        this.declaredProperties = declaredProperties;
+        this.statedProperties = statedProperties;
     }
 
     public static Properties get(Class<?> sourceType) {
-        return new Properties(sourceType, getDeclaredProperties(sourceType));
+        return new Properties(sourceType, getStatedProperties(sourceType));
     }
 
-    private static Map<String, Property> getDeclaredProperties(Class<?> type) {
-        Map<String, Method> declaredGetters = getDeclaredGetters(type);
-        Map<String, Method> declaredSetters = getDeclaredSetters(type);
+    private static Map<String, Property> getStatedProperties(Class<?> type) {
+        Map<String, Method> statedGetters = getStatedGetters(type);
+        Map<String, Method> statedSetters = getStatedSetters(type);
 
-        return declaredGetters
+        return statedGetters
             .keySet()
             .stream()
             .distinct()
-            .map(name -> {
-                Method declaredGetter = declaredGetters.get(name);
-                Method declaredSetter = declaredSetters.getOrDefault(name, null);
-                Class<?> propertyType = declaredGetter == null
-                    ? declaredSetter.getParameterTypes()[0]
-                    : declaredGetter.getReturnType();
-                return new Property(
-                    propertyType,
-                    name,
-                    getGetter(declaredGetter),
-                    getSetter(declaredSetter));
-            })
+            .map(name -> new Property(
+                statedGetters.get(name).getReturnType(),
+                name,
+                getGetter(statedGetters.get(name)),
+                getSetter(statedSetters.getOrDefault(name, null))))
             .collect(toMap(Property::getName, identity()));
     }
 
-    private static Map<String, Method> getDeclaredGetters(Class<?> type) {
+    private static Map<String, Method> getStatedGetters(Class<?> type) {
         Map<String, Method> getters = new HashMap<>();
-        for (Method method : type.getDeclaredMethods()) {
-            if (method.getParameterCount() > 0) {
+        for (Method method : type.getMethods()) {
+            if (method.getParameterCount() > 0 ||
+                method.getDeclaringClass().equals(Object.class)) {
                 continue;
             }
             String methodName = method.getName();
@@ -71,7 +65,7 @@ class Properties {
         return getters;
     }
 
-    private static Map<String, Method> getDeclaredSetters(Class<?> type) {
+    private static Map<String, Method> getStatedSetters(Class<?> type) {
         Map<String, Method> setters = new HashMap<>();
         for (Method method : type.getMethods()) {
             String methodName = method.getName();
@@ -84,10 +78,10 @@ class Properties {
         return setters;
     }
 
-    private static Function<Object, Object> getGetter(Method declaredGetter) {
-        return declaredGetter == null ? null : instance -> {
+    private static Function<Object, Object> getGetter(Method statedGetter) {
+        return statedGetter == null ? null : instance -> {
             try {
-                return instance == null ? null : declaredGetter.invoke(instance);
+                return instance == null ? null : statedGetter.invoke(instance);
             } catch (IllegalAccessException
                  | IllegalArgumentException
                  | InvocationTargetException exception) {
@@ -96,10 +90,10 @@ class Properties {
         };
     }
 
-    private static BiConsumer<Object, Object> getSetter(Method declaredSetter) {
-        return declaredSetter == null ? null : (instance, value) -> {
+    private static BiConsumer<Object, Object> getSetter(Method statedSetter) {
+        return statedSetter == null ? null : (instance, value) -> {
             try {
-                declaredSetter.invoke(instance, value);
+                statedSetter.invoke(instance, value);
             } catch (IllegalAccessException
                  | IllegalArgumentException
                  | InvocationTargetException exception) {
@@ -117,8 +111,8 @@ class Properties {
         }
     }
 
-    public Collection<Property> properties() {
-        return declaredProperties.values();
+    public Collection<Property> statedProperties() {
+        return statedProperties.values();
     }
 
     public Property get(String name) {
@@ -134,9 +128,9 @@ class Properties {
     }
 
     public Property find(String name) {
-        Property declaredProperty = declaredProperties.getOrDefault(name, null);
-        return declaredProperty != null
-            ? declaredProperty
+        Property statedProperty = statedProperties.getOrDefault(name, null);
+        return statedProperty != null
+            ? statedProperty
             : findFlattened(this, identity(), name, name);
     }
 
@@ -146,7 +140,7 @@ class Properties {
         String path,
         String unresolvedPath
     ) {
-        for (Property property : properties.declaredProperties.values()) {
+        for (Property property : properties.statedProperties.values()) {
             String propertyName = property.getName();
             if (unresolvedPath.equalsIgnoreCase(propertyName)) {
                 return new Property(
