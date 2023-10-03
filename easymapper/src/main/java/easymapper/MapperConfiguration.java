@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -25,8 +26,6 @@ public final class MapperConfiguration {
 
     private static final ParameterNameResolver defaultParameterNameResolver =
         p -> p.isNamePresent() ? Optional.of(p.getName()) : Optional.empty();
-
-    private static final Function<Object, Object> identity = identity();
 
     private ConstructorExtractor constructorExtractor;
     private ParameterNameResolver parameterNameResolver;
@@ -67,7 +66,7 @@ public final class MapperConfiguration {
             Transform.create(
                 UUID.class,
                 String.class,
-                x -> x == null ? null : x.toString()));
+                (source, context) -> source == null ? null : source.toString()));
 
         return transforms;
     }
@@ -77,7 +76,11 @@ public final class MapperConfiguration {
         Class<?> sourceType,
         Class<?> destinationType
     ) {
-        transforms.add(new Transform(sourceType, destinationType, identity));
+        transforms.add(
+            new Transform(
+                type -> type.equals(sourceType),
+                type -> type.equals(destinationType),
+                identity()));
     }
 
     private static void addIdentityTransform(
@@ -118,7 +121,7 @@ public final class MapperConfiguration {
     public <S, D> MapperConfiguration addTransform(
         Class<S> sourceType,
         Class<D> destinationType,
-        Function<S, D> function
+        BiFunction<S, TransformContext, D> function
     ) {
         if (sourceType == null) {
             throw argumentNullException("sourceType");
@@ -132,15 +135,24 @@ public final class MapperConfiguration {
             throw argumentNullException("function");
         }
 
-        transforms.stream()
-            .filter(t -> t.getSourceType().equals(sourceType))
-            .filter(t -> t.getDestinationType().equals(destinationType))
-            .findFirst()
-            .ifPresent(transforms::remove);
-
         transforms.add(Transform.create(sourceType, destinationType, function));
 
         return this;
+    }
+
+    public <S, D> MapperConfiguration addTransform(
+        Class<S> sourceType,
+        Class<D> destinationType,
+        Function<S, D> function
+    ) {
+        if (function == null) {
+            throw argumentNullException("function");
+        }
+
+        return addTransform(
+            sourceType,
+            destinationType,
+            (s, c) -> function.apply(s));
     }
 
     public <S, D> MapperConfiguration addMapping(
@@ -162,12 +174,6 @@ public final class MapperConfiguration {
 
         MappingBuilder<S, D> builder = new MappingBuilder<>(sourceType, destinationType);
         configurer.accept(builder);
-
-        mappings.stream()
-            .filter(m -> m.getSourceType().equals(sourceType))
-            .filter(m -> m.getDestinationType().equals(destinationType))
-            .findFirst()
-            .ifPresent(mappings::remove);
 
         mappings.add(builder);
 

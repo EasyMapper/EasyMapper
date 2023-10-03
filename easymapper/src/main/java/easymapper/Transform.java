@@ -1,43 +1,58 @@
 package easymapper;
 
+import java.lang.reflect.Type;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public class Transform {
 
-    private final Class<?> sourceType;
-    private final Class<?> destinationType;
-    private final Function<Object, Object> function;
+    private final Function<Type, Boolean> sourceTypePredicate;
+    private final Function<Type, Boolean> destinationTypePredicate;
+    private final BiFunction<Object, TransformContext, Object> function;
 
     Transform(
-        Class<?> sourceType,
-        Class<?> destinationType,
+        Function<Type, Boolean> sourceTypePredicate,
+        Function<Type, Boolean> destinationTypePredicate,
+        BiFunction<Object, TransformContext, Object> function
+    ) {
+        this.sourceTypePredicate = sourceTypePredicate;
+        this.destinationTypePredicate = destinationTypePredicate;
+        this.function = function;
+    }
+
+    Transform(
+        Function<Type, Boolean> sourceTypePredicate,
+        Function<Type, Boolean> destinationTypePredicate,
         Function<Object, Object> function
     ) {
-        this.sourceType = sourceType;
-        this.destinationType = destinationType;
-        this.function = function;
+        this.sourceTypePredicate = sourceTypePredicate;
+        this.destinationTypePredicate = destinationTypePredicate;
+        this.function = (source, context) -> function.apply(source);
     }
 
     static <S, D> Transform create(
         Class<S> sourceType,
         Class<D> destinationType,
-        Function<S, D> function
+        BiFunction<S, TransformContext, D> function
     ) {
         return new Transform(
-            sourceType,
-            destinationType,
-            x -> function.apply(sourceType.cast(x)));
+            type -> type.equals(sourceType),
+            type -> type.equals(destinationType),
+            (source, context) -> function.apply(sourceType.cast(source), context));
     }
 
-    public Class<?> getSourceType() {
-        return sourceType;
+    public boolean matchSourceType(Type sourceType) {
+        return sourceTypePredicate.apply(sourceType);
     }
 
-    public Class<?> getDestinationType() {
-        return destinationType;
+    public boolean matchDestinationType(Type destinationType) {
+        return destinationTypePredicate.apply(destinationType);
     }
 
-    public Object transform(Object source) {
-        return function.apply(source);
+    public Object transform(
+        Object source,
+        TransformContext context
+    ) {
+        return function.apply(source, context);
     }
 }

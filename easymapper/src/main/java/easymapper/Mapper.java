@@ -8,6 +8,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -16,7 +17,6 @@ import java.util.function.Function;
 import static easymapper.Exceptions.argumentNullException;
 import static easymapper.TypeAnalyzer.getParameterTypeResolver;
 import static java.util.Arrays.stream;
-import static java.util.Collections.unmodifiableList;
 import static java.util.Comparator.comparingInt;
 import static java.util.stream.Collectors.toList;
 
@@ -45,13 +45,19 @@ public class Mapper {
         constructorExtractor = builder.getConstructorExtractor();
         parameterNameResolver = builder.getParameterNameResolver();
 
-        transforms = unmodifiableList(new ArrayList<>(builder.getTransforms()));
+        transforms = copyThenReverse(new ArrayList<>(builder.getTransforms()));
 
-        mappings = unmodifiableList(builder
+        mappings = copyThenReverse(builder
             .getMappings()
             .stream()
             .map(MappingBuilder::build)
             .collect(toList()));
+    }
+
+    private static <T> Collection<T> copyThenReverse(Collection<T> list) {
+        ArrayList<T> copy = new ArrayList<>(list);
+        Collections.reverse(copy);
+        return Collections.unmodifiableCollection(copy);
     }
 
     public <T> T map(Object source, Class<T> destinationType) {
@@ -89,7 +95,9 @@ public class Mapper {
         Type destinationType
     ) {
         return findTransform(sourceType, destinationType)
-            .map(x -> (T) x.transform(source))
+            .map(x -> (T) x.transform(
+                source,
+                new TransformContext(this, sourceType, destinationType)))
             .orElseGet(() -> constructThenProject(source, sourceType, destinationType));
     }
 
@@ -97,9 +105,10 @@ public class Mapper {
         Type source,
         Type destination
     ) {
-        return transforms.stream()
-            .filter(transform -> transform.getSourceType().equals(source))
-            .filter(transform -> transform.getDestinationType().equals(destination))
+        return transforms
+            .stream()
+            .filter(transform -> transform.matchSourceType(source))
+            .filter(transform -> transform.matchDestinationType(destination))
             .findFirst();
     }
 
@@ -147,7 +156,8 @@ public class Mapper {
         Type source,
         Type destination
     ) {
-        return mappings.stream()
+        return mappings
+            .stream()
             .filter(mapping -> mapping.getSourceType().equals(source))
             .filter(mapping -> mapping.getDestinationType().equals(destination))
             .findFirst();

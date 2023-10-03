@@ -4,8 +4,11 @@ import autoparams.Repeat;
 import easymapper.ConstructorExtractor;
 import easymapper.Mapper;
 import easymapper.ParameterNameResolver;
+import easymapper.TransformContext;
 import java.lang.reflect.Constructor;
 import java.util.Optional;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import org.junit.jupiter.api.Test;
 
 import static java.util.Arrays.stream;
@@ -77,33 +80,94 @@ public class MapperConfiguration_specs {
 
     @Test
     void addTransform_is_fluent() {
+        BiFunction<Integer, TransformContext, Integer> function = (source, context) -> source;
         new Mapper(c -> assertThat(
-            c.addTransform(int.class, int.class, identity())).isSameAs(c));
+            c.addTransform(int.class, int.class, function)).isSameAs(c));
     }
 
     @Test
     void addTransform_has_guard_against_null_source_type() {
+        BiFunction<Integer, TransformContext, Integer> function = (source, context) -> source;
         assertThatThrownBy(() ->
-            new Mapper(c -> c.addTransform(null, int.class, identity())))
+            new Mapper(c -> c.addTransform(null, int.class, function)))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void addTransform_has_guard_against_null_destination_type() {
+        BiFunction<Integer, TransformContext, Integer> function = (source, context) -> source;
         assertThatThrownBy(() ->
-            new Mapper(c -> c.addTransform(int.class, null, identity())))
+            new Mapper(c -> c.addTransform(int.class, null, function)))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void addTransform_has_guard_against_null_function() {
+        BiFunction<Integer, TransformContext, Integer> function = null;
         assertThatThrownBy(() ->
-            new Mapper(c -> c.addTransform(int.class, int.class, null)))
+            new Mapper(c -> c.addTransform(int.class, int.class, function)))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
     @AutoParameterizedTest
+    void addTransform_correctly_provides_context(PricingView source) {
+        // Arrange
+        MutableBag<TransformContext> bag = new MutableBag<>();
+
+        Mapper sut = new Mapper(config -> config
+            .addTransform(PricingView.class, Pricing.class, (pricing, context) -> {
+                bag.setValue(context);
+                return new Pricing(pricing.getListPrice(), pricing.getDiscount());
+            })
+        );
+
+        // Act
+        sut.map(source, Pricing.class);
+
+        // Assert
+        TransformContext actual = bag.getValue();
+        assertThat(actual).isNotNull();
+        assertThat(actual.getMapper()).isSameAs(sut);
+        assertThat(actual.getSourceType()).isSameAs(PricingView.class);
+        assertThat(actual.getDestinationType()).isSameAs(Pricing.class);
+    }
+
+    @AutoParameterizedTest
     void addTransform_correctly_adds_transform(Pricing source) {
+        // Arrange
+        Mapper sut = new Mapper(config -> config
+            .addTransform(
+                Pricing.class,
+                PricingView.class,
+                (pricing, context) -> new PricingView(
+                    pricing.getListPrice(),
+                    pricing.getDiscount(),
+                    pricing.getListPrice() - pricing.getDiscount())));
+
+        // Act
+        PricingView actual = sut.map(source, PricingView.class);
+
+        // Assert
+        assertThat(actual.getSalePrice())
+            .isEqualTo(source.getListPrice() - source.getDiscount());
+    }
+
+    @Test
+    void light_addTransform_is_fluent() {
+        new Mapper(c -> assertThat(
+            c.addTransform(int.class, int.class, identity())).isSameAs(c));
+    }
+
+    @Test
+    void light_addTransform_has_guard_against_null_function() {
+        Function<Integer, Integer> function = null;
+        assertThatThrownBy(() ->
+            new Mapper(c -> c.addTransform(int.class, int.class, function)))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @AutoParameterizedTest
+    void light_addTransform_correctly_adds_transform(Pricing source) {
         // Arrange
         Mapper sut = new Mapper(config -> config
             .addTransform(
