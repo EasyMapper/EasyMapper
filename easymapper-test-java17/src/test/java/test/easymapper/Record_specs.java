@@ -4,7 +4,7 @@ import easymapper.Mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class Mapper_specs {
+public class Record_specs {
 
     @AutoParameterizedTest
     void sut_correctly_maps_to_record(Mapper sut, User source) {
