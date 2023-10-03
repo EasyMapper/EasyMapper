@@ -1,17 +1,18 @@
 package easymapper;
 
+import java.lang.reflect.Type;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 final class Property {
 
-    private final Class<?> type;
+    private final Type type;
     private final String name;
     private final Function<Object, Object> getter;
     private final BiConsumer<Object, Object> setter;
 
     public Property(
-        Class<?> type,
+        Type type,
         String name,
         Function<Object, Object> getter,
         BiConsumer<Object, Object> setter
@@ -22,7 +23,7 @@ final class Property {
         this.setter = setter;
     }
 
-    public Class<?> getType() {
+    public Type getType() {
         return type;
     }
 

@@ -4,13 +4,17 @@ import java.beans.ConstructorProperties;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Parameter;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static easymapper.Exceptions.argumentNullException;
+import static easymapper.TypeAnalyzer.getParameterTypeResolver;
 import static java.util.Arrays.stream;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Comparator.comparingInt;
@@ -65,38 +69,58 @@ public class Mapper {
     @SuppressWarnings("unchecked")
     private <T> T map(
         Object source,
-        Class<?> sourceType,
-        Class<T> destinationType
+        Type sourceType,
+        Type destinationType
     ) {
         return findTransform(sourceType, destinationType)
             .map(x -> (T) x.transform(source))
             .orElseGet(() -> constructThenProject(source, sourceType, destinationType));
     }
 
+    public <T> T map(Object source, TypeReference<T> destinationTypeReference) {
+        if (destinationTypeReference == null) {
+            throw argumentNullException("destinationTypeReference");
+        }
+
+        return map(source, destinationTypeReference.getType());
+    }
+
+    private <T> T map(Object source, Type destinationType) {
+        if (source == null) {
+            return null;
+        }
+
+        return map(source, source.getClass(), destinationType);
+    }
+
     private Optional<Transform> findTransform(
-        Class<?> source,
-        Class<?> destination
+        Type source,
+        Type destination
     ) {
         return transforms.stream()
             .filter(transform -> transform.getSourceType().equals(source))
             .filter(transform -> transform.getDestinationType().equals(destination))
             .findFirst();
     }
+
+    @SuppressWarnings("unchecked")
     private <T> T constructThenProject(
         Object source,
-        Class<?> sourceType,
-        Class<T> destinationType
+        Type sourceType,
+        Type destinationType
     ) {
         Object destination = construct(source, sourceType, destinationType);
         project(source, destination, sourceType, destinationType);
-        return destinationType.cast(destination);
+        return (T) destination;
     }
 
     private Object construct(
         Object source,
-        Class<?> sourceType,
-        Class<?> destinationType
+        Type sourceType,
+        Type destinationType
     ) {
+        Function<Parameter, Type> parameterTypeResolver = getParameterTypeResolver(destinationType);
+
         Constructor<?> constructor = getConstructor(destinationType);
         Parameter[] parameters = constructor.getParameters();
         String[] destinationPropertyNames = getPropertyNames(constructor);
@@ -111,7 +135,7 @@ public class Mapper {
                 .flatMap(mapping -> mapping.findCalculator(propertyName))
                 .orElseGet(() -> instance -> map(
                     sourceProperties.get(propertyName).getValue(instance),
-                    parameter.getType())
+                    parameterTypeResolver.apply(parameter))
                 )
                 .apply(source);
         }
@@ -120,8 +144,8 @@ public class Mapper {
     }
 
     private Optional<Mapping> findMapping(
-        Class<?> source,
-        Class<?> destination
+        Type source,
+        Type destination
     ) {
         return mappings.stream()
             .filter(mapping -> mapping.getSourceType().equals(source))
@@ -129,13 +153,30 @@ public class Mapper {
             .findFirst();
     }
 
-    private Constructor<?> getConstructor(Class<?> destinationType) {
+    private Constructor<?> getConstructor(Type type) {
+        if (type instanceof ParameterizedType) {
+            Type rawType = ((ParameterizedType) type).getRawType();
+            if (rawType instanceof Class<?>) {
+                return getConstructor((Class<?>) rawType);
+            } else {
+                String message = "Cannot provide constructor for the type: " + type;
+                throw new RuntimeException(message);
+            }
+        } else if (type instanceof Class<?>) {
+            return getConstructor((Class<?>) type);
+        } else {
+            String message = "Cannot provide constructor for the type: " + type;
+            throw new RuntimeException(message);
+        }
+    }
+
+    private Constructor<?> getConstructor(Class<?> type) {
         return constructorExtractor
-            .extract(destinationType)
+            .extract(type)
             .stream()
             .max(comparingInt(Constructor::getParameterCount))
             .orElseThrow(() -> {
-                String message = "No constructor found for " + destinationType;
+                String message = "No constructor found for " + type;
                 return new RuntimeException(message);
             });
     }
@@ -182,8 +223,8 @@ public class Mapper {
     private void project(
         Object source,
         Object destination,
-        Class<?> sourceType,
-        Class<?> destinationType
+        Type sourceType,
+        Type destinationType
     ) {
         Properties sourceProperties = Properties.get(sourceType);
         Properties destinationProperties = Properties.get(destinationType);
@@ -236,5 +277,34 @@ public class Mapper {
         }
 
         project(source, destination, sourceType, destinationType);
+    }
+
+    public <S, D> void map(
+        S source,
+        D destination,
+        TypeReference<S> sourceTypeReference,
+        TypeReference<D> destinationTypeReference
+    ) {
+        if (source == null) {
+            throw argumentNullException("source");
+        }
+
+        if (destination == null) {
+            throw argumentNullException("destination");
+        }
+
+        if (sourceTypeReference == null) {
+            throw argumentNullException("sourceTypeReference");
+        }
+
+        if (destinationTypeReference == null) {
+            throw argumentNullException("destinationTypeReference");
+        }
+
+        project(
+            source,
+            destination,
+            sourceTypeReference.getType(),
+            destinationTypeReference.getType());
     }
 }
