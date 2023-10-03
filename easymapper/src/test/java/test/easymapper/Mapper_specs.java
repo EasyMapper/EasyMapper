@@ -347,4 +347,18 @@ class Mapper_specs {
         assertThat(actual.getRecipientPhoneNumber())
             .isEqualTo(source.getRecipient().getPhoneNumber());
     }
+
+    @AutoParameterizedTest
+    void sut_correctly_flattens_nested_properties_for_setters_with_null(
+        Mapper sut,
+        Address address
+    ) {
+        Recipient recipient = null;
+        Shipment source = new Shipment(recipient, address);
+
+        ShipmentEntity actual = sut.map(source, ShipmentEntity.class);
+
+        assertThat(actual.getRecipientName()).isNull();
+        assertThat(actual.getRecipientPhoneNumber()).isNull();
+    }
 }

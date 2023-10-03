@@ -87,7 +87,7 @@ class Properties {
     private static Function<Object, Object> getGetter(Method declaredGetter) {
         return declaredGetter == null ? null : instance -> {
             try {
-                return declaredGetter.invoke(instance);
+                return instance == null ? null : declaredGetter.invoke(instance);
             } catch (IllegalAccessException
                  | IllegalArgumentException
                  | InvocationTargetException exception) {
