@@ -2,9 +2,9 @@ package easymapper;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -117,8 +117,8 @@ class Properties {
         }
     }
 
-    public Set<String> getNames() {
-        return declaredProperties.keySet();
+    public Collection<Property> properties() {
+        return declaredProperties.values();
     }
 
     public Property get(String name) {

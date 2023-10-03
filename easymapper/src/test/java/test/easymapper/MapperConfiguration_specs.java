@@ -162,6 +162,19 @@ public class MapperConfiguration_specs {
     }
 
     @AutoParameterizedTest
+    void set_correctly_configures_constructor_property_mapping_with_function_that_returns_null(
+        UserView source
+    ) {
+        Mapper mapper = new Mapper(config -> config
+            .addMapping(UserView.class, User.class, mapping -> mapping
+                .set("passwordHash", x -> null)));
+
+        User actual = mapper.map(source, User.class);
+
+        assertThat(actual.getPasswordHash()).isNull();
+    }
+
+    @AutoParameterizedTest
     void set_does_not_allow_duplicate_destination_property_name(
         String sourcePropertyName,
         int destinationPropertyValue

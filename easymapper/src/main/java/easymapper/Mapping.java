@@ -28,12 +28,9 @@ public class Mapping {
         return destinationType;
     }
 
-    public Optional<Object> tryCalculate(
-        Object source,
+    public Optional<Function<Object, Object>> findCalculator(
         String destinationPropertyName
     ) {
-        return Optional
-            .ofNullable(calculators.get(destinationPropertyName))
-            .map(calculator -> calculator.apply(source));
+        return Optional.ofNullable(calculators.get(destinationPropertyName));
     }
 }

@@ -108,11 +108,12 @@ public class Mapper {
             Parameter parameter = parameters[i];
 
             arguments[i] = findMapping(sourceType, destinationType)
-                .flatMap(mapping -> mapping.tryCalculate(source, propertyName))
-                .orElseGet(() -> {
-                    Property sourceProperty = sourceProperties.get(propertyName);
-                    return map(sourceProperty.getValue(source), parameter.getType());
-                });
+                .flatMap(mapping -> mapping.findCalculator(propertyName))
+                .orElseGet(() -> instance -> map(
+                    sourceProperties.get(propertyName).getValue(instance),
+                    parameter.getType())
+                )
+                .apply(source);
         }
 
         return createInstance(constructor, arguments);
@@ -187,31 +188,23 @@ public class Mapper {
         Properties sourceProperties = Properties.get(sourceType);
         Properties destinationProperties = Properties.get(destinationType);
 
-        for (String propertyName : destinationProperties.getNames()) {
-            Optional<Object> calculated = findMapping(sourceType, destinationType)
-                .flatMap(mapping -> mapping.tryCalculate(source, propertyName));
-
-            if (calculated.isPresent()) {
-                Property destinationProperty = destinationProperties.get(propertyName);
-                destinationProperty.setValueIfPossible(
-                    destination,
-                    calculated.get());
-                continue;
-            }
-
-            Property sourceProperty = sourceProperties.find(propertyName);
-
-            if (sourceProperty == null) {
-                continue;
-            }
-
-            Property destinationProperty = destinationProperties.get(propertyName);
-
-            Object destinationPropertyValue = map(
-                sourceProperty.getValue(source),
-                destinationProperty.getType());
-
-            destinationProperty.setValueIfPossible(destination, destinationPropertyValue);
+        for (Property destinationProperty : destinationProperties.properties()) {
+            String propertyName = destinationProperty.getName();
+            findMapping(sourceType, destinationType)
+                .map(mapping -> mapping.findCalculator(propertyName))
+                .orElseGet(() -> {
+                    Property sourceProperty = sourceProperties.find(propertyName);
+                    return Optional.ofNullable(sourceProperty == null
+                        ? null
+                        : instance -> map(
+                            sourceProperty.getValue(instance),
+                            destinationProperty.getType())
+                    );
+                })
+                .ifPresent(calculator -> {
+                    Object value = calculator.apply(source);
+                    destinationProperty.setValueIfPossible(destination, value);
+                });
         }
     }
 
