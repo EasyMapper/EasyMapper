@@ -102,7 +102,7 @@ class Mapper_specs {
         Mapper sut,
         User destination
     ) {
-        Object source = null;
+        User source = null;
         assertThatThrownBy(
             () -> sut.map(source, destination, User.class, User.class))
             .isInstanceOf(IllegalArgumentException.class)
@@ -114,7 +114,7 @@ class Mapper_specs {
         Mapper sut,
         User source
     ) {
-        Object destination = null;
+        User destination = null;
         assertThatThrownBy(
             () -> sut.map(source, destination, User.class, User.class))
             .isInstanceOf(IllegalArgumentException.class)

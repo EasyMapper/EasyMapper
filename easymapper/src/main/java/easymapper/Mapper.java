@@ -66,17 +66,6 @@ public class Mapper {
         return map(source, source.getClass(), destinationType);
     }
 
-    @SuppressWarnings("unchecked")
-    private <T> T map(
-        Object source,
-        Type sourceType,
-        Type destinationType
-    ) {
-        return findTransform(sourceType, destinationType)
-            .map(x -> (T) x.transform(source))
-            .orElseGet(() -> constructThenProject(source, sourceType, destinationType));
-    }
-
     public <T> T map(Object source, TypeReference<T> destinationTypeReference) {
         if (destinationTypeReference == null) {
             throw argumentNullException("destinationTypeReference");
@@ -91,6 +80,17 @@ public class Mapper {
         }
 
         return map(source, source.getClass(), destinationType);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> T map(
+        Object source,
+        Type sourceType,
+        Type destinationType
+    ) {
+        return findTransform(sourceType, destinationType)
+            .map(x -> (T) x.transform(source))
+            .orElseGet(() -> constructThenProject(source, sourceType, destinationType));
     }
 
     private Optional<Transform> findTransform(
@@ -254,11 +254,11 @@ public class Mapper {
         }
     }
 
-    public void map(
-        Object source,
-        Object destination,
-        Class<?> sourceType,
-        Class<?> destinationType
+    public <S, D> void map(
+        S source,
+        D destination,
+        Class<S> sourceType,
+        Class<D> destinationType
     ) {
         if (source == null) {
             throw argumentNullException("source");
