@@ -2,6 +2,9 @@ package test.easymapper;
 
 import easymapper.Mapper;
 import easymapper.TypeReference;
+import test.easymapper.fixture.ImmutableBag;
+import test.easymapper.fixture.MutableBag;
+
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;

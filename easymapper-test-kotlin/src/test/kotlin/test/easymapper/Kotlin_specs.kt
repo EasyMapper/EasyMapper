@@ -4,6 +4,7 @@ import autoparams.AutoSource
 import easymapper.Mapper
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest
+import test.easymapper.fixture.User
 
 internal class Kotlin_specs {
 

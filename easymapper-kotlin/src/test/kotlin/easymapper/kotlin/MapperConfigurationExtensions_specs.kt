@@ -1,6 +1,10 @@
 package easymapper.kotlin
 
 import easymapper.Mapper
+import easymapper.kotlin.fixture.Pricing
+import easymapper.kotlin.fixture.PricingView
+import easymapper.kotlin.fixture.User
+import easymapper.kotlin.fixture.UserView
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 

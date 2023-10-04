@@ -10,6 +10,18 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import org.junit.jupiter.api.Test;
+import test.easymapper.fixture.HasBrokenConstructor;
+import test.easymapper.fixture.ItemView;
+import test.easymapper.fixture.MutableBag;
+import test.easymapper.fixture.Order;
+import test.easymapper.fixture.OrderView;
+import test.easymapper.fixture.Price;
+import test.easymapper.fixture.Pricing;
+import test.easymapper.fixture.PricingView;
+import test.easymapper.fixture.Recipient;
+import test.easymapper.fixture.RecipientView;
+import test.easymapper.fixture.User;
+import test.easymapper.fixture.UserView;
 
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;

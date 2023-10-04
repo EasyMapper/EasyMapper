@@ -1,6 +1,10 @@
 package test.easymapper;
 
 import easymapper.Mapper;
+import test.easymapper.fixture.Recipient;
+import test.easymapper.fixture.RecipientView;
+import test.easymapper.fixture.User;
+import test.easymapper.fixture.UserView;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

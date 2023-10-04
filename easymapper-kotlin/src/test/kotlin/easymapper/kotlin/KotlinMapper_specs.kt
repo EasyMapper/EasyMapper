@@ -1,6 +1,8 @@
 package easymapper.kotlin
 
 import easymapper.Mapper
+import easymapper.kotlin.fixture.Pricing
+import easymapper.kotlin.fixture.PricingView
 import org.assertj.core.api.Assertions.assertThat
 
 class KotlinMapper_specs {
