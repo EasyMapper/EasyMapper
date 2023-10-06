@@ -65,7 +65,10 @@ public class MapperConfiguration_specs {
         Mapper mapper = new Mapper(c -> c.setConstructorExtractor(extractor));
 
         // Act
-        HasBrokenConstructor actual = mapper.map(source, HasBrokenConstructor.class);
+        HasBrokenConstructor actual = mapper.map(
+            source,
+            User.class,
+            HasBrokenConstructor.class);
 
         // Assert
         assertThat(actual.getId()).isEqualTo(source.getId());
@@ -134,7 +137,7 @@ public class MapperConfiguration_specs {
         );
 
         // Act
-        sut.map(source, Pricing.class);
+        sut.map(source, PricingView.class, Pricing.class);
 
         // Assert
         TransformContext actual = bag.getValue();
@@ -157,7 +160,7 @@ public class MapperConfiguration_specs {
                     pricing.getListPrice() - pricing.getDiscount())));
 
         // Act
-        PricingView actual = sut.map(source, PricingView.class);
+        PricingView actual = sut.map(source, Pricing.class, PricingView.class);
 
         // Assert
         assertThat(actual.getSalePrice())
@@ -191,7 +194,7 @@ public class MapperConfiguration_specs {
                     pricing.getListPrice() - pricing.getDiscount())));
 
         // Act
-        PricingView actual = sut.map(source, PricingView.class);
+        PricingView actual = sut.map(source, Pricing.class, PricingView.class);
 
         // Assert
         assertThat(actual.getSalePrice())
@@ -214,7 +217,10 @@ public class MapperConfiguration_specs {
                 .set("salePrice", x -> x.getListPrice() - x.getDiscount())));
 
         // Act
-        PricingView actual = mapper.map(source, PricingView.class);
+        PricingView actual = mapper.map(
+            source,
+            Pricing.class,
+            PricingView.class);
 
         // Assert
         assertThat(actual.getSalePrice())
@@ -230,7 +236,10 @@ public class MapperConfiguration_specs {
                 .set("recipientPhoneNumber", Recipient::getPhoneNumber)));
 
         // Act
-        RecipientView actual = mapper.map(source, RecipientView.class);
+        RecipientView actual = mapper.map(
+            source,
+            Recipient.class,
+            RecipientView.class);
 
         // Assert
         assertThat(actual.getRecipientName()).isEqualTo(source.getName());
@@ -245,7 +254,7 @@ public class MapperConfiguration_specs {
             .addMapping(UserView.class, User.class, mapping -> mapping
                 .set("passwordHash", x -> null)));
 
-        User actual = mapper.map(source, User.class);
+        User actual = mapper.map(source, UserView.class, User.class);
 
         assertThat(actual.getPasswordHash()).isNull();
     }
@@ -284,7 +293,7 @@ public class MapperConfiguration_specs {
             .addTransform(String.class, String.class, x -> x + "1")
             .addTransform(String.class, String.class, x -> x + "2"));
 
-        String actual = sut.map(source, String.class);
+        String actual = sut.map(source, String.class, String.class);
 
         assertThat(actual).isEqualTo(source + "2");
     }
@@ -298,7 +307,7 @@ public class MapperConfiguration_specs {
             .addMapping(Order.class, OrderView.class, mapping -> mapping
                 .set("numberOfItems", Order::getQuantity)));
 
-        OrderView actual = sut.map(source, OrderView.class);
+        OrderView actual = sut.map(source, Order.class, OrderView.class);
 
         assertThat(actual.getNumberOfItems()).isEqualTo(source.getQuantity());
     }
@@ -333,7 +342,7 @@ public class MapperConfiguration_specs {
         Mapper sut = new Mapper(c -> c.setParameterNameResolver(resolver));
 
         // Act
-        ItemView actual = sut.map(source, ItemView.class);
+        ItemView actual = sut.map(source, ItemView.class, ItemView.class);
 
         // Assert
         assertThat(actual).usingRecursiveComparison().isEqualTo(source);

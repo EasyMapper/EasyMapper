@@ -60,42 +60,47 @@ public class Mapper {
         return Collections.unmodifiableCollection(copy);
     }
 
-    public <T> T map(Object source, Class<T> destinationType) {
+    @SuppressWarnings("unchecked")
+    public <S, D> D map(
+        S source,
+        Class<S> sourceType,
+        Class<D> destinationType
+    ) {
+        if (sourceType == null) {
+            throw argumentNullException("sourceType");
+        }
+
         if (destinationType == null) {
             throw argumentNullException("destinationType");
         }
 
-        if (source == null) {
-            return null;
-        }
-
-        return map(source, source.getClass(), destinationType);
+        return (D) mapObject(source, sourceType, destinationType);
     }
 
+    @SuppressWarnings("unchecked")
     public <T> T map(Object source, TypeReference<T> destinationTypeReference) {
         if (destinationTypeReference == null) {
             throw argumentNullException("destinationTypeReference");
         }
 
-        return map(source, destinationTypeReference.getType());
+        return (T) mapObject(source, destinationTypeReference.getType());
     }
 
-    private <T> T map(Object source, Type destinationType) {
+    private Object mapObject(Object source, Type destinationType) {
         if (source == null) {
             return null;
         }
 
-        return map(source, source.getClass(), destinationType);
+        return mapObject(source, source.getClass(), destinationType);
     }
 
-    @SuppressWarnings("unchecked")
-    private <T> T map(
+    private Object mapObject(
         Object source,
         Type sourceType,
         Type destinationType
     ) {
         return findTransform(sourceType, destinationType)
-            .map(x -> (T) x.transform(
+            .map(x -> x.transform(
                 source,
                 new TransformContext(this, sourceType, destinationType)))
             .orElseGet(() -> constructThenProject(source, sourceType, destinationType));
@@ -118,6 +123,10 @@ public class Mapper {
         Type sourceType,
         Type destinationType
     ) {
+        if (source == null) {
+            return null;
+        }
+
         Object destination = construct(source, sourceType, destinationType);
         project(source, destination, sourceType, destinationType);
         return (T) destination;
@@ -142,7 +151,7 @@ public class Mapper {
 
             arguments[i] = findMapping(sourceType, destinationType)
                 .flatMap(mapping -> mapping.findCalculator(propertyName))
-                .orElseGet(() -> instance -> map(
+                .orElseGet(() -> instance -> mapObject(
                     sourceProperties.get(propertyName).getValue(instance),
                     parameterTypeResolver.apply(parameter))
                 )
@@ -252,7 +261,7 @@ public class Mapper {
                     Property sourceProperty = sourceProperties.find(propertyName);
                     return Optional.ofNullable(sourceProperty == null
                         ? null
-                        : instance -> map(
+                        : instance -> mapObject(
                             sourceProperty.getValue(instance),
                             destinationProperty.getType())
                     );

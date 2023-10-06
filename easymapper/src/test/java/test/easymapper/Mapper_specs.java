@@ -41,25 +41,25 @@ class Mapper_specs {
     @AutoParameterizedTest
     void sut_correctly_maps_object(User source) {
         Mapper sut = new Mapper();
-        User actual = sut.map(source, User.class);
+        User actual = sut.map(source, User.class, User.class);
         assertThat(actual).usingRecursiveComparison().isEqualTo(source);
     }
 
     @AutoParameterizedTest
     void sut_works_with_default_constructor(Mapper sut, User source) {
-        UserView actual = sut.map(source, UserView.class);
+        UserView actual = sut.map(source, User.class, UserView.class);
         assertThat(actual).isNotNull();
     }
 
     @AutoParameterizedTest
     void sut_ignores_extra_properties(Mapper sut, User source) {
-        UserView actual = sut.map(source, UserView.class);
+        UserView actual = sut.map(source, User.class, UserView.class);
         assertThat(actual).usingRecursiveComparison().isEqualTo(source);
     }
 
     @AutoParameterizedTest
     void sut_maps_null_value_to_null_value(Mapper sut) {
-        User actual = sut.map(null, User.class);
+        User actual = sut.map(null, User.class, User.class);
         assertThat(actual).isNull();
     }
 
@@ -68,7 +68,7 @@ class Mapper_specs {
         // Arrange
 
         // Act
-        Order actual = sut.map(source, Order.class);
+        Order actual = sut.map(source, Order.class, Order.class);
 
         // Assert
         assertThat(actual.getShipment())
@@ -87,7 +87,10 @@ class Mapper_specs {
         Mapper sut,
         UserEntity source
     ) {
-        UserEntity destination = sut.map(source, UserEntity.class);
+        UserEntity destination = sut.map(
+            source,
+            UserEntity.class,
+            UserEntity.class);
 
         assertThat(destination)
             .usingRecursiveComparison()
@@ -107,7 +110,7 @@ class Mapper_specs {
     void sut_has_null_guard_for_destination_type(Mapper sut, User source) {
         Class<User> destinationType = null;
         assertThatThrownBy(
-            () -> sut.map(source, destinationType))
+            () -> sut.map(source, User.class, destinationType))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("destinationType");
     }
@@ -164,7 +167,7 @@ class Mapper_specs {
 
     @AutoParameterizedTest
     void sut_chooses_constructor_with_most_parameters(Mapper sut, User source) {
-        UserEntity actual = sut.map(source, UserEntity.class);
+        UserEntity actual = sut.map(source, User.class, UserEntity.class);
         assertThat(actual.getId()).isEqualTo(source.getId());
     }
 
@@ -173,7 +176,7 @@ class Mapper_specs {
         Mapper sut,
         ItemView source
     ) {
-        assertThatThrownBy(() -> sut.map(source, ItemView.class))
+        assertThatThrownBy(() -> sut.map(source, ItemView.class, ItemView.class))
             .isInstanceOf(RuntimeException.class)
             .hasMessageContainingAll("ItemView", "@ConstructorProperties");
     }
@@ -183,7 +186,7 @@ class Mapper_specs {
         Mapper sut,
         Post source
     ) {
-        PostView actual = sut.map(source, PostView.class);
+        PostView actual = sut.map(source, Post.class, PostView.class);
 
         assertThat(actual.getId()).isEqualTo(source.getId().toString());
         assertThat(actual.getAuthorId()).isEqualTo(source.getAuthorId().toString());
@@ -197,7 +200,7 @@ class Mapper_specs {
         String text
     ) {
         Post source = new Post(null, authorId, title, text);
-        PostView actual = sut.map(source, PostView.class);
+        PostView actual = sut.map(source, Post.class, PostView.class);
 
         assertThat(actual.getId()).isNull();
     }
@@ -214,7 +217,7 @@ class Mapper_specs {
     @AutoParameterizedTest
     @Repeat(10)
     void sut_correctly_transforms_boolean_value(Mapper sut, BooleanBag source) {
-        BooleanBag actual = sut.map(source, BooleanBag.class);
+        BooleanBag actual = sut.map(source, BooleanBag.class, BooleanBag.class);
         assertThat(actual.getValue()).isEqualTo(source.getValue());
     }
 
@@ -226,7 +229,7 @@ class Mapper_specs {
 
     @AutoParameterizedTest
     void sut_correctly_transforms_byte_value(Mapper sut, ByteBag source) {
-        ByteBag actual = sut.map(source, ByteBag.class);
+        ByteBag actual = sut.map(source, ByteBag.class, ByteBag.class);
         assertThat(actual.getValue()).isEqualTo(source.getValue());
     }
 
@@ -238,7 +241,7 @@ class Mapper_specs {
 
     @AutoParameterizedTest
     void sut_correctly_transforms_short_value(Mapper sut, ShortBag source) {
-        ShortBag actual = sut.map(source, ShortBag.class);
+        ShortBag actual = sut.map(source, ShortBag.class, ShortBag.class);
         assertThat(actual.getValue()).isEqualTo(source.getValue());
     }
 
@@ -250,7 +253,7 @@ class Mapper_specs {
 
     @AutoParameterizedTest
     void suit_correctly_transforms_float_value(Mapper sut, FloatBag source) {
-        FloatBag actual = sut.map(source, FloatBag.class);
+        FloatBag actual = sut.map(source, FloatBag.class, FloatBag.class);
         assertThat(actual.getValue()).isEqualTo(source.getValue());
     }
 
@@ -262,7 +265,7 @@ class Mapper_specs {
 
     @AutoParameterizedTest
     void sut_correctly_transforms_double_value(Mapper sut, DoubleBag source) {
-        DoubleBag actual = sut.map(source, DoubleBag.class);
+        DoubleBag actual = sut.map(source, DoubleBag.class, DoubleBag.class);
         assertThat(actual.getValue()).isEqualTo(source.getValue());
     }
 
@@ -274,7 +277,7 @@ class Mapper_specs {
 
     @AutoParameterizedTest
     void sut_correctly_transforms_char_value(Mapper sut, CharBag source) {
-        CharBag actual = sut.map(source, CharBag.class);
+        CharBag actual = sut.map(source, CharBag.class, CharBag.class);
         assertThat(actual.getValue()).isEqualTo(source.getValue());
     }
 
@@ -283,7 +286,7 @@ class Mapper_specs {
         Mapper sut,
         BigInteger source
     ) {
-        BigInteger actual = sut.map(source, BigInteger.class);
+        BigInteger actual = sut.map(source, BigInteger.class, BigInteger.class);
         assertThat(actual).isEqualTo(source);
     }
 
@@ -292,7 +295,7 @@ class Mapper_specs {
         Mapper sut,
         BigDecimal source
     ) {
-        BigDecimal actual = sut.map(source, BigDecimal.class);
+        BigDecimal actual = sut.map(source, BigDecimal.class, BigDecimal.class);
         assertThat(actual).isEqualTo(source);
     }
 
@@ -301,7 +304,7 @@ class Mapper_specs {
         Mapper sut,
         LocalDate source
     ) {
-        LocalDate actual = sut.map(source, LocalDate.class);
+        LocalDate actual = sut.map(source, LocalDate.class, LocalDate.class);
         assertThat(actual).isEqualTo(source);
     }
 
@@ -310,7 +313,7 @@ class Mapper_specs {
         Mapper sut,
         LocalTime source
     ) {
-        LocalTime actual = sut.map(source, LocalTime.class);
+        LocalTime actual = sut.map(source, LocalTime.class, LocalTime.class);
         assertThat(actual).isEqualTo(source);
     }
 
@@ -319,7 +322,11 @@ class Mapper_specs {
         Mapper sut,
         LocalDateTime source
     ) {
-        LocalDateTime actual = sut.map(source, LocalDateTime.class);
+        LocalDateTime actual = sut.map(
+            source,
+            LocalDateTime.class,
+            LocalDateTime.class);
+
         assertThat(actual).isEqualTo(source);
     }
 
@@ -329,7 +336,11 @@ class Mapper_specs {
         Mapper sut,
         DiscountPolicy source
     ) {
-        DiscountPolicy actual = sut.map(source, DiscountPolicy.class);
+        DiscountPolicy actual = sut.map(
+            source,
+            DiscountPolicy.class,
+            DiscountPolicy.class);
+
         assertThat(actual.isEnabled()).isEqualTo(source.isEnabled());
     }
 
@@ -339,7 +350,10 @@ class Mapper_specs {
         Shipment source
     ) {
         // Act
-        ShipmentView actual = sut.map(source, ShipmentView.class);
+        ShipmentView actual = sut.map(
+            source,
+            Shipment.class,
+            ShipmentView.class);
 
         // Assert
         assertThat(actual.getRecipientName())
@@ -354,7 +368,10 @@ class Mapper_specs {
         Shipment source
     ) {
         // Act
-        ShipmentEntity actual = sut.map(source, ShipmentEntity.class);
+        ShipmentEntity actual = sut.map(
+            source,
+            Shipment.class,
+            ShipmentEntity.class);
 
         // Assert
         assertThat(actual.getRecipientName())
@@ -371,7 +388,10 @@ class Mapper_specs {
         Recipient recipient = null;
         Shipment source = new Shipment(recipient, address);
 
-        ShipmentEntity actual = sut.map(source, ShipmentEntity.class);
+        ShipmentEntity actual = sut.map(
+            source,
+            Shipment.class,
+            ShipmentEntity.class);
 
         assertThat(actual.getRecipientName()).isNull();
         assertThat(actual.getRecipientPhoneNumber()).isNull();
@@ -382,7 +402,11 @@ class Mapper_specs {
         Mapper sut,
         Employee source
     ) {
-        EmployeeView actual = sut.map(source, EmployeeView.class);
+        EmployeeView actual = sut.map(
+            source,
+            Employee.class,
+            EmployeeView.class);
+
         assertThat(actual.getUsername()).isEqualTo(source.getUsername());
     }
 
@@ -394,7 +418,7 @@ class Mapper_specs {
             .addMapping(EmployeeView.class, Employee.class, mapping -> mapping
                 .set("passwordHash", x -> null)));
 
-        Employee actual = sut.map(source, Employee.class);
+        Employee actual = sut.map(source, EmployeeView.class, Employee.class);
 
         assertThat(actual.getUsername()).isEqualTo(source.getUsername());
     }

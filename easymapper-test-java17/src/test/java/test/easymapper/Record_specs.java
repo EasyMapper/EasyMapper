@@ -12,7 +12,7 @@ public class Record_specs {
 
     @AutoParameterizedTest
     void sut_correctly_maps_to_record(Mapper sut, User source) {
-        var actual = sut.map(source, UserView.class);
+        var actual = sut.map(source, User.class, UserView.class);
         assertThat(actual).usingRecursiveComparison().isEqualTo(source);
     }
 
@@ -23,7 +23,7 @@ public class Record_specs {
                 .set("recipientName", Recipient::name)
                 .set("recipientPhoneNumber", Recipient::phoneNumber)));
 
-        var actual = sut.map(source, RecipientView.class);
+        var actual = sut.map(source, Recipient.class, RecipientView.class);
 
         assertThat(actual.getRecipientName()).isEqualTo(source.name());
         assertThat(actual.getRecipientPhoneNumber()).isEqualTo(source.phoneNumber());
