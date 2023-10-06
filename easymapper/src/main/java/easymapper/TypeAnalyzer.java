@@ -14,7 +14,7 @@ class TypeAnalyzer {
 
     public static Function<Parameter, Type> getParameterTypeResolver(Type type) {
         if (type instanceof Class<?>) {
-            return Parameter::getType;
+            return Parameter::getParameterizedType;
         } else if (type instanceof ParameterizedType) {
             return getParameterTypeResolver((ParameterizedType) type);
         } else {

@@ -68,6 +68,8 @@ public final class MapperConfiguration {
                 String.class,
                 (source, context) -> source == null ? null : source.toString()));
 
+        transforms.add(CollectionTransform.transform);
+
         return transforms;
     }
 
