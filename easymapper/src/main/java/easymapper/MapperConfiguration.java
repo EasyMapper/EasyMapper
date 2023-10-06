@@ -46,14 +46,14 @@ public final class MapperConfiguration {
     private static List<Transform> initializeTransforms() {
         List<Transform> transforms = new ArrayList<>();
 
-        addIdentityTransform(transforms, Boolean.class, boolean.class);
-        addIdentityTransform(transforms, Byte.class, byte.class);
-        addIdentityTransform(transforms, Short.class, short.class);
-        addIdentityTransform(transforms, Integer.class, int.class);
-        addIdentityTransform(transforms, Long.class, long.class);
-        addIdentityTransform(transforms, Float.class, float.class);
-        addIdentityTransform(transforms, Double.class, double.class);
-        addIdentityTransform(transforms, Character.class, char.class);
+        addIdentityTransform(transforms, boolean.class, boolean.class);
+        addIdentityTransform(transforms, byte.class, byte.class);
+        addIdentityTransform(transforms, short.class, short.class);
+        addIdentityTransform(transforms, int.class, int.class);
+        addIdentityTransform(transforms, long.class, long.class);
+        addIdentityTransform(transforms, float.class, float.class);
+        addIdentityTransform(transforms, double.class, double.class);
+        addIdentityTransform(transforms, char.class, char.class);
         addIdentityTransform(transforms, UUID.class);
         addIdentityTransform(transforms, String.class);
         addIdentityTransform(transforms, BigInteger.class);

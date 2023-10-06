@@ -74,27 +74,30 @@ public class Mapper {
             throw argumentNullException("destinationType");
         }
 
-        return (D) mapObject(source, sourceType, destinationType);
+        return (D) convert(source, sourceType, destinationType);
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T map(Object source, TypeReference<T> destinationTypeReference) {
+    public <S, D> D map(
+        S source,
+        TypeReference<S> sourceTypeReference,
+        TypeReference<D> destinationTypeReference
+    ) {
+        if (sourceTypeReference == null) {
+            throw argumentNullException("sourceTypeReference");
+        }
+
         if (destinationTypeReference == null) {
             throw argumentNullException("destinationTypeReference");
         }
 
-        return (T) mapObject(source, destinationTypeReference.getType());
+        return (D) convert(
+            source,
+            sourceTypeReference.getType(),
+            destinationTypeReference.getType());
     }
 
-    private Object mapObject(Object source, Type destinationType) {
-        if (source == null) {
-            return null;
-        }
-
-        return mapObject(source, source.getClass(), destinationType);
-    }
-
-    private Object mapObject(
+    private Object convert(
         Object source,
         Type sourceType,
         Type destinationType
@@ -151,10 +154,13 @@ public class Mapper {
 
             arguments[i] = findMapping(sourceType, destinationType)
                 .flatMap(mapping -> mapping.findCalculator(propertyName))
-                .orElseGet(() -> instance -> mapObject(
-                    sourceProperties.get(propertyName).getValue(instance),
-                    parameterTypeResolver.apply(parameter))
-                )
+                .orElseGet(() -> instance -> {
+                    Property sourceProperty = sourceProperties.get(propertyName);
+                    return convert(
+                        sourceProperty.getValue(instance),
+                        sourceProperty.getType(),
+                        parameterTypeResolver.apply(parameter));
+                })
                 .apply(source);
         }
 
@@ -261,8 +267,9 @@ public class Mapper {
                     Property sourceProperty = sourceProperties.find(propertyName);
                     return Optional.ofNullable(sourceProperty == null
                         ? null
-                        : instance -> mapObject(
+                        : instance -> convert(
                             sourceProperty.getValue(instance),
+                            sourceProperty.getType(),
                             destinationProperty.getType())
                     );
                 })

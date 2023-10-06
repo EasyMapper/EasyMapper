@@ -19,6 +19,7 @@ public class Generic_specs {
     ) {
         ImmutableBag<String> actual = sut.map(
             source,
+            new TypeReference<ImmutableBag<UUID>>() { },
             new TypeReference<ImmutableBag<String>>() { });
 
         assertThat(actual).isNotNull();
@@ -32,6 +33,7 @@ public class Generic_specs {
     ) {
         MutableBag<String> actual = sut.map(
             source,
+            new TypeReference<MutableBag<UUID>>() { },
             new TypeReference<MutableBag<String>>() { });
 
         assertThat(actual).isNotNull();
@@ -60,6 +62,7 @@ public class Generic_specs {
     ) {
         ImmutableBag<ImmutableBag<String>> actual = sut.map(
             source,
+            new TypeReference<ImmutableBag<ImmutableBag<UUID>>>() { },
             new TypeReference<ImmutableBag<ImmutableBag<String>>>() { });
 
         assertThat(actual).isNotNull();
@@ -74,6 +77,7 @@ public class Generic_specs {
     ) {
         MutableBag<MutableBag<String>> actual = sut.map(
             source,
+            new TypeReference<MutableBag<MutableBag<UUID>>>() { },
             new TypeReference<MutableBag<MutableBag<String>>>() { });
 
         assertThat(actual).isNotNull();
@@ -103,8 +107,24 @@ public class Generic_specs {
         ImmutableBag<UUID> source
     ) {
         TypeReference<ImmutableBag<String>> destinationTypeReference = null;
-        assertThatThrownBy(() -> sut.map(source, destinationTypeReference))
-                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> sut.map(
+            source,
+            new TypeReference<ImmutableBag<UUID>>() { },
+            destinationTypeReference))
+            .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @AutoParameterizedTest
+    void map_has_null_guard_for_source_type_reference(
+        Mapper sut,
+        ImmutableBag<UUID> source
+    ) {
+        TypeReference<ImmutableBag<UUID>> sourceTypeReference = null;
+        assertThatThrownBy(() -> sut.map(
+            source,
+            sourceTypeReference,
+            new TypeReference<ImmutableBag<String>>() { }))
+            .isInstanceOf(IllegalArgumentException.class);
     }
 
     @AutoParameterizedTest
