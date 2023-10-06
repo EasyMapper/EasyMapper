@@ -78,6 +78,23 @@ public class Mapper {
     }
 
     @SuppressWarnings("unchecked")
+    public <T> T map(Object source, Type sourceType, Type destinationType) {
+        if (source == null) {
+            throw argumentNullException("source");
+        }
+
+        if (sourceType == null) {
+            throw argumentNullException("sourceType");
+        }
+
+        if (destinationType == null) {
+            throw argumentNullException("destinationType");
+        }
+
+        return (T) convert(source, sourceType, destinationType);
+    }
+
+    @SuppressWarnings("unchecked")
     public <S, D> D map(
         S source,
         TypeReference<S> sourceTypeReference,

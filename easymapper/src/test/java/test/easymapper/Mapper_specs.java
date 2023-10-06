@@ -9,6 +9,8 @@ import test.easymapper.fixture.User;
 import test.easymapper.fixture.UserEntity;
 import test.easymapper.fixture.UserView;
 
+import java.lang.reflect.Type;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -89,6 +91,36 @@ class Mapper_specs {
     }
 
     @AutoParameterizedTest
+    void map_with_types_has_null_guard_for_source(Mapper sut) {
+        Type type = User.class;
+        assertThatThrownBy(() -> sut.map(null, type, type))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("source");
+    }
+
+    @AutoParameterizedTest
+    void map_with_types_has_null_guard_for_source_type(
+        Mapper sut,
+        User source
+    ) {
+        Type sourceType = null;
+        assertThatThrownBy(() -> sut.map(source, sourceType, User.class))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("sourceType");
+    }
+
+    @AutoParameterizedTest
+    void map_with_types_has_null_guard_for_destination_type(
+        Mapper sut,
+        User source
+    ) {
+        Type destinationType = null;
+        assertThatThrownBy(() -> sut.map(source, User.class, destinationType))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("destinationType");
+    }
+
+    @AutoParameterizedTest
     void sut_correctly_maps_object(User source) {
         Mapper sut = new Mapper();
         User actual = sut.map(source, User.class, User.class);
@@ -158,5 +190,12 @@ class Mapper_specs {
             DiscountPolicy.class);
 
         assertThat(actual.isEnabled()).isEqualTo(source.isEnabled());
+    }
+
+    @AutoParameterizedTest
+    void map_with_types_correctly_maps_object(Mapper sut, User source) {
+        Type type = User.class;
+        User actual = sut.map(source, type, type);
+        assertThat(actual).usingRecursiveComparison().isEqualTo(source);
     }
 }
