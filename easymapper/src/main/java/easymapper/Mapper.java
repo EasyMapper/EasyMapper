@@ -137,8 +137,7 @@ public class Mapper {
             .findFirst();
     }
 
-    @SuppressWarnings("unchecked")
-    private <T> T constructThenProject(
+    private Object constructThenProject(
         Object source,
         Type sourceType,
         Type destinationType
@@ -149,7 +148,7 @@ public class Mapper {
 
         Object destination = construct(source, sourceType, destinationType);
         project(source, destination, sourceType, destinationType);
-        return (T) destination;
+        return destination;
     }
 
     private Object construct(
