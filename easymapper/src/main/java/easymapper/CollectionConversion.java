@@ -5,13 +5,15 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
-class CollectionMapping {
+class CollectionConversion {
 
-    public static final Converter CONVERTER = new Converter(
-        CollectionMapping::matchSourceType,
-        CollectionMapping::matchDestinationType,
-        CollectionMapping::convert
-    );
+    public static void use(MapperConfiguration config) {
+        config.addConverter(
+            CollectionConversion::matchSourceType,
+            CollectionConversion::matchDestinationType,
+            CollectionConversion::convert
+        );
+    }
 
     private static boolean matchSourceType(Type type) {
         return isIterable(type);

@@ -38,16 +38,18 @@ public class Mapper {
             throw argumentNullException("configurer");
         }
 
-        MapperConfiguration builder = new MapperConfiguration();
+        MapperConfiguration config = new MapperConfiguration()
+            .apply(IdentityConversion::use)
+            .apply(UUIDConversion::use)
+            .apply(CollectionConversion::use)
+            .apply(configurer);
 
-        configurer.accept(builder);
+        constructorExtractor = config.getConstructorExtractor();
+        parameterNameResolver = config.getParameterNameResolver();
 
-        constructorExtractor = builder.getConstructorExtractor();
-        parameterNameResolver = builder.getParameterNameResolver();
+        converters = copyThenReverse(new ArrayList<>(config.getConverters()));
 
-        converters = copyThenReverse(new ArrayList<>(builder.getConverters()));
-
-        mappings = copyThenReverse(builder
+        mappings = copyThenReverse(config
             .getMappings()
             .stream()
             .map(MappingBuilder::build)

@@ -9,7 +9,7 @@ public class Converter {
     private final Function<Type, Boolean> destinationTypePredicate;
     private final ConverterFunction<Object, Object> function;
 
-    Converter(
+    private Converter(
         Function<Type, Boolean> sourceTypePredicate,
         Function<Type, Boolean> destinationTypePredicate,
         ConverterFunction<Object, Object> function
@@ -17,16 +17,6 @@ public class Converter {
         this.sourceTypePredicate = sourceTypePredicate;
         this.destinationTypePredicate = destinationTypePredicate;
         this.function = function;
-    }
-
-    Converter(
-        Function<Type, Boolean> sourceTypePredicate,
-        Function<Type, Boolean> destinationTypePredicate,
-        Function<Object, Object> function
-    ) {
-        this.sourceTypePredicate = sourceTypePredicate;
-        this.destinationTypePredicate = destinationTypePredicate;
-        this.function = (source, context) -> function.apply(source);
     }
 
     @SuppressWarnings("unchecked")
