@@ -4,6 +4,7 @@ import easymapper.Mapper;
 import easymapper.TypeReference;
 import test.easymapper.fixture.MutableBag;
 import test.easymapper.fixture.User;
+import test.easymapper.fixture.UserView;
 
 import java.util.UUID;
 
@@ -15,11 +16,11 @@ public class Projection_specs {
     @AutoParameterizedTest
     void map_has_null_guard_for_source(
         Mapper sut,
-        User destination
+        UserView destination
     ) {
         User source = null;
         assertThatThrownBy(
-            () -> sut.map(source, destination, User.class, User.class))
+            () -> sut.map(source, destination, User.class, UserView.class))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("source");
     }
@@ -29,9 +30,9 @@ public class Projection_specs {
         Mapper sut,
         User source
     ) {
-        User destination = null;
+        UserView destination = null;
         assertThatThrownBy(
-            () -> sut.map(source, destination, User.class, User.class))
+            () -> sut.map(source, destination, User.class, UserView.class))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("destination");
     }
@@ -40,11 +41,11 @@ public class Projection_specs {
     void map_has_null_guard_for_source_type(
         Mapper sut,
         User source,
-        User destination
+        UserView destination
     ) {
         Class<User> sourceType = null;
         assertThatThrownBy(
-            () -> sut.map(source, destination, sourceType, User.class))
+            () -> sut.map(source, destination, sourceType, UserView.class))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("sourceType");
     }
@@ -53,9 +54,9 @@ public class Projection_specs {
     void map_has_null_guard_for_destination_type(
         Mapper sut,
         User source,
-        User destination
+        UserView destination
     ) {
-        Class<User> destinationType = null;
+        Class<UserView> destinationType = null;
         assertThatThrownBy(
             () -> sut.map(source, destination, User.class, destinationType))
             .isInstanceOf(IllegalArgumentException.class)
