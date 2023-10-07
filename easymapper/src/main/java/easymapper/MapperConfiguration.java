@@ -37,13 +37,13 @@ public final class MapperConfiguration {
     MapperConfiguration() {
         constructorExtractor = defaultConstructorExtractor;
         parameterNameResolver = defaultParameterNameResolver;
-        converters = initializeTransforms();
+        converters = initializeConverters();
         unmodifiableConverters = unmodifiableList(converters);
         mappings = new ArrayList<>();
         unmodifiableMappings = unmodifiableList(mappings);
     }
 
-    private static List<Converter> initializeTransforms() {
+    private static List<Converter> initializeConverters() {
         List<Converter> converters = new ArrayList<>();
 
         addIdentityConverter(converters, boolean.class, boolean.class);
@@ -74,11 +74,11 @@ public final class MapperConfiguration {
     }
 
     private static void addIdentityConverter(
-        Collection<Converter> transforms,
+        Collection<Converter> converters,
         Class<?> sourceType,
         Class<?> destinationType
     ) {
-        transforms.add(
+        converters.add(
             new Converter(
                 type -> type.equals(sourceType),
                 type -> type.equals(destinationType),
@@ -86,10 +86,10 @@ public final class MapperConfiguration {
     }
 
     private static void addIdentityConverter(
-        Collection<Converter> transforms,
+        Collection<Converter> converters,
         Class<?> type
     ) {
-        addIdentityConverter(transforms, type, type);
+        addIdentityConverter(converters, type, type);
     }
 
     public ConstructorExtractor getConstructorExtractor() {
@@ -120,7 +120,7 @@ public final class MapperConfiguration {
         return this;
     }
 
-    public <S, D> MapperConfiguration addTransform(
+    public <S, D> MapperConfiguration addConverter(
         Class<S> sourceType,
         Class<D> destinationType,
         BiFunction<S, ConversionContext, D> function
@@ -142,7 +142,7 @@ public final class MapperConfiguration {
         return this;
     }
 
-    public <S, D> MapperConfiguration addTransform(
+    public <S, D> MapperConfiguration addConverter(
         Class<S> sourceType,
         Class<D> destinationType,
         Function<S, D> function
@@ -151,7 +151,7 @@ public final class MapperConfiguration {
             throw argumentNullException("function");
         }
 
-        return addTransform(
+        return addConverter(
             sourceType,
             destinationType,
             (s, c) -> function.apply(s));

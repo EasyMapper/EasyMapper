@@ -94,43 +94,43 @@ public class MapperConfiguration_specs {
     }
 
     @Test
-    void addTransform_is_fluent() {
+    void addConverter_is_fluent() {
         BiFunction<Integer, ConversionContext, Integer> function = (source, context) -> source;
         new Mapper(c -> assertThat(
-            c.addTransform(int.class, int.class, function)).isSameAs(c));
+            c.addConverter(int.class, int.class, function)).isSameAs(c));
     }
 
     @Test
-    void addTransform_has_guard_against_null_source_type() {
+    void addConverter_has_guard_against_null_source_type() {
         BiFunction<Integer, ConversionContext, Integer> function = (source, context) -> source;
         assertThatThrownBy(() ->
-            new Mapper(c -> c.addTransform(null, int.class, function)))
+            new Mapper(c -> c.addConverter(null, int.class, function)))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
-    void addTransform_has_guard_against_null_destination_type() {
+    void addConverter_has_guard_against_null_destination_type() {
         BiFunction<Integer, ConversionContext, Integer> function = (source, context) -> source;
         assertThatThrownBy(() ->
-            new Mapper(c -> c.addTransform(int.class, null, function)))
+            new Mapper(c -> c.addConverter(int.class, null, function)))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
-    void addTransform_has_guard_against_null_function() {
+    void addConverter_has_guard_against_null_function() {
         BiFunction<Integer, ConversionContext, Integer> function = null;
         assertThatThrownBy(() ->
-            new Mapper(c -> c.addTransform(int.class, int.class, function)))
+            new Mapper(c -> c.addConverter(int.class, int.class, function)))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
     @AutoParameterizedTest
-    void addTransform_correctly_provides_context(PricingView source) {
+    void addConverter_correctly_provides_context(PricingView source) {
         // Arrange
         MutableBag<ConversionContext> bag = new MutableBag<>();
 
         Mapper sut = new Mapper(config -> config
-            .addTransform(PricingView.class, Pricing.class, (pricing, context) -> {
+            .addConverter(PricingView.class, Pricing.class, (pricing, context) -> {
                 bag.setValue(context);
                 return new Pricing(pricing.getListPrice(), pricing.getDiscount());
             })
@@ -148,10 +148,10 @@ public class MapperConfiguration_specs {
     }
 
     @AutoParameterizedTest
-    void addTransform_correctly_adds_transform(Pricing source) {
+    void addConverter_correctly_adds_converter(Pricing source) {
         // Arrange
         Mapper sut = new Mapper(config -> config
-            .addTransform(
+            .addConverter(
                 Pricing.class,
                 PricingView.class,
                 (pricing, context) -> new PricingView(
@@ -168,24 +168,24 @@ public class MapperConfiguration_specs {
     }
 
     @Test
-    void light_addTransform_is_fluent() {
+    void light_addConverter_is_fluent() {
         new Mapper(c -> assertThat(
-            c.addTransform(int.class, int.class, identity())).isSameAs(c));
+            c.addConverter(int.class, int.class, identity())).isSameAs(c));
     }
 
     @Test
-    void light_addTransform_has_guard_against_null_function() {
+    void light_addConverter_has_guard_against_null_function() {
         Function<Integer, Integer> function = null;
         assertThatThrownBy(() ->
-            new Mapper(c -> c.addTransform(int.class, int.class, function)))
+            new Mapper(c -> c.addConverter(int.class, int.class, function)))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
     @AutoParameterizedTest
-    void light_addTransform_correctly_adds_transform(Pricing source) {
+    void light_addConverter_correctly_adds_converter(Pricing source) {
         // Arrange
         Mapper sut = new Mapper(config -> config
-            .addTransform(
+            .addConverter(
                 Pricing.class,
                 PricingView.class,
                 pricing -> new PricingView(
@@ -288,10 +288,10 @@ public class MapperConfiguration_specs {
     }
 
     @AutoParameterizedTest
-    void addTransform_overrides_existing_transform(String source) {
+    void addConverter_overrides_existing_converter(String source) {
         Mapper sut = new Mapper(config -> config
-            .addTransform(String.class, String.class, x -> x + "1")
-            .addTransform(String.class, String.class, x -> x + "2"));
+            .addConverter(String.class, String.class, x -> x + "1")
+            .addConverter(String.class, String.class, x -> x + "2"));
 
         String actual = sut.map(source, String.class, String.class);
 
