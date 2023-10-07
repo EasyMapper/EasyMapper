@@ -5,12 +5,12 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
-class CollectionTransform {
+class CollectionMapping {
 
-    public static final Transform transform = new Transform(
-        CollectionTransform::matchSourceType,
-        CollectionTransform::matchDestinationType,
-        CollectionTransform::transform
+    public static final Converter CONVERTER = new Converter(
+        CollectionMapping::matchSourceType,
+        CollectionMapping::matchDestinationType,
+        CollectionMapping::convert
     );
 
     private static boolean matchSourceType(Type type) {
@@ -51,14 +51,14 @@ class CollectionTransform {
         return false;
     }
 
-    private static Object transform(
+    private static Object convert(
         Object source,
         ConversionContext context
     ) {
-        return source == null ? null : transform((Iterable<?>) source, context);
+        return source == null ? null : convert((Iterable<?>) source, context);
     }
 
-    private static Object transform(
+    private static Object convert(
         Iterable<?> source,
         ConversionContext context
     ) {

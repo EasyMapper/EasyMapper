@@ -26,7 +26,7 @@ public class Mapper {
 
     private final ConstructorExtractor constructorExtractor;
     private final ParameterNameResolver parameterNameResolver;
-    private final Collection<Transform> transforms;
+    private final Collection<Converter> converters;
     private final Collection<Mapping> mappings;
 
     public Mapper() {
@@ -45,7 +45,7 @@ public class Mapper {
         constructorExtractor = builder.getConstructorExtractor();
         parameterNameResolver = builder.getParameterNameResolver();
 
-        transforms = copyThenReverse(new ArrayList<>(builder.getTransforms()));
+        converters = copyThenReverse(new ArrayList<>(builder.getConverters()));
 
         mappings = copyThenReverse(builder
             .getMappings()
@@ -119,20 +119,20 @@ public class Mapper {
         Type sourceType,
         Type destinationType
     ) {
-        return findTransform(sourceType, destinationType)
+        return findConverter(sourceType, destinationType)
             .map(x -> x.convert(
                 source,
                 new ConversionContext(this, sourceType, destinationType)))
             .orElseGet(() -> constructThenProject(source, sourceType, destinationType));
     }
 
-    private Optional<Transform> findTransform(
+    private Optional<Converter> findConverter(
         Type sourceType,
         Type destinationType
     ) {
-        return transforms
+        return converters
             .stream()
-            .filter(transform -> transform.match(sourceType, destinationType))
+            .filter(converter -> converter.match(sourceType, destinationType))
             .findFirst();
     }
 

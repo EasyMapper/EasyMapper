@@ -4,13 +4,13 @@ import java.lang.reflect.Type;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-public class Transform {
+public class Converter {
 
     private final Function<Type, Boolean> sourceTypePredicate;
     private final Function<Type, Boolean> destinationTypePredicate;
     private final BiFunction<Object, ConversionContext, Object> function;
 
-    Transform(
+    Converter(
         Function<Type, Boolean> sourceTypePredicate,
         Function<Type, Boolean> destinationTypePredicate,
         BiFunction<Object, ConversionContext, Object> function
@@ -20,7 +20,7 @@ public class Transform {
         this.function = function;
     }
 
-    Transform(
+    Converter(
         Function<Type, Boolean> sourceTypePredicate,
         Function<Type, Boolean> destinationTypePredicate,
         Function<Object, Object> function
@@ -30,12 +30,12 @@ public class Transform {
         this.function = (source, context) -> function.apply(source);
     }
 
-    static <S, D> Transform create(
+    static <S, D> Converter create(
         Class<S> sourceType,
         Class<D> destinationType,
         BiFunction<S, ConversionContext, D> function
     ) {
-        return new Transform(
+        return new Converter(
             type -> type.equals(sourceType),
             type -> type.equals(destinationType),
             (source, context) -> function.apply(sourceType.cast(source), context));

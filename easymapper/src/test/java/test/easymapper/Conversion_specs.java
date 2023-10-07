@@ -12,10 +12,10 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class Transform_specs {
+public class Conversion_specs {
 
     @AutoParameterizedTest
-    void sut_transforms_uuid_to_string(
+    void mapper_converts_uuid_to_string(
         Mapper sut,
         Post source
     ) {
@@ -26,7 +26,7 @@ public class Transform_specs {
     }
 
     @AutoParameterizedTest
-    void sut_transforms_null_uuid_to_null_string(
+    void mapper_converts_null_uuid_to_null_string(
         Mapper sut,
         UUID authorId,
         String title,
@@ -39,7 +39,7 @@ public class Transform_specs {
     }
 
     @AutoParameterizedTest
-    void sut_correctly_transforms_big_integer_value(
+    void mapper_correctly_converts_big_integer_value(
         Mapper sut,
         BigInteger source
     ) {
@@ -48,7 +48,7 @@ public class Transform_specs {
     }
 
     @AutoParameterizedTest
-    void sut_correctly_transforms_big_decimal_value(
+    void mapper_correctly_converts_big_decimal_value(
         Mapper sut,
         BigDecimal source
     ) {
@@ -57,7 +57,7 @@ public class Transform_specs {
     }
 
     @AutoParameterizedTest
-    void sut_correctly_transforms_local_date_value(
+    void mapper_correctly_converts_local_date_value(
         Mapper sut,
         LocalDate source
     ) {
@@ -66,7 +66,7 @@ public class Transform_specs {
     }
 
     @AutoParameterizedTest
-    void sut_correctly_transforms_local_time_value(
+    void mapper_correctly_converts_local_time_value(
         Mapper sut,
         LocalTime source
     ) {
@@ -75,7 +75,7 @@ public class Transform_specs {
     }
 
     @AutoParameterizedTest
-    void sut_correctly_transforms_local_date_time_value(
+    void mapper_correctly_converts_local_date_time_value(
         Mapper sut,
         LocalDateTime source
     ) {

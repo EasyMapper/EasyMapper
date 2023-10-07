@@ -29,67 +29,67 @@ public final class MapperConfiguration {
 
     private ConstructorExtractor constructorExtractor;
     private ParameterNameResolver parameterNameResolver;
-    private final List<Transform> transforms;
-    private final List<Transform> unmodifiableTransforms;
+    private final List<Converter> converters;
+    private final List<Converter> unmodifiableConverters;
     private final List<MappingBuilder<?, ?>> mappings;
     private final List<MappingBuilder<?, ?>> unmodifiableMappings;
 
     MapperConfiguration() {
         constructorExtractor = defaultConstructorExtractor;
         parameterNameResolver = defaultParameterNameResolver;
-        transforms = initializeTransforms();
-        unmodifiableTransforms = unmodifiableList(transforms);
+        converters = initializeTransforms();
+        unmodifiableConverters = unmodifiableList(converters);
         mappings = new ArrayList<>();
         unmodifiableMappings = unmodifiableList(mappings);
     }
 
-    private static List<Transform> initializeTransforms() {
-        List<Transform> transforms = new ArrayList<>();
+    private static List<Converter> initializeTransforms() {
+        List<Converter> converters = new ArrayList<>();
 
-        addIdentityTransform(transforms, boolean.class, boolean.class);
-        addIdentityTransform(transforms, byte.class, byte.class);
-        addIdentityTransform(transforms, short.class, short.class);
-        addIdentityTransform(transforms, int.class, int.class);
-        addIdentityTransform(transforms, long.class, long.class);
-        addIdentityTransform(transforms, float.class, float.class);
-        addIdentityTransform(transforms, double.class, double.class);
-        addIdentityTransform(transforms, char.class, char.class);
-        addIdentityTransform(transforms, UUID.class);
-        addIdentityTransform(transforms, String.class);
-        addIdentityTransform(transforms, BigInteger.class);
-        addIdentityTransform(transforms, BigDecimal.class);
-        addIdentityTransform(transforms, LocalDate.class);
-        addIdentityTransform(transforms, LocalTime.class);
-        addIdentityTransform(transforms, LocalDateTime.class);
+        addIdentityConverter(converters, boolean.class, boolean.class);
+        addIdentityConverter(converters, byte.class, byte.class);
+        addIdentityConverter(converters, short.class, short.class);
+        addIdentityConverter(converters, int.class, int.class);
+        addIdentityConverter(converters, long.class, long.class);
+        addIdentityConverter(converters, float.class, float.class);
+        addIdentityConverter(converters, double.class, double.class);
+        addIdentityConverter(converters, char.class, char.class);
+        addIdentityConverter(converters, UUID.class);
+        addIdentityConverter(converters, String.class);
+        addIdentityConverter(converters, BigInteger.class);
+        addIdentityConverter(converters, BigDecimal.class);
+        addIdentityConverter(converters, LocalDate.class);
+        addIdentityConverter(converters, LocalTime.class);
+        addIdentityConverter(converters, LocalDateTime.class);
 
-        transforms.add(
-            Transform.create(
+        converters.add(
+            Converter.create(
                 UUID.class,
                 String.class,
                 (source, context) -> source == null ? null : source.toString()));
 
-        transforms.add(CollectionTransform.transform);
+        converters.add(CollectionMapping.CONVERTER);
 
-        return transforms;
+        return converters;
     }
 
-    private static void addIdentityTransform(
-        Collection<Transform> transforms,
+    private static void addIdentityConverter(
+        Collection<Converter> transforms,
         Class<?> sourceType,
         Class<?> destinationType
     ) {
         transforms.add(
-            new Transform(
+            new Converter(
                 type -> type.equals(sourceType),
                 type -> type.equals(destinationType),
                 identity()));
     }
 
-    private static void addIdentityTransform(
-        Collection<Transform> transforms,
+    private static void addIdentityConverter(
+        Collection<Converter> transforms,
         Class<?> type
     ) {
-        addIdentityTransform(transforms, type, type);
+        addIdentityConverter(transforms, type, type);
     }
 
     public ConstructorExtractor getConstructorExtractor() {
@@ -137,7 +137,7 @@ public final class MapperConfiguration {
             throw argumentNullException("function");
         }
 
-        transforms.add(Transform.create(sourceType, destinationType, function));
+        converters.add(Converter.create(sourceType, destinationType, function));
 
         return this;
     }
@@ -182,8 +182,8 @@ public final class MapperConfiguration {
         return this;
     }
 
-    public Collection<Transform> getTransforms() {
-        return unmodifiableTransforms;
+    public Collection<Converter> getConverters() {
+        return unmodifiableConverters;
     }
 
     public Collection<MappingBuilder<?, ?>> getMappings() {
