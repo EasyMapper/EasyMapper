@@ -8,7 +8,7 @@ public class ConversionContext {
     private final Type sourceType;
     private final Type destinationType;
 
-    public ConversionContext(
+    ConversionContext(
         Mapper mapper,
         Type sourceType,
         Type destinationType
