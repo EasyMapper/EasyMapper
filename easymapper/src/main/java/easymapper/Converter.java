@@ -29,15 +29,16 @@ public class Converter {
         this.function = (source, context) -> function.apply(source);
     }
 
+    @SuppressWarnings("unchecked")
     static <S, D> Converter create(
-        Class<S> sourceType,
-        Class<D> destinationType,
+        Function<Type, Boolean> sourceTypePredicate,
+        Function<Type, Boolean> destinationTypePredicate,
         ConverterFunction<S, D> function
     ) {
         return new Converter(
-            type -> type.equals(sourceType),
-            type -> type.equals(destinationType),
-            (source, context) -> function.convert(sourceType.cast(source), context));
+            sourceTypePredicate,
+            destinationTypePredicate,
+            (source, context) -> function.convert((S) source, context));
     }
 
     public boolean match(

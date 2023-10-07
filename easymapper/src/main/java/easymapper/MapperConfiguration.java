@@ -1,5 +1,6 @@
 package easymapper;
 
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -63,8 +64,8 @@ public final class MapperConfiguration {
 
         converters.add(
             Converter.create(
-                UUID.class,
-                String.class,
+                type -> type.equals(UUID.class),
+                type -> type.equals(String.class),
                 (source, context) -> source == null ? null : source.toString()));
 
         converters.add(CollectionMapping.CONVERTER);
@@ -136,24 +137,71 @@ public final class MapperConfiguration {
             throw argumentNullException("function");
         }
 
-        converters.add(Converter.create(sourceType, destinationType, function));
+        Converter converter = Converter.create(
+            type -> type.equals(sourceType),
+            type -> type.equals(destinationType),
+            function);
+
+        converters.add(converter);
 
         return this;
     }
 
     public <S, D> MapperConfiguration addConverter(
-        Class<S> sourceType,
-        Class<D> destinationType,
-        Function<S, D> function
+        TypeReference<S> sourceTypeReference,
+        TypeReference<D> destinationTypeReference,
+        ConverterFunction<S, D> function
     ) {
+        if (sourceTypeReference == null) {
+            throw argumentNullException("sourceTypeReference");
+        }
+
+        if (destinationTypeReference == null) {
+            throw argumentNullException("destinationTypeReference");
+        }
+
         if (function == null) {
             throw argumentNullException("function");
         }
 
-        return addConverter(
-            sourceType,
-            destinationType,
-            (s, c) -> function.apply(s));
+        Type sourceType = sourceTypeReference.getType();
+        Type destinationType = destinationTypeReference.getType();
+
+        Converter converter = Converter.create(
+            type -> type.equals(sourceType),
+            type -> type.equals(destinationType),
+            function);
+
+        converters.add(converter);
+
+        return this;
+    }
+
+    public MapperConfiguration addConverter(
+        Function<Type, Boolean> sourceTypePredicate,
+        Function<Type, Boolean> destinationTypePredicate,
+        ConverterFunction<Object, Object> function
+    ) {
+        if (sourceTypePredicate == null) {
+            throw argumentNullException("sourceTypePredicate");
+        }
+
+        if (destinationTypePredicate == null) {
+            throw argumentNullException("destinationTypePredicate");
+        }
+
+        if (function == null) {
+            throw argumentNullException("function");
+        }
+
+        Converter converter = Converter.create(
+            sourceTypePredicate,
+            destinationTypePredicate,
+            function);
+
+        converters.add(converter);
+
+        return this;
     }
 
     public <S, D> MapperConfiguration addMapping(
