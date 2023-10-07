@@ -122,7 +122,7 @@ public class Mapper {
         return findTransform(sourceType, destinationType)
             .map(x -> x.transform(
                 source,
-                new TransformContext(this, sourceType, destinationType)))
+                new ConversionContext(this, sourceType, destinationType)))
             .orElseGet(() -> constructThenProject(source, sourceType, destinationType));
     }
 

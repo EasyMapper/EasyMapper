@@ -123,7 +123,7 @@ public final class MapperConfiguration {
     public <S, D> MapperConfiguration addTransform(
         Class<S> sourceType,
         Class<D> destinationType,
-        BiFunction<S, TransformContext, D> function
+        BiFunction<S, ConversionContext, D> function
     ) {
         if (sourceType == null) {
             throw argumentNullException("sourceType");

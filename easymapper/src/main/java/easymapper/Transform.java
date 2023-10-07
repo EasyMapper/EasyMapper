@@ -8,12 +8,12 @@ public class Transform {
 
     private final Function<Type, Boolean> sourceTypePredicate;
     private final Function<Type, Boolean> destinationTypePredicate;
-    private final BiFunction<Object, TransformContext, Object> function;
+    private final BiFunction<Object, ConversionContext, Object> function;
 
     Transform(
         Function<Type, Boolean> sourceTypePredicate,
         Function<Type, Boolean> destinationTypePredicate,
-        BiFunction<Object, TransformContext, Object> function
+        BiFunction<Object, ConversionContext, Object> function
     ) {
         this.sourceTypePredicate = sourceTypePredicate;
         this.destinationTypePredicate = destinationTypePredicate;
@@ -33,7 +33,7 @@ public class Transform {
     static <S, D> Transform create(
         Class<S> sourceType,
         Class<D> destinationType,
-        BiFunction<S, TransformContext, D> function
+        BiFunction<S, ConversionContext, D> function
     ) {
         return new Transform(
             type -> type.equals(sourceType),
@@ -51,7 +51,7 @@ public class Transform {
 
     public Object transform(
         Object source,
-        TransformContext context
+        ConversionContext context
     ) {
         return function.apply(source, context);
     }

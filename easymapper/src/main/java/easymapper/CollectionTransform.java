@@ -53,14 +53,14 @@ class CollectionTransform {
 
     private static Object transform(
         Object source,
-        TransformContext context
+        ConversionContext context
     ) {
         return source == null ? null : transform((Iterable<?>) source, context);
     }
 
     private static Object transform(
         Iterable<?> source,
-        TransformContext context
+        ConversionContext context
     ) {
         Mapper mapper = context.getMapper();
 

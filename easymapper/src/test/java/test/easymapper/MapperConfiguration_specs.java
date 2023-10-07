@@ -4,7 +4,7 @@ import autoparams.Repeat;
 import easymapper.ConstructorExtractor;
 import easymapper.Mapper;
 import easymapper.ParameterNameResolver;
-import easymapper.TransformContext;
+import easymapper.ConversionContext;
 import java.lang.reflect.Constructor;
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -95,14 +95,14 @@ public class MapperConfiguration_specs {
 
     @Test
     void addTransform_is_fluent() {
-        BiFunction<Integer, TransformContext, Integer> function = (source, context) -> source;
+        BiFunction<Integer, ConversionContext, Integer> function = (source, context) -> source;
         new Mapper(c -> assertThat(
             c.addTransform(int.class, int.class, function)).isSameAs(c));
     }
 
     @Test
     void addTransform_has_guard_against_null_source_type() {
-        BiFunction<Integer, TransformContext, Integer> function = (source, context) -> source;
+        BiFunction<Integer, ConversionContext, Integer> function = (source, context) -> source;
         assertThatThrownBy(() ->
             new Mapper(c -> c.addTransform(null, int.class, function)))
                 .isInstanceOf(IllegalArgumentException.class);
@@ -110,7 +110,7 @@ public class MapperConfiguration_specs {
 
     @Test
     void addTransform_has_guard_against_null_destination_type() {
-        BiFunction<Integer, TransformContext, Integer> function = (source, context) -> source;
+        BiFunction<Integer, ConversionContext, Integer> function = (source, context) -> source;
         assertThatThrownBy(() ->
             new Mapper(c -> c.addTransform(int.class, null, function)))
                 .isInstanceOf(IllegalArgumentException.class);
@@ -118,7 +118,7 @@ public class MapperConfiguration_specs {
 
     @Test
     void addTransform_has_guard_against_null_function() {
-        BiFunction<Integer, TransformContext, Integer> function = null;
+        BiFunction<Integer, ConversionContext, Integer> function = null;
         assertThatThrownBy(() ->
             new Mapper(c -> c.addTransform(int.class, int.class, function)))
                 .isInstanceOf(IllegalArgumentException.class);
@@ -127,7 +127,7 @@ public class MapperConfiguration_specs {
     @AutoParameterizedTest
     void addTransform_correctly_provides_context(PricingView source) {
         // Arrange
-        MutableBag<TransformContext> bag = new MutableBag<>();
+        MutableBag<ConversionContext> bag = new MutableBag<>();
 
         Mapper sut = new Mapper(config -> config
             .addTransform(PricingView.class, Pricing.class, (pricing, context) -> {
@@ -140,7 +140,7 @@ public class MapperConfiguration_specs {
         sut.map(source, PricingView.class, Pricing.class);
 
         // Assert
-        TransformContext actual = bag.getValue();
+        ConversionContext actual = bag.getValue();
         assertThat(actual).isNotNull();
         assertThat(actual.getMapper()).isSameAs(sut);
         assertThat(actual.getSourceType()).isSameAs(PricingView.class);
