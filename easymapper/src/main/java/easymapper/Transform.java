@@ -49,7 +49,7 @@ public class Transform {
         return destinationTypePredicate.apply(destinationType);
     }
 
-    public Object transform(
+    public Object convert(
         Object source,
         ConversionContext context
     ) {
