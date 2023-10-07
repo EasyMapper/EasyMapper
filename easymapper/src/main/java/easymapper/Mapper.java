@@ -127,13 +127,12 @@ public class Mapper {
     }
 
     private Optional<Transform> findTransform(
-        Type source,
-        Type destination
+        Type sourceType,
+        Type destinationType
     ) {
         return transforms
             .stream()
-            .filter(transform -> transform.matchSourceType(source))
-            .filter(transform -> transform.matchDestinationType(destination))
+            .filter(transform -> transform.match(sourceType, destinationType))
             .findFirst();
     }
 

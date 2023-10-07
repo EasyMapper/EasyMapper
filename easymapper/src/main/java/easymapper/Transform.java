@@ -41,12 +41,12 @@ public class Transform {
             (source, context) -> function.apply(sourceType.cast(source), context));
     }
 
-    public boolean matchSourceType(Type sourceType) {
-        return sourceTypePredicate.apply(sourceType);
-    }
-
-    public boolean matchDestinationType(Type destinationType) {
-        return destinationTypePredicate.apply(destinationType);
+    public boolean match(
+        Type sourceType,
+        Type destinationType
+    ) {
+        return sourceTypePredicate.apply(sourceType)
+            && destinationTypePredicate.apply(destinationType);
     }
 
     public Object convert(
