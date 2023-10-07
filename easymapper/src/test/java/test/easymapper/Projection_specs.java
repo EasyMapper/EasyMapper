@@ -2,11 +2,10 @@ package test.easymapper;
 
 import easymapper.Mapper;
 import easymapper.TypeReference;
+import java.util.UUID;
 import test.easymapper.fixture.MutableBag;
 import test.easymapper.fixture.User;
 import test.easymapper.fixture.UserView;
-
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

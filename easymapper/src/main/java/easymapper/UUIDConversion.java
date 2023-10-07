@@ -8,7 +8,7 @@ class UUIDConversion {
         config.addConverter(
             UUID.class,
             String.class,
-            (source, context) -> source == null ? null : source.toString()
+            source -> context -> source == null ? null : source.toString()
         );
     }
 }

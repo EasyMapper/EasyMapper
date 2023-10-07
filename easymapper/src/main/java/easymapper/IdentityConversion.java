@@ -34,6 +34,6 @@ class IdentityConversion {
         config.addConverter(
             type::equals,
             type::equals,
-            (source, context) -> source);
+            source -> context -> source);
     }
 }

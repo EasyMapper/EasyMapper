@@ -4,7 +4,6 @@ import easymapper.ConversionContext;
 import easymapper.Mapper;
 import easymapper.TypeReference;
 import java.lang.reflect.Type;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import org.junit.jupiter.api.Test;
 import test.easymapper.fixture.MutableBag;
@@ -16,32 +15,33 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class Converter_specs {
 
+    <T> Function<T, Function<ConversionContext, T>> identity() {
+        return source -> context -> source;
+    }
+
     @Test
     void addConverter_with_classes_is_fluent() {
-        BiFunction<Integer, ConversionContext, Integer> function = (source, context) -> source;
         new Mapper(c -> assertThat(
-            c.addConverter(int.class, int.class, function)).isSameAs(c));
+            c.addConverter(int.class, int.class, identity())).isSameAs(c));
     }
 
     @Test
     void addConverter_with_classes_has_guard_against_null_source_type() {
-        BiFunction<Integer, ConversionContext, Integer> function = (source, context) -> source;
         assertThatThrownBy(() ->
-            new Mapper(c -> c.addConverter(null, int.class, function)))
+            new Mapper(c -> c.addConverter(null, int.class, identity())))
             .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void addConverter_with_classes_has_guard_against_null_destination_type() {
-        BiFunction<Integer, ConversionContext, Integer> function = (source, context) -> source;
         assertThatThrownBy(() ->
-            new Mapper(c -> c.addConverter(int.class, null, function)))
+            new Mapper(c -> c.addConverter(int.class, null, identity())))
             .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void addConverter_with_classes_has_guard_against_null_function() {
-        BiFunction<Integer, ConversionContext, Integer> function = null;
+        Function<Integer, Function<ConversionContext, Integer>> function = null;
         assertThatThrownBy(() ->
             new Mapper(c -> c.addConverter(int.class, int.class, function)))
             .isInstanceOf(IllegalArgumentException.class);
@@ -53,7 +53,7 @@ public class Converter_specs {
         MutableBag<ConversionContext> bag = new MutableBag<>();
 
         Mapper sut = new Mapper(config -> config
-            .addConverter(PricingView.class, Pricing.class, (pricing, context) -> {
+            .addConverter(PricingView.class, Pricing.class, pricing -> context -> {
                 bag.setValue(context);
                 return new Pricing(pricing.getListPrice(), pricing.getDiscount());
             })
@@ -77,7 +77,7 @@ public class Converter_specs {
             .addConverter(
                 Pricing.class,
                 PricingView.class,
-                (pricing, context) -> new PricingView(
+                pricing -> context -> new PricingView(
                     pricing.getListPrice(),
                     pricing.getDiscount(),
                     pricing.getListPrice() - pricing.getDiscount())));
@@ -93,8 +93,8 @@ public class Converter_specs {
     @AutoParameterizedTest
     void addConverter_with_classes_overrides_existing_converter(String source) {
         Mapper sut = new Mapper(config -> config
-            .addConverter(String.class, String.class, (s, c) -> s + "1")
-            .addConverter(String.class, String.class, (s, c) -> s + "2"));
+            .addConverter(String.class, String.class, s -> c -> s + "1")
+            .addConverter(String.class, String.class, s -> c -> s + "2"));
 
         String actual = sut.map(source, String.class, String.class);
 
@@ -107,7 +107,7 @@ public class Converter_specs {
             c.addConverter(
                 new TypeReference<Integer>() { },
                 new TypeReference<Integer>() { },
-                (source, context) -> source))
+                source -> context -> source))
             .isSameAs(c));
     }
 
@@ -118,7 +118,7 @@ public class Converter_specs {
             new Mapper(c -> c.addConverter(
                 sourceTypeReference,
                 new TypeReference<Integer>() { },
-                (source, context) -> source)))
+                source -> context -> source)))
             .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -129,13 +129,13 @@ public class Converter_specs {
             new Mapper(c -> c.addConverter(
                 new TypeReference<Integer>() { },
                 destinationTypeReference,
-                (source, context) -> source)))
+                source -> context -> source)))
             .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void addConverter_with_type_references_has_guard_against_null_function() {
-        BiFunction<Integer, ConversionContext, Integer> function = null;
+        Function<Integer, Function<ConversionContext, Integer>> function = null;
         assertThatThrownBy(() ->
             new Mapper(c -> c.addConverter(
                 new TypeReference<Integer>() { },
@@ -151,7 +151,7 @@ public class Converter_specs {
             .addConverter(
                 new TypeReference<Pricing>() { },
                 new TypeReference<PricingView>() { },
-                (pricing, context) -> new PricingView(
+                pricing -> context -> new PricingView(
                     pricing.getListPrice(),
                     pricing.getDiscount(),
                     pricing.getListPrice() - pricing.getDiscount())));
@@ -170,30 +170,28 @@ public class Converter_specs {
             c.addConverter(
                 type -> type.equals(int.class),
                 type -> type.equals(int.class),
-                (source, context) -> source))
+                source -> context -> source))
             .isSameAs(c));
     }
 
     @Test
     void addConverter_with_predicates_has_guard_against_null_source_predicate() {
-        BiFunction<Object, ConversionContext, Object> function = (source, context) -> source;
         assertThatThrownBy(() ->
-            new Mapper(c -> c.addConverter(null, type -> type.equals(int.class), function)))
+            new Mapper(c -> c.addConverter(null, type -> type.equals(int.class), identity())))
             .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void addConverter_with_predicates_has_guard_against_null_destination_predicate() {
-        BiFunction<Object, ConversionContext, Object> function = (source, context) -> source;
         assertThatThrownBy(() ->
-            new Mapper(c -> c.addConverter(type -> type.equals(int.class), null, function)))
+            new Mapper(c -> c.addConverter(type -> type.equals(int.class), null, identity())))
             .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void addConverter_with_predicates_has_guard_against_null_function() {
         Function<Type, Boolean> predicate = type -> type.equals(int.class);
-        BiFunction<Object, ConversionContext, Object> function = null;
+        Function<Object, Function<ConversionContext, Object>> function = null;
         assertThatThrownBy(() ->
             new Mapper(c -> c.addConverter(predicate, predicate, function)))
             .isInstanceOf(IllegalArgumentException.class);
@@ -206,7 +204,7 @@ public class Converter_specs {
             .addConverter(
                 type -> type.equals(Pricing.class),
                 type -> type.equals(PricingView.class),
-                (s, c) -> {
+                s -> c -> {
                     Pricing pricing = (Pricing) s;
                     return new PricingView(
                         pricing.getListPrice(),

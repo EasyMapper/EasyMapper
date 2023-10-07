@@ -11,8 +11,7 @@ class CollectionConversion {
         config.addConverter(
             CollectionConversion::matchSourceType,
             CollectionConversion::matchDestinationType,
-            CollectionConversion::convert
-        );
+            source -> context -> convert(source, context));
     }
 
     private static boolean matchSourceType(Type type) {
