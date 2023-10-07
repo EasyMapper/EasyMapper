@@ -11,7 +11,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -123,7 +122,7 @@ public final class MapperConfiguration {
     public <S, D> MapperConfiguration addConverter(
         Class<S> sourceType,
         Class<D> destinationType,
-        BiFunction<S, ConversionContext, D> function
+        ConverterFunction<S, D> function
     ) {
         if (sourceType == null) {
             throw argumentNullException("sourceType");

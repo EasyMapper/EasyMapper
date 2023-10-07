@@ -1,19 +1,18 @@
 package easymapper;
 
 import java.lang.reflect.Type;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public class Converter {
 
     private final Function<Type, Boolean> sourceTypePredicate;
     private final Function<Type, Boolean> destinationTypePredicate;
-    private final BiFunction<Object, ConversionContext, Object> function;
+    private final ConverterFunction<Object, Object> function;
 
     Converter(
         Function<Type, Boolean> sourceTypePredicate,
         Function<Type, Boolean> destinationTypePredicate,
-        BiFunction<Object, ConversionContext, Object> function
+        ConverterFunction<Object, Object> function
     ) {
         this.sourceTypePredicate = sourceTypePredicate;
         this.destinationTypePredicate = destinationTypePredicate;
@@ -33,12 +32,12 @@ public class Converter {
     static <S, D> Converter create(
         Class<S> sourceType,
         Class<D> destinationType,
-        BiFunction<S, ConversionContext, D> function
+        ConverterFunction<S, D> function
     ) {
         return new Converter(
             type -> type.equals(sourceType),
             type -> type.equals(destinationType),
-            (source, context) -> function.apply(sourceType.cast(source), context));
+            (source, context) -> function.convert(sourceType.cast(source), context));
     }
 
     public boolean match(
@@ -53,6 +52,6 @@ public class Converter {
         Object source,
         ConversionContext context
     ) {
-        return function.apply(source, context);
+        return function.convert(source, context);
     }
 }
