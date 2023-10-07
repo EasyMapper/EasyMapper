@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -67,7 +68,7 @@ public final class MapperConfiguration {
     public <S, D> MapperConfiguration addConverter(
         Class<S> sourceType,
         Class<D> destinationType,
-        ConverterFunction<S, D> function
+        BiFunction<S, ConversionContext, D> function
     ) {
         if (sourceType == null) {
             throw argumentNullException("sourceType");
@@ -94,7 +95,7 @@ public final class MapperConfiguration {
     public <S, D> MapperConfiguration addConverter(
         TypeReference<S> sourceTypeReference,
         TypeReference<D> destinationTypeReference,
-        ConverterFunction<S, D> function
+        BiFunction<S, ConversionContext, D> function
     ) {
         if (sourceTypeReference == null) {
             throw argumentNullException("sourceTypeReference");
@@ -124,7 +125,7 @@ public final class MapperConfiguration {
     public MapperConfiguration addConverter(
         Function<Type, Boolean> sourceTypePredicate,
         Function<Type, Boolean> destinationTypePredicate,
-        ConverterFunction<Object, Object> function
+        BiFunction<Object, ConversionContext, Object> function
     ) {
         if (sourceTypePredicate == null) {
             throw argumentNullException("sourceTypePredicate");

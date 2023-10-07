@@ -1,16 +1,15 @@
 package test.easymapper;
 
 import easymapper.ConversionContext;
-import easymapper.ConverterFunction;
 import easymapper.Mapper;
 import easymapper.TypeReference;
+import java.lang.reflect.Type;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import org.junit.jupiter.api.Test;
 import test.easymapper.fixture.MutableBag;
 import test.easymapper.fixture.Pricing;
 import test.easymapper.fixture.PricingView;
-
-import java.lang.reflect.Type;
-import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -19,14 +18,14 @@ public class Converter_specs {
 
     @Test
     void addConverter_with_classes_is_fluent() {
-        ConverterFunction<Integer, Integer> function = (source, context) -> source;
+        BiFunction<Integer, ConversionContext, Integer> function = (source, context) -> source;
         new Mapper(c -> assertThat(
             c.addConverter(int.class, int.class, function)).isSameAs(c));
     }
 
     @Test
     void addConverter_with_classes_has_guard_against_null_source_type() {
-        ConverterFunction<Integer, Integer> function = (source, context) -> source;
+        BiFunction<Integer, ConversionContext, Integer> function = (source, context) -> source;
         assertThatThrownBy(() ->
             new Mapper(c -> c.addConverter(null, int.class, function)))
             .isInstanceOf(IllegalArgumentException.class);
@@ -34,7 +33,7 @@ public class Converter_specs {
 
     @Test
     void addConverter_with_classes_has_guard_against_null_destination_type() {
-        ConverterFunction<Integer, Integer> function = (source, context) -> source;
+        BiFunction<Integer, ConversionContext, Integer> function = (source, context) -> source;
         assertThatThrownBy(() ->
             new Mapper(c -> c.addConverter(int.class, null, function)))
             .isInstanceOf(IllegalArgumentException.class);
@@ -42,7 +41,7 @@ public class Converter_specs {
 
     @Test
     void addConverter_with_classes_has_guard_against_null_function() {
-        ConverterFunction<Integer, Integer> function = null;
+        BiFunction<Integer, ConversionContext, Integer> function = null;
         assertThatThrownBy(() ->
             new Mapper(c -> c.addConverter(int.class, int.class, function)))
             .isInstanceOf(IllegalArgumentException.class);
@@ -136,7 +135,7 @@ public class Converter_specs {
 
     @Test
     void addConverter_with_type_references_has_guard_against_null_function() {
-        ConverterFunction<Integer, Integer> function = null;
+        BiFunction<Integer, ConversionContext, Integer> function = null;
         assertThatThrownBy(() ->
             new Mapper(c -> c.addConverter(
                 new TypeReference<Integer>() { },
@@ -177,7 +176,7 @@ public class Converter_specs {
 
     @Test
     void addConverter_with_predicates_has_guard_against_null_source_predicate() {
-        ConverterFunction<Object, Object> function = (source, context) -> source;
+        BiFunction<Object, ConversionContext, Object> function = (source, context) -> source;
         assertThatThrownBy(() ->
             new Mapper(c -> c.addConverter(null, type -> type.equals(int.class), function)))
             .isInstanceOf(IllegalArgumentException.class);
@@ -185,7 +184,7 @@ public class Converter_specs {
 
     @Test
     void addConverter_with_predicates_has_guard_against_null_destination_predicate() {
-        ConverterFunction<Object, Object> function = (source, context) -> source;
+        BiFunction<Object, ConversionContext, Object> function = (source, context) -> source;
         assertThatThrownBy(() ->
             new Mapper(c -> c.addConverter(type -> type.equals(int.class), null, function)))
             .isInstanceOf(IllegalArgumentException.class);
@@ -194,7 +193,7 @@ public class Converter_specs {
     @Test
     void addConverter_with_predicates_has_guard_against_null_function() {
         Function<Type, Boolean> predicate = type -> type.equals(int.class);
-        ConverterFunction<Object, Object> function = null;
+        BiFunction<Object, ConversionContext, Object> function = null;
         assertThatThrownBy(() ->
             new Mapper(c -> c.addConverter(predicate, predicate, function)))
             .isInstanceOf(IllegalArgumentException.class);
