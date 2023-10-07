@@ -3,9 +3,11 @@ package test.easymapper;
 import autoparams.Repeat;
 import easymapper.ConstructorExtractor;
 import easymapper.Mapper;
+import easymapper.MapperConfiguration;
 import easymapper.ParameterNameResolver;
 import java.lang.reflect.Constructor;
 import java.util.Optional;
+import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 import test.easymapper.fixture.HasBrokenConstructor;
 import test.easymapper.fixture.ItemView;
@@ -48,6 +50,24 @@ public class MapperConfiguration_specs {
             new Mapper(config -> config
                 .addMapping(Order.class, OrderView.class, null)))
             .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void addMapping_sets_source_type() {
+        new Mapper(config -> config
+            .addMapping(
+                Order.class,
+                OrderView.class,
+                mapping -> assertThat(mapping.getSourceType()).isEqualTo(Order.class)));
+    }
+
+    @Test
+    void addMapping_sets_destination_type() {
+        new Mapper(config -> config
+            .addMapping(
+                Order.class,
+                OrderView.class,
+                mapping -> assertThat(mapping.getDestinationType()).isEqualTo(OrderView.class)));
     }
 
     @AutoParameterizedTest
@@ -222,5 +242,37 @@ public class MapperConfiguration_specs {
         OrderView actual = sut.map(source, Order.class, OrderView.class);
 
         assertThat(actual.getNumberOfItems()).isEqualTo(source.getQuantity());
+    }
+
+    @Test
+    void apply_has_null_guard_for_configurer() {
+        assertThatThrownBy(() -> new Mapper(c -> c.apply(null)))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("configurer");
+    }
+
+    @Test
+    void apply_is_fluent() {
+        new Mapper(c -> assertThat(c.apply(m -> { })).isSameAs(c));
+    }
+
+    @AutoParameterizedTest
+    void apply_correctly_configures_mapper(Pricing source) {
+        // Arrange
+        Consumer<MapperConfiguration> configurer = config -> config
+            .addMapping(Pricing.class, PricingView.class, mapping -> mapping
+                .set("salePrice", x -> x.getListPrice() - x.getDiscount()));
+
+        Mapper mapper = new Mapper(config -> config.apply(configurer));
+
+        // Act
+        PricingView actual = mapper.map(
+            source,
+            Pricing.class,
+            PricingView.class);
+
+        // Assert
+        assertThat(actual.getSalePrice())
+            .isEqualTo(source.getListPrice() - source.getDiscount());
     }
 }

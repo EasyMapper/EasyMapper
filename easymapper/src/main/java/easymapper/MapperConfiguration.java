@@ -229,6 +229,16 @@ public final class MapperConfiguration {
         return this;
     }
 
+    public MapperConfiguration apply(Consumer<MapperConfiguration> configurer) {
+        if (configurer == null) {
+            throw argumentNullException("configurer");
+        }
+
+        configurer.accept(this);
+
+        return this;
+    }
+
     public Collection<Converter> getConverters() {
         return unmodifiableConverters;
     }

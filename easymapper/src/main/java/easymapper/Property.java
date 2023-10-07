@@ -42,4 +42,9 @@ final class Property {
     public void setValue(Object instance, Object value) {
         setter.accept(instance, value);
     }
+
+    @Override
+    public String toString() {
+        return type.getTypeName() + " " + name;
+    }
 }
