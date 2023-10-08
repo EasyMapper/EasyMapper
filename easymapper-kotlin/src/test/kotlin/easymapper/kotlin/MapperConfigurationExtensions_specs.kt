@@ -40,7 +40,7 @@ class MapperConfigurationExtensions_specs {
 
     @Test
     fun `addMapping returns the same builder`() {
-        Mapper { assertThat(it.addMapping<Pricing, PricingView> { }).isSameAs(it) }
+        Mapper { assertThat(it.addMapping<Pricing, PricingView> {}).isSameAs(it) }
     }
 
     @AutoParameterizedTest

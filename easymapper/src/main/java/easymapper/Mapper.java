@@ -27,10 +27,11 @@ public class Mapper {
     private final ConstructorExtractor constructorExtractor;
     private final ParameterNameResolver parameterNameResolver;
     private final Collection<Converter> converters;
+    private final Collection<Projector> projectors;
     private final Collection<Mapping> mappings;
 
     public Mapper() {
-        this(config -> { });
+        this(config -> {});
     }
 
     public Mapper(Consumer<MapperConfiguration> configurer) {
@@ -39,15 +40,14 @@ public class Mapper {
         }
 
         MapperConfiguration config = new MapperConfiguration()
-            .apply(IdentityConversion::use)
-            .apply(UUIDConversion::use)
-            .apply(CollectionConversion::use)
+            .apply(BaseConfiguration::configurer)
             .apply(configurer);
 
         constructorExtractor = config.getConstructorExtractor();
         parameterNameResolver = config.getParameterNameResolver();
 
         converters = copyThenReverse(new ArrayList<>(config.getConverters()));
+        projectors = copyThenReverse(new ArrayList<>(config.getProjectors()));
 
         mappings = copyThenReverse(config
             .getMappings()
@@ -63,23 +63,6 @@ public class Mapper {
     }
 
     @SuppressWarnings("unchecked")
-    public <S, D> D map(
-        S source,
-        Class<S> sourceType,
-        Class<D> destinationType
-    ) {
-        if (sourceType == null) {
-            throw argumentNullException("sourceType");
-        }
-
-        if (destinationType == null) {
-            throw argumentNullException("destinationType");
-        }
-
-        return (D) convert(source, sourceType, destinationType);
-    }
-
-    @SuppressWarnings("unchecked")
     public <T> T map(Object source, Type sourceType, Type destinationType) {
         if (sourceType == null) {
             throw argumentNullException("sourceType");
@@ -92,7 +75,14 @@ public class Mapper {
         return (T) convert(source, sourceType, destinationType);
     }
 
-    @SuppressWarnings("unchecked")
+    public <S, D> D map(
+        S source,
+        Class<S> sourceType,
+        Class<D> destinationType
+    ) {
+        return map(source, (Type) sourceType, destinationType);
+    }
+
     public <S, D> D map(
         S source,
         TypeReference<S> sourceTypeReference,
@@ -106,8 +96,55 @@ public class Mapper {
             throw argumentNullException("destinationTypeReference");
         }
 
-        return (D) convert(
+        return map(
             source,
+            sourceTypeReference.getType(),
+            destinationTypeReference.getType());
+    }
+
+    public <S, D> void map(
+        S source,
+        D destination,
+        Type sourceType,
+        Type destinationType
+    ) {
+        if (source == null) {
+            throw argumentNullException("source");
+        }
+
+        if (destination == null) {
+            throw argumentNullException("destination");
+        }
+
+        if (sourceType == null) {
+            throw argumentNullException("sourceType");
+        }
+
+        if (destinationType == null) {
+            throw argumentNullException("destinationType");
+        }
+
+        projectToReadOnly(
+            new VariableWrapper(sourceType, "source", () -> source),
+            new VariableWrapper(destinationType, "destination", () -> destination));
+    }
+
+    public <S, D> void map(
+        S source,
+        D destination,
+        TypeReference<S> sourceTypeReference,
+        TypeReference<D> destinationTypeReference
+    ) {
+        if (sourceTypeReference == null) {
+            throw argumentNullException("sourceTypeReference");
+        }
+
+        if (destinationTypeReference == null) {
+            throw argumentNullException("destinationTypeReference");
+        }
+
+        map(source,
+            destination,
             sourceTypeReference.getType(),
             destinationTypeReference.getType());
     }
@@ -121,7 +158,9 @@ public class Mapper {
             .map(x -> x.convert(
                 source,
                 new ConversionContext(this, sourceType, destinationType)))
-            .orElseGet(() -> constructThenProject(source, sourceType, destinationType));
+            .orElseGet(() -> source == null
+                ? null
+                : constructThenProject(source, sourceType, destinationType));
     }
 
     private Optional<Converter> findConverter(
@@ -139,12 +178,10 @@ public class Mapper {
         Type sourceType,
         Type destinationType
     ) {
-        if (source == null) {
-            return null;
-        }
-
         Object destination = construct(source, sourceType, destinationType);
-        project(source, destination, sourceType, destinationType);
+        projectToReadOnly(
+            new VariableWrapper(sourceType, "source", source),
+            new VariableWrapper(destinationType, "destination", destination));
         return destination;
     }
 
@@ -153,12 +190,11 @@ public class Mapper {
         Type sourceType,
         Type destinationType
     ) {
+        Properties sourceProperties = Properties.get(sourceType);
         Function<Parameter, Type> parameterTypeResolver = getParameterTypeResolver(destinationType);
-
         Constructor<?> constructor = getConstructor(destinationType);
         Parameter[] parameters = constructor.getParameters();
         String[] destinationPropertyNames = getPropertyNames(constructor);
-        Properties sourceProperties = Properties.get(sourceType);
         Object[] arguments = new Object[parameters.length];
 
         for (int i = 0; i < parameters.length; i++) {
@@ -167,11 +203,11 @@ public class Mapper {
 
             arguments[i] = findMapping(sourceType, destinationType)
                 .flatMap(mapping -> mapping.findCalculator(propertyName))
-                .orElseGet(() -> instance -> {
+                .orElse(instance -> {
                     Property sourceProperty = sourceProperties.get(propertyName);
                     return convert(
-                        sourceProperty.getValue(instance),
-                        sourceProperty.getType(),
+                        sourceProperty.get(instance),
+                        sourceProperty.type(),
                         parameterTypeResolver.apply(parameter));
                 })
                 .apply(source);
@@ -181,13 +217,13 @@ public class Mapper {
     }
 
     private Optional<Mapping> findMapping(
-        Type source,
-        Type destination
+        Type sourceType,
+        Type destinationType
     ) {
         return mappings
             .stream()
-            .filter(mapping -> mapping.getSourceType().equals(source))
-            .filter(mapping -> mapping.getDestinationType().equals(destination))
+            .filter(mapping -> mapping.getSourceType().equals(sourceType))
+            .filter(mapping -> mapping.getDestinationType().equals(destinationType))
             .findFirst();
     }
 
@@ -258,7 +294,57 @@ public class Mapper {
         }
     }
 
-    private void project(
+    private void projectToReadOnly(
+        VariableWrapper source,
+        VariableWrapper destination
+    ) {
+        Object sourceValue = source.get();
+        Object destinationValue = destination.get();
+
+        if (sourceValue == destinationValue) {
+            return;
+        } else if (sourceValue == null) {
+            String message = "'" + source.name() + "' is null but '" + destination.name() + "' is not null.";
+            throw new RuntimeException(message);
+        } else if (destinationValue == null) {
+            String message = "'" + source.name() + "' is not null but '" + destination.name() + "' is null.";
+            throw new RuntimeException(message);
+        }
+
+        findProjector(source.type(), destination.type())
+            .orElseGet(this::getPropertyProjector)
+            .project(
+                sourceValue,
+                destinationValue,
+                new ProjectionContext(this, source.type(), destination.type()));
+    }
+
+    private Projector getPropertyProjector() {
+        return Projector.create(
+            Mapper::acceptAllTypes,
+            Mapper::acceptAllTypes,
+            (source, destination) -> context -> projectProperties(
+                source,
+                destination,
+                context.getSourceType(),
+                context.getDestinationType()));
+    }
+
+    private static boolean acceptAllTypes(Type type) {
+        return true;
+    }
+
+    private void projectProperties(
+        Object source,
+        Object destination,
+        Type sourceType,
+        Type destinationType
+    ) {
+        projectWritableProperties(source, destination, sourceType, destinationType);
+        projectReadOnlyProperties(source, destination, sourceType, destinationType);
+    }
+
+    private void projectWritableProperties(
         Object source,
         Object destination,
         Type sourceType,
@@ -268,82 +354,86 @@ public class Mapper {
         Properties destinationProperties = Properties.get(destinationType);
 
         for (Property destinationProperty : destinationProperties.statedProperties()) {
-            if (destinationProperty.isSettable() == false) {
-                continue;
+            if (destinationProperty.isWritable()) {
+                findMapping(sourceType, destinationType)
+                    .flatMap(m -> m.findCalculator(destinationProperty.name()))
+                    .<Runnable>map(calculator -> () -> destinationProperty.set(
+                        destination,
+                        calculator.apply(source)))
+                    .orElse(() -> sourceProperties
+                        .find(destinationProperty.name())
+                        .ifPresent(sourceProperty -> projectToWritable(
+                            sourceProperty.bind(source),
+                            destinationProperty.bind(destination))))
+                    .run();
             }
-
-            String propertyName = destinationProperty.getName();
-
-            findMapping(sourceType, destinationType)
-                .map(mapping -> mapping.findCalculator(propertyName))
-                .orElseGet(() -> {
-                    Property sourceProperty = sourceProperties.find(propertyName);
-                    return Optional.ofNullable(sourceProperty == null
-                        ? null
-                        : instance -> convert(
-                            sourceProperty.getValue(instance),
-                            sourceProperty.getType(),
-                            destinationProperty.getType())
-                    );
-                })
-                .ifPresent(calculator -> {
-                    Object value = calculator.apply(source);
-                    destinationProperty.setValue(destination, value);
-                });
         }
     }
 
-    public <S, D> void map(
-        S source,
-        D destination,
+    private void projectToWritable(
+        VariableWrapper source,
+        VariableWrapper destination
+    ) {
+        findProjector(source.type(), destination.type())
+            .<Runnable>map(projector -> () -> projectToWritable(source, destination, projector))
+            .orElse(() -> destination.set(convert(source.get(), source.type(), destination.type())))
+            .run();
+    }
+
+    private void projectToWritable(
+        VariableWrapper source,
+        VariableWrapper destination,
+        Projector projector
+    ) {
+        Object sourceValue = source.get();
+
+        if (sourceValue == destination.get()) {
+            return;
+        }
+
+        if (sourceValue == null) {
+            String message = "The source '" + source.name() + "' is null.";
+            throw new RuntimeException(message);
+        }
+
+        Object destinationValue = destination.getOrSetIfNull(() -> convert(
+            sourceValue,
+            source.type(),
+            destination.type()));
+
+        projector.project(
+            sourceValue,
+            destinationValue,
+            new ProjectionContext(this, source.type(), destination.type()));
+    }
+
+    private void projectReadOnlyProperties(
+        Object source,
+        Object destination,
         Type sourceType,
         Type destinationType
     ) {
-        if (source == null) {
-            throw argumentNullException("source");
-        }
+        Properties sourceProperties = Properties.get(sourceType);
+        Properties destinationProperties = Properties.get(destinationType);
 
-        if (destination == null) {
-            throw argumentNullException("destination");
+        for (Property destinationProperty : destinationProperties.statedProperties()) {
+            if (destinationProperty.isReadOnly()) {
+                sourceProperties
+                    .find(destinationProperty.name())
+                    .ifPresent(sourceProperty -> projectToReadOnly(
+                        sourceProperty.bind(source),
+                        destinationProperty.bind(destination)));
+            }
         }
-
-        if (sourceType == null) {
-            throw argumentNullException("sourceType");
-        }
-
-        if (destinationType == null) {
-            throw argumentNullException("destinationType");
-        }
-
-        project(source, destination, sourceType, destinationType);
     }
 
-    public <S, D> void map(
-        S source,
-        D destination,
-        TypeReference<S> sourceTypeReference,
-        TypeReference<D> destinationTypeReference
+    private Optional<Projector> findProjector(
+        Type sourceType,
+        Type destinationType
     ) {
-        if (source == null) {
-            throw argumentNullException("source");
-        }
-
-        if (destination == null) {
-            throw argumentNullException("destination");
-        }
-
-        if (sourceTypeReference == null) {
-            throw argumentNullException("sourceTypeReference");
-        }
-
-        if (destinationTypeReference == null) {
-            throw argumentNullException("destinationTypeReference");
-        }
-
-        project(
-            source,
-            destination,
-            sourceTypeReference.getType(),
-            destinationTypeReference.getType());
+        return projectors
+            .stream()
+            .filter(projector -> projector.match(sourceType, destinationType))
+            .findFirst();
     }
 }

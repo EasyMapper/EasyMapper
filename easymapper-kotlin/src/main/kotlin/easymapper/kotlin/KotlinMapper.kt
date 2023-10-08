@@ -10,5 +10,5 @@ class KotlinMapper : Mapper {
         config.useKotlin().apply { configurer.accept(this) }
     })
 
-    constructor() : this({ })
+    constructor() : this({})
 }

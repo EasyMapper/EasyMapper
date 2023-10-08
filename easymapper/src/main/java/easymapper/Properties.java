@@ -7,6 +7,7 @@ import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -48,7 +49,7 @@ class Properties {
                 name,
                 getGetter(statedGetters.get(name)),
                 getSetter(statedSetters.getOrDefault(name, null))))
-            .collect(toMap(Property::getName, identity()));
+            .collect(toMap(Property::name, identity()));
     }
 
     private static Map<String, Method> getStatedGetters(Type type) {
@@ -104,12 +105,13 @@ class Properties {
     private static Map<String, Method> getStatedSetters(Class<?> type) {
         Map<String, Method> setters = new HashMap<>();
         for (Method method : type.getMethods()) {
-            String methodName = method.getName();
-            if (methodName.startsWith("set") == false) {
+            if (method.getParameterCount() != 1) {
                 continue;
             }
-            String propertyName = camelize(methodName.substring(3));
-            setters.put(propertyName, method);
+            String methodName = method.getName();
+            if (methodName.startsWith("set")) {
+                setters.put(camelize(methodName.substring(3)), method);
+            }
         }
         return setters;
     }
@@ -161,47 +163,44 @@ class Properties {
     }
 
     public Property get(String name) {
-        Property property = find(name);
-
-        if (property == null) {
+        return find(name).orElseThrow(() -> {
             String message = "No property found for '"
                 + name + "' from " + sourceType + ".";
-            throw new RuntimeException(message);
-        }
-
-        return property;
+            return new RuntimeException(message);
+        });
     }
 
-    public Property find(String name) {
+    public Optional<Property> find(String name) {
         Property statedProperty = statedProperties.getOrDefault(name, null);
         return statedProperty != null
-            ? statedProperty
+            ? Optional.of(statedProperty)
             : findFlattened(this, identity(), name, name);
     }
 
-    private static Property findFlattened(
+    private static Optional<Property> findFlattened(
         Properties properties,
         Function<Object, Object> resolver,
         String path,
         String unresolvedPath
     ) {
         for (Property property : properties.statedProperties.values()) {
-            String propertyName = property.getName();
+            String propertyName = property.name();
             if (unresolvedPath.equalsIgnoreCase(propertyName)) {
-                return new Property(
-                    property.getType(),
-                    path,
-                    instance -> property.getValue(resolver.apply(instance)),
-                    null);
+                return Optional.of(
+                    new Property(
+                        property.type(),
+                        path,
+                        instance -> property.get(resolver.apply(instance)),
+                        null));
             } else if (path.toLowerCase().startsWith(propertyName.toLowerCase())) {
                 return findFlattened(
-                    Properties.get(property.getType()),
-                    instance -> property.getValue(resolver.apply(instance)),
+                    Properties.get(property.type()),
+                    instance -> property.get(resolver.apply(instance)),
                     path,
                     path.substring(propertyName.length()));
             }
         }
 
-        return null;
+        return Optional.empty();
     }
 }

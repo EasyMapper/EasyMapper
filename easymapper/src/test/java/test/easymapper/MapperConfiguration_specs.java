@@ -34,14 +34,14 @@ public class MapperConfiguration_specs {
     void sut_has_guard_against_null_source_type() {
         assertThatThrownBy(() ->
             new Mapper(config -> config
-                .addMapping(null, OrderView.class, mapping -> { })));
+                .addMapping(null, OrderView.class, mapping -> {})));
     }
 
     @Test
     void sut_has_guard_against_null_destination_type() {
         assertThatThrownBy(() ->
             new Mapper(config -> config
-                .addMapping(Order.class, null, mapping -> { })));
+                .addMapping(Order.class, null, mapping -> {})));
     }
 
     @Test
@@ -141,7 +141,7 @@ public class MapperConfiguration_specs {
     @Test
     void addMapping_is_fluent() {
         new Mapper(c -> assertThat(
-            c.addMapping(Order.class, OrderView.class, m -> { })).isSameAs(c));
+            c.addMapping(Order.class, OrderView.class, m -> {})).isSameAs(c));
     }
 
     @AutoParameterizedTest
@@ -253,7 +253,7 @@ public class MapperConfiguration_specs {
 
     @Test
     void apply_is_fluent() {
-        new Mapper(c -> assertThat(c.apply(m -> { })).isSameAs(c));
+        new Mapper(c -> assertThat(c.apply(m -> {})).isSameAs(c));
     }
 
     @AutoParameterizedTest

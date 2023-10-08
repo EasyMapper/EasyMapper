@@ -70,8 +70,8 @@ public class Projection_specs {
         assertThatThrownBy(() -> sut.map(
             null,
             destination,
-            new TypeReference<MutableBag<UUID>>() { },
-            new TypeReference<MutableBag<String>>() { }))
+            new TypeReference<MutableBag<UUID>>() {},
+            new TypeReference<MutableBag<String>>() {}))
             .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -83,8 +83,8 @@ public class Projection_specs {
         assertThatThrownBy(() -> sut.map(
             source,
             null,
-            new TypeReference<MutableBag<UUID>>() { },
-            new TypeReference<MutableBag<String>>() { }))
+            new TypeReference<MutableBag<UUID>>() {},
+            new TypeReference<MutableBag<String>>() {}))
             .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -99,7 +99,7 @@ public class Projection_specs {
             source,
             destination,
             sourceTypeReference,
-            new TypeReference<MutableBag<String>>() { }))
+            new TypeReference<MutableBag<String>>() {}))
             .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -113,7 +113,7 @@ public class Projection_specs {
         assertThatThrownBy(() -> sut.map(
             source,
             destination,
-            new TypeReference<MutableBag<UUID>>() { },
+            new TypeReference<MutableBag<UUID>>() {},
             destinationTypeReference))
             .isInstanceOf(IllegalArgumentException.class);
     }
@@ -127,8 +127,8 @@ public class Projection_specs {
         sut.map(
             source,
             destination,
-            new TypeReference<MutableBag<UUID>>() { },
-            new TypeReference<MutableBag<String>>() { });
+            new TypeReference<MutableBag<UUID>>() {},
+            new TypeReference<MutableBag<String>>() {});
 
         assertThat(destination.getValue()).isEqualTo(source.getValue().toString());
     }
@@ -142,8 +142,8 @@ public class Projection_specs {
         sut.map(
             source,
             destination,
-            new TypeReference<MutableBag<MutableBag<UUID>>>() { },
-            new TypeReference<MutableBag<MutableBag<String>>>() { });
+            new TypeReference<MutableBag<MutableBag<UUID>>>() {},
+            new TypeReference<MutableBag<MutableBag<String>>>() {});
 
         assertThat(destination.getValue().getValue())
             .isEqualTo(source.getValue().getValue().toString());

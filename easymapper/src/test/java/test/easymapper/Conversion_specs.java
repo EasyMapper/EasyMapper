@@ -226,7 +226,7 @@ public class Conversion_specs {
         TypeReference<ImmutableBag<String>> destinationTypeReference = null;
         assertThatThrownBy(() -> sut.map(
             source,
-            new TypeReference<ImmutableBag<UUID>>() { },
+            new TypeReference<ImmutableBag<UUID>>() {},
             destinationTypeReference))
             .isInstanceOf(IllegalArgumentException.class);
     }
@@ -240,7 +240,7 @@ public class Conversion_specs {
         assertThatThrownBy(() -> sut.map(
             source,
             sourceTypeReference,
-            new TypeReference<ImmutableBag<String>>() { }))
+            new TypeReference<ImmutableBag<String>>() {}))
             .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -251,8 +251,8 @@ public class Conversion_specs {
     ) {
         ImmutableBag<String> actual = sut.map(
             source,
-            new TypeReference<ImmutableBag<UUID>>() { },
-            new TypeReference<ImmutableBag<String>>() { });
+            new TypeReference<ImmutableBag<UUID>>() {},
+            new TypeReference<ImmutableBag<String>>() {});
 
         assertThat(actual).isNotNull();
         assertThat(actual.getValue()).isEqualTo(source.getValue().toString());
@@ -265,8 +265,8 @@ public class Conversion_specs {
     ) {
         MutableBag<String> actual = sut.map(
             source,
-            new TypeReference<MutableBag<UUID>>() { },
-            new TypeReference<MutableBag<String>>() { });
+            new TypeReference<MutableBag<UUID>>() {},
+            new TypeReference<MutableBag<String>>() {});
 
         assertThat(actual).isNotNull();
         assertThat(actual.getValue()).isEqualTo(source.getValue().toString());
@@ -279,8 +279,8 @@ public class Conversion_specs {
     ) {
         ImmutableBag<ImmutableBag<String>> actual = sut.map(
             source,
-            new TypeReference<ImmutableBag<ImmutableBag<UUID>>>() { },
-            new TypeReference<ImmutableBag<ImmutableBag<String>>>() { });
+            new TypeReference<ImmutableBag<ImmutableBag<UUID>>>() {},
+            new TypeReference<ImmutableBag<ImmutableBag<String>>>() {});
 
         assertThat(actual).isNotNull();
         assertThat(actual.getValue().getValue())
@@ -294,8 +294,8 @@ public class Conversion_specs {
     ) {
         MutableBag<MutableBag<String>> actual = sut.map(
             source,
-            new TypeReference<MutableBag<MutableBag<UUID>>>() { },
-            new TypeReference<MutableBag<MutableBag<String>>>() { });
+            new TypeReference<MutableBag<MutableBag<UUID>>>() {},
+            new TypeReference<MutableBag<MutableBag<String>>>() {});
 
         assertThat(actual).isNotNull();
         assertThat(actual.getValue().getValue())

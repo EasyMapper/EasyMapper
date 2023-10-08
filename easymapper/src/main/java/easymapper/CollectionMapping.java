@@ -5,13 +5,18 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
-class CollectionConversion {
+class CollectionMapping {
 
-    public static void use(MapperConfiguration config) {
-        config.addConverter(
-            CollectionConversion::matchSourceType,
-            CollectionConversion::matchDestinationType,
-            source -> context -> convert(source, context));
+    public static void configurer(MapperConfiguration config) {
+        config
+            .addConverter(
+                CollectionMapping::matchSourceType,
+                CollectionMapping::matchDestinationType,
+                source -> context -> convert(source, context))
+            .addProjector(
+                CollectionMapping::matchSourceType,
+                CollectionMapping::matchDestinationType,
+                (source, target) -> context -> {});
     }
 
     private static boolean matchSourceType(Type type) {

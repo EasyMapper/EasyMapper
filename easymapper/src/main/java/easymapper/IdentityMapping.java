@@ -7,9 +7,9 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.UUID;
 
-class IdentityConversion {
+class IdentityMapping {
 
-    public static void use(MapperConfiguration config) {
+    public static void configurer(MapperConfiguration config) {
         addIdentityConverter(config, boolean.class);
         addIdentityConverter(config, byte.class);
         addIdentityConverter(config, short.class);

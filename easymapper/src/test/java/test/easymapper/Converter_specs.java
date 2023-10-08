@@ -105,8 +105,8 @@ public class Converter_specs {
     void addConverter_with_type_references_is_fluent() {
         new Mapper(c -> assertThat(
             c.addConverter(
-                new TypeReference<Integer>() { },
-                new TypeReference<Integer>() { },
+                new TypeReference<Integer>() {},
+                new TypeReference<Integer>() {},
                 source -> context -> source))
             .isSameAs(c));
     }
@@ -117,7 +117,7 @@ public class Converter_specs {
         assertThatThrownBy(() ->
             new Mapper(c -> c.addConverter(
                 sourceTypeReference,
-                new TypeReference<Integer>() { },
+                new TypeReference<Integer>() {},
                 source -> context -> source)))
             .isInstanceOf(IllegalArgumentException.class);
     }
@@ -127,7 +127,7 @@ public class Converter_specs {
         TypeReference<Integer> destinationTypeReference = null;
         assertThatThrownBy(() ->
             new Mapper(c -> c.addConverter(
-                new TypeReference<Integer>() { },
+                new TypeReference<Integer>() {},
                 destinationTypeReference,
                 source -> context -> source)))
             .isInstanceOf(IllegalArgumentException.class);
@@ -138,8 +138,8 @@ public class Converter_specs {
         Function<Integer, Function<ConversionContext, Integer>> function = null;
         assertThatThrownBy(() ->
             new Mapper(c -> c.addConverter(
-                new TypeReference<Integer>() { },
-                new TypeReference<Integer>() { },
+                new TypeReference<Integer>() {},
+                new TypeReference<Integer>() {},
                 function)))
             .isInstanceOf(IllegalArgumentException.class);
     }
@@ -149,8 +149,8 @@ public class Converter_specs {
         // Arrange
         Mapper sut = new Mapper(config -> config
             .addConverter(
-                new TypeReference<Pricing>() { },
-                new TypeReference<PricingView>() { },
+                new TypeReference<Pricing>() {},
+                new TypeReference<PricingView>() {},
                 pricing -> context -> new PricingView(
                     pricing.getListPrice(),
                     pricing.getDiscount(),

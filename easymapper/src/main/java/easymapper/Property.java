@@ -4,7 +4,7 @@ import java.lang.reflect.Type;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-final class Property {
+final class Property extends ValueContainer {
 
     private final Type type;
     private final String name;
@@ -23,28 +23,44 @@ final class Property {
         this.setter = setter;
     }
 
-    public Type getType() {
+    @Override
+    public Type type() {
         return type;
     }
 
-    public String getName() {
+    @Override
+    public String name() {
         return name;
     }
 
-    public Object getValue(Object instance) {
-        return getter.apply(instance);
-    }
-
-    public boolean isSettable() {
-        return setter != null;
-    }
-
-    public void setValue(Object instance, Object value) {
-        setter.accept(instance, value);
+    @Override
+    public boolean isReadable() {
+        return getter != null;
     }
 
     @Override
-    public String toString() {
-        return type.getTypeName() + " " + name;
+    public boolean isWritable() {
+        return setter != null;
+    }
+
+    public Object get(Object instance) {
+        return getter.apply(instance);
+    }
+
+    public void set(Object instance, Object value) {
+        if (isReadOnly()) {
+            String message = "Property '" + name + "' is not read-only.";
+            throw new UnsupportedOperationException(message);
+        }
+
+        setter.accept(instance, value);
+    }
+
+    public VariableWrapper bind(Object instance) {
+        return new VariableWrapper(
+            type,
+            name,
+            () -> get(instance),
+            value -> set(instance, value));
     }
 }
