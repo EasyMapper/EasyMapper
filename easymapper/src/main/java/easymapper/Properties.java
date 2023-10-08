@@ -2,18 +2,14 @@ package easymapper;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static easymapper.TypeAnalyzer.getReturnTypeResolver;
-import static java.lang.Character.isUpperCase;
-import static java.lang.Character.toLowerCase;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 
@@ -35,8 +31,8 @@ class Properties {
     }
 
     private static Map<String, Property> getStatedProperties(Type type) {
-        Map<String, Method> statedGetters = getStatedGetters(type);
-        Map<String, Method> statedSetters = getStatedSetters(type);
+        Map<String, Method> statedGetters = Getter.getStatedGetters(type);
+        Map<String, Method> statedSetters = Setter.getStatedSetters(type);
 
         Function<Method, Type> returnTypeResolver = getReturnTypeResolver(type);
 
@@ -50,88 +46,6 @@ class Properties {
                 getGetter(statedGetters.get(name)),
                 getSetter(statedSetters.getOrDefault(name, null))))
             .collect(toMap(Property::name, identity()));
-    }
-
-    private static Map<String, Method> getStatedGetters(Type type) {
-        if (type instanceof Class<?>) {
-            return getStatedGetters((Class<?>) type);
-        } else if (type instanceof ParameterizedType) {
-            return getStatedGetters((ParameterizedType) type);
-        } else {
-            String message = "Cannot provide stated getters for the type: " + type;
-            throw new RuntimeException(message);
-        }
-    }
-
-    private static Map<String, Method> getStatedGetters(Class<?> type) {
-        Map<String, Method> getters = new HashMap<>();
-        for (Method method : type.getMethods()) {
-            if (method.getParameterCount() > 0 ||
-                method.getDeclaringClass().equals(Object.class)) {
-                continue;
-            }
-            String methodName = method.getName();
-            if (methodName.startsWith("get")) {
-                getters.put(camelize(methodName.substring(3)), method);
-            } else if (methodName.startsWith("is")) {
-                getters.put(camelize(methodName.substring(2)), method);
-            } else {
-                getters.put(methodName, method);
-            }
-        }
-        return getters;
-    }
-
-    private static Map<String, Method> getStatedGetters(ParameterizedType type) {
-        if (type.getRawType() instanceof Class<?>) {
-            return getStatedGetters((Class<?>) type.getRawType());
-        } else {
-            String message = "Cannot provide stated getters for the type: " + type;
-            throw new RuntimeException(message);
-        }
-    }
-
-    private static Map<String, Method> getStatedSetters(Type type) {
-        if (type instanceof Class<?>) {
-            return getStatedSetters((Class<?>) type);
-        } else if (type instanceof ParameterizedType) {
-            return getStatedSetters((ParameterizedType) type);
-        } else {
-            String message = "Cannot provide stated setters for the type: " + type;
-            throw new RuntimeException(message);
-        }
-    }
-
-    private static Map<String, Method> getStatedSetters(Class<?> type) {
-        Map<String, Method> setters = new HashMap<>();
-        for (Method method : type.getMethods()) {
-            if (method.getParameterCount() != 1) {
-                continue;
-            }
-            String methodName = method.getName();
-            if (methodName.startsWith("set")) {
-                setters.put(camelize(methodName.substring(3)), method);
-            }
-        }
-        return setters;
-    }
-
-    private static Map<String, Method> getStatedSetters(ParameterizedType type) {
-        if (type.getRawType() instanceof Class<?>) {
-            return getStatedSetters((Class<?>) type.getRawType());
-        } else {
-            String message = "Cannot provide stated setters for the type: " + type;
-            throw new RuntimeException(message);
-        }
-    }
-
-    private static String camelize(String s) {
-        char head = s.charAt(0);
-        if (isUpperCase(head)) {
-            return toLowerCase(head) + s.substring(1);
-        } else {
-            return s;
-        }
     }
 
     private static Function<Object, Object> getGetter(Method statedGetter) {
@@ -158,8 +72,20 @@ class Properties {
         };
     }
 
-    public Collection<Property> statedProperties() {
-        return statedProperties.values();
+    public void useWritableProperties(Consumer<Property> consumer) {
+        for (Property property : statedProperties.values()) {
+            if (property.isWritable()) {
+                consumer.accept(property);
+            }
+        }
+    }
+
+    public void useReadOnlyProperties(Consumer<Property> consumer) {
+        for (Property property : statedProperties.values()) {
+            if (property.isReadOnly()) {
+                consumer.accept(property);
+            }
+        }
     }
 
     public Property get(String name) {

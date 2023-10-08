@@ -20,6 +20,7 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.0'
     testImplementation 'io.github.autoparams:autoparams:3.0.3'
+    testImplementation 'io.github.autoparams:autoparams-mockito:3.0.3'
     testImplementation 'org.assertj:assertj-core:3.23.1'
     testImplementation 'javax.persistence:javax.persistence-api:2.2'
     testCompileOnly 'org.projectlombok:lombok:1.18.24'

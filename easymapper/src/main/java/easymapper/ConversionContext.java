@@ -8,11 +8,7 @@ public class ConversionContext {
     private final Type sourceType;
     private final Type destinationType;
 
-    ConversionContext(
-        Mapper mapper,
-        Type sourceType,
-        Type destinationType
-    ) {
+    ConversionContext(Mapper mapper, Type sourceType, Type destinationType) {
         this.mapper = mapper;
         this.sourceType = sourceType;
         this.destinationType = destinationType;

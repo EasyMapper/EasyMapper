@@ -2,27 +2,22 @@ package easymapper;
 
 import java.beans.ConstructorProperties;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static easymapper.Exceptions.argumentNullException;
 import static easymapper.TypeAnalyzer.getParameterTypeResolver;
-import static java.util.Arrays.stream;
 import static java.util.Comparator.comparingInt;
 import static java.util.stream.Collectors.toList;
 
 public class Mapper {
-
-    private static final String[] empty = new String[0];
 
     private final ConstructorExtractor constructorExtractor;
     private final ParameterNameResolver parameterNameResolver;
@@ -46,8 +41,8 @@ public class Mapper {
         constructorExtractor = config.getConstructorExtractor();
         parameterNameResolver = config.getParameterNameResolver();
 
-        converters = copyThenReverse(new ArrayList<>(config.getConverters()));
-        projectors = copyThenReverse(new ArrayList<>(config.getProjectors()));
+        converters = copyThenReverse(config.getConverters());
+        projectors = copyThenReverse(config.getProjectors());
 
         mappings = copyThenReverse(config
             .getMappings()
@@ -66,20 +61,14 @@ public class Mapper {
     public <T> T map(Object source, Type sourceType, Type destinationType) {
         if (sourceType == null) {
             throw argumentNullException("sourceType");
-        }
-
-        if (destinationType == null) {
+        } else if (destinationType == null) {
             throw argumentNullException("destinationType");
         }
 
         return (T) convert(source, sourceType, destinationType);
     }
 
-    public <S, D> D map(
-        S source,
-        Class<S> sourceType,
-        Class<D> destinationType
-    ) {
+    public <S, D> D map(S source, Class<S> sourceType, Class<D> destinationType) {
         return map(source, (Type) sourceType, destinationType);
     }
 
@@ -90,9 +79,7 @@ public class Mapper {
     ) {
         if (sourceTypeReference == null) {
             throw argumentNullException("sourceTypeReference");
-        }
-
-        if (destinationTypeReference == null) {
+        } else if (destinationTypeReference == null) {
             throw argumentNullException("destinationTypeReference");
         }
 
@@ -102,25 +89,14 @@ public class Mapper {
             destinationTypeReference.getType());
     }
 
-    public <S, D> void map(
-        S source,
-        D destination,
-        Type sourceType,
-        Type destinationType
-    ) {
+    public <S, D> void map(S source, D destination, Type sourceType, Type destinationType) {
         if (source == null) {
             throw argumentNullException("source");
-        }
-
-        if (destination == null) {
+        } else if (destination == null) {
             throw argumentNullException("destination");
-        }
-
-        if (sourceType == null) {
+        } else if (sourceType == null) {
             throw argumentNullException("sourceType");
-        }
-
-        if (destinationType == null) {
+        } else if (destinationType == null) {
             throw argumentNullException("destinationType");
         }
 
@@ -137,9 +113,7 @@ public class Mapper {
     ) {
         if (sourceTypeReference == null) {
             throw argumentNullException("sourceTypeReference");
-        }
-
-        if (destinationTypeReference == null) {
+        } else if (destinationTypeReference == null) {
             throw argumentNullException("destinationTypeReference");
         }
 
@@ -149,11 +123,7 @@ public class Mapper {
             destinationTypeReference.getType());
     }
 
-    private Object convert(
-        Object source,
-        Type sourceType,
-        Type destinationType
-    ) {
+    private Object convert(Object source, Type sourceType, Type destinationType) {
         return findConverter(sourceType, destinationType)
             .map(x -> x.convert(
                 source,
@@ -163,21 +133,14 @@ public class Mapper {
                 : constructThenProject(source, sourceType, destinationType));
     }
 
-    private Optional<Converter> findConverter(
-        Type sourceType,
-        Type destinationType
-    ) {
+    private Optional<Converter> findConverter(Type sourceType, Type destinationType) {
         return converters
             .stream()
             .filter(converter -> converter.match(sourceType, destinationType))
             .findFirst();
     }
 
-    private Object constructThenProject(
-        Object source,
-        Type sourceType,
-        Type destinationType
-    ) {
+    private Object constructThenProject(Object source, Type sourceType, Type destinationType) {
         Object destination = construct(source, sourceType, destinationType);
         projectToReadOnly(
             new VariableWrapper(sourceType, "source", source),
@@ -185,11 +148,7 @@ public class Mapper {
         return destination;
     }
 
-    private Object construct(
-        Object source,
-        Type sourceType,
-        Type destinationType
-    ) {
+    private Object construct(Object source, Type sourceType, Type destinationType) {
         Properties sourceProperties = Properties.get(sourceType);
         Function<Parameter, Type> parameterTypeResolver = getParameterTypeResolver(destinationType);
         Constructor<?> constructor = getConstructor(destinationType);
@@ -213,13 +172,14 @@ public class Mapper {
                 .apply(source);
         }
 
-        return createInstance(constructor, arguments);
+        try {
+            return constructor.newInstance(arguments);
+        } catch (Exception exception) {
+            throw new RuntimeException(exception);
+        }
     }
 
-    private Optional<Mapping> findMapping(
-        Type sourceType,
-        Type destinationType
-    ) {
+    private Optional<Mapping> findMapping(Type sourceType, Type destinationType) {
         return mappings
             .stream()
             .filter(mapping -> mapping.getSourceType().equals(sourceType))
@@ -249,25 +209,15 @@ public class Mapper {
             .extract(type)
             .stream()
             .max(comparingInt(Constructor::getParameterCount))
-            .orElseThrow(() -> {
-                String message = "No constructor found for " + type;
-                return new RuntimeException(message);
-            });
+            .orElseThrow(() -> new RuntimeException("No constructor found for " + type));
     }
 
     private String[] getPropertyNames(Constructor<?> constructor) {
-        if (constructor.getParameterCount() == 0) {
-            return empty;
-        }
-
-        List<String> names = stream(constructor.getParameters())
-            .map(parameterNameResolver::tryResolveName)
-            .map(x -> x.orElse(null))
-            .collect(toList());
-
-        return names.contains(null)
-            ? getAnnotatedPropertyNames(constructor)
-            : names.toArray(new String[0]);
+        return constructor.getParameterCount() == 0
+            ? new String[0]
+            : parameterNameResolver
+                .tryResolveNames(constructor)
+                .orElseGet(() -> getAnnotatedPropertyNames(constructor));
     }
 
     private static String[] getAnnotatedPropertyNames(Constructor<?> constructor) {
@@ -276,28 +226,12 @@ public class Mapper {
             String message = "The constructor " + constructor
                 + " is not decorated with @ConstructorProperties annotation.";
             throw new RuntimeException(message);
-        }
-        return annotation.value();
-    }
-
-    private Object createInstance(
-        Constructor<?> constructor,
-        Object[] arguments
-    ) {
-        try {
-            return constructor.newInstance(arguments);
-        } catch (InstantiationException
-             | IllegalAccessException
-             | IllegalArgumentException
-             | InvocationTargetException exception) {
-            throw new RuntimeException(exception);
+        } else {
+            return annotation.value();
         }
     }
 
-    private void projectToReadOnly(
-        VariableWrapper source,
-        VariableWrapper destination
-    ) {
+    private void projectToReadOnly(VariableWrapper source, VariableWrapper destination) {
         Object sourceValue = source.get();
         Object destinationValue = destination.get();
 
@@ -321,17 +255,13 @@ public class Mapper {
 
     private Projector getPropertyProjector() {
         return Projector.create(
-            Mapper::acceptAllTypes,
-            Mapper::acceptAllTypes,
+            type -> true,
+            type -> true,
             (source, destination) -> context -> projectProperties(
                 source,
                 destination,
                 context.getSourceType(),
                 context.getDestinationType()));
-    }
-
-    private static boolean acceptAllTypes(Type type) {
-        return true;
     }
 
     private void projectProperties(
@@ -353,27 +283,21 @@ public class Mapper {
         Properties sourceProperties = Properties.get(sourceType);
         Properties destinationProperties = Properties.get(destinationType);
 
-        for (Property destinationProperty : destinationProperties.statedProperties()) {
-            if (destinationProperty.isWritable()) {
-                findMapping(sourceType, destinationType)
-                    .flatMap(m -> m.findCalculator(destinationProperty.name()))
-                    .<Runnable>map(calculator -> () -> destinationProperty.set(
-                        destination,
-                        calculator.apply(source)))
-                    .orElse(() -> sourceProperties
-                        .find(destinationProperty.name())
-                        .ifPresent(sourceProperty -> projectToWritable(
-                            sourceProperty.bind(source),
-                            destinationProperty.bind(destination))))
-                    .run();
-            }
-        }
+        destinationProperties.useWritableProperties(destinationProperty ->
+            findMapping(sourceType, destinationType)
+                .flatMap(m -> m.findCalculator(destinationProperty.name()))
+                .<Runnable>map(calculator -> () -> destinationProperty.set(
+                    destination,
+                    calculator.apply(source)))
+                .orElse(() -> sourceProperties
+                    .find(destinationProperty.name())
+                    .ifPresent(sourceProperty -> projectToWritable(
+                        sourceProperty.bind(source),
+                        destinationProperty.bind(destination))))
+                .run());
     }
 
-    private void projectToWritable(
-        VariableWrapper source,
-        VariableWrapper destination
-    ) {
+    private void projectToWritable(VariableWrapper source, VariableWrapper destination) {
         findProjector(source.type(), destination.type())
             .<Runnable>map(projector -> () -> projectToWritable(source, destination, projector))
             .orElse(() -> destination.set(convert(source.get(), source.type(), destination.type())))
@@ -389,21 +313,14 @@ public class Mapper {
 
         if (sourceValue == destination.get()) {
             return;
+        } else if (sourceValue == null) {
+            throw new RuntimeException("The source '" + source.name() + "' is null.");
         }
-
-        if (sourceValue == null) {
-            String message = "The source '" + source.name() + "' is null.";
-            throw new RuntimeException(message);
-        }
-
-        Object destinationValue = destination.getOrSetIfNull(() -> convert(
-            sourceValue,
-            source.type(),
-            destination.type()));
 
         projector.project(
             sourceValue,
-            destinationValue,
+            destination.getOrSetIfNull(
+                () -> convert(sourceValue, source.type(), destination.type())),
             new ProjectionContext(this, source.type(), destination.type()));
     }
 
@@ -416,21 +333,14 @@ public class Mapper {
         Properties sourceProperties = Properties.get(sourceType);
         Properties destinationProperties = Properties.get(destinationType);
 
-        for (Property destinationProperty : destinationProperties.statedProperties()) {
-            if (destinationProperty.isReadOnly()) {
-                sourceProperties
-                    .find(destinationProperty.name())
-                    .ifPresent(sourceProperty -> projectToReadOnly(
-                        sourceProperty.bind(source),
-                        destinationProperty.bind(destination)));
-            }
-        }
+        destinationProperties.useReadOnlyProperties(destinationProperty -> sourceProperties
+            .find(destinationProperty.name())
+            .ifPresent(sourceProperty -> projectToReadOnly(
+                sourceProperty.bind(source),
+                destinationProperty.bind(destination))));
     }
 
-    private Optional<Projector> findProjector(
-        Type sourceType,
-        Type destinationType
-    ) {
+    private Optional<Projector> findProjector(Type sourceType, Type destinationType) {
         return projectors
             .stream()
             .filter(projector -> projector.match(sourceType, destinationType))
