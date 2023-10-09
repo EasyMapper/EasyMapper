@@ -65,13 +65,29 @@ public class Mapper {
             throw argumentNullException("destinationType");
         }
 
-        return (T) convert(source, sourceType, destinationType);
+        return (T) convert(
+            new VariableWrapper(sourceType, "source", source),
+            destinationType);
     }
 
-    public <S, D> D map(S source, Class<S> sourceType, Class<D> destinationType) {
-        return map(source, (Type) sourceType, destinationType);
+    @SuppressWarnings("unchecked")
+    public <S, D> D map(
+        S source,
+        Class<S> sourceType,
+        Class<D> destinationType
+    ) {
+        if (sourceType == null) {
+            throw argumentNullException("sourceType");
+        } else if (destinationType == null) {
+            throw argumentNullException("destinationType");
+        }
+
+        return (D) convert(
+            new VariableWrapper(sourceType, "source", source),
+            destinationType);
     }
 
+    @SuppressWarnings("unchecked")
     public <S, D> D map(
         S source,
         TypeReference<S> sourceTypeReference,
@@ -83,10 +99,12 @@ public class Mapper {
             throw argumentNullException("destinationTypeReference");
         }
 
-        return map(
-            source,
-            sourceTypeReference.getType(),
-            destinationTypeReference.getType());
+        Type sourceType = sourceTypeReference.getType();
+        Type destinationType = destinationTypeReference.getType();
+
+        return (D) convert(
+            new VariableWrapper(sourceType, "source", source),
+            destinationType);
     }
 
     public <S, D> void map(S source, D destination, Type sourceType, Type destinationType) {
@@ -101,8 +119,8 @@ public class Mapper {
         }
 
         projectToReadOnly(
-            new VariableWrapper(sourceType, "source", () -> source),
-            new VariableWrapper(destinationType, "destination", () -> destination));
+            new VariableWrapper(sourceType, "source", source),
+            new VariableWrapper(destinationType, "destination", destination));
     }
 
     public <S, D> void map(
@@ -111,26 +129,34 @@ public class Mapper {
         TypeReference<S> sourceTypeReference,
         TypeReference<D> destinationTypeReference
     ) {
-        if (sourceTypeReference == null) {
+        if (source == null) {
+            throw argumentNullException("source");
+        } else if (destination == null) {
+            throw argumentNullException("destination");
+        } else if (sourceTypeReference == null) {
             throw argumentNullException("sourceTypeReference");
         } else if (destinationTypeReference == null) {
             throw argumentNullException("destinationTypeReference");
         }
 
-        map(source,
-            destination,
-            sourceTypeReference.getType(),
-            destinationTypeReference.getType());
+        Type sourceType = sourceTypeReference.getType();
+        Type destinationType = destinationTypeReference.getType();
+
+        projectToReadOnly(
+            new VariableWrapper(sourceType, "source", source),
+            new VariableWrapper(destinationType, "destination", destination));
     }
 
-    private Object convert(Object source, Type sourceType, Type destinationType) {
-        return findConverter(sourceType, destinationType)
+    private Object convert(VariableWrapper source, Type destinationType) {
+        Object sourceValue = source.get();
+        return findConverter(source.type(), destinationType)
             .map(x -> x.convert(
-                source,
-                new ConversionContext(this, sourceType, destinationType)))
-            .orElseGet(() -> source == null
-                ? null
-                : constructThenProject(source, sourceType, destinationType));
+                sourceValue,
+                new ConversionContext(this, source.type(), destinationType)))
+            .orElseGet(() -> sourceValue == null ? null : constructThenProject(
+                sourceValue,
+                source.type(),
+                destinationType));
     }
 
     private Optional<Converter> findConverter(Type sourceType, Type destinationType) {
@@ -165,8 +191,7 @@ public class Mapper {
                 .orElse(instance -> {
                     Property sourceProperty = sourceProperties.get(propertyName);
                     return convert(
-                        sourceProperty.get(instance),
-                        sourceProperty.type(),
+                        sourceProperty.bind(instance),
                         parameterTypeResolver.apply(parameter));
                 })
                 .apply(source);
@@ -300,7 +325,7 @@ public class Mapper {
     private void projectToWritable(VariableWrapper source, VariableWrapper destination) {
         findProjector(source.type(), destination.type())
             .<Runnable>map(projector -> () -> projectToWritable(source, destination, projector))
-            .orElse(() -> destination.set(convert(source.get(), source.type(), destination.type())))
+            .orElse(() -> destination.set(convert(source, destination.type())))
             .run();
     }
 
@@ -319,8 +344,7 @@ public class Mapper {
 
         projector.project(
             sourceValue,
-            destination.getOrSetIfNull(
-                () -> convert(sourceValue, source.type(), destination.type())),
+            destination.getOrSetIfNull(() -> convert(source, destination.type())),
             new ProjectionContext(this, source.type(), destination.type()));
     }
 
