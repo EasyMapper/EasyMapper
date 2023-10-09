@@ -27,8 +27,8 @@ public final class MapperConfiguration {
     private final List<Converter> unmodifiableConverters;
     private final List<Projector> projectors;
     private final List<Projector> unmodifiableProjectors;
-    private final List<PropertyMappingBuilder<?, ?>> mappings;
-    private final List<PropertyMappingBuilder<?, ?>> unmodifiableMappings;
+    private final List<PropertyMappingBuilder<?, ?>> propertyMappings;
+    private final List<PropertyMappingBuilder<?, ?>> unmodifiablePropertyMappings;
 
     MapperConfiguration() {
         constructorExtractor = defaultConstructorExtractor;
@@ -37,8 +37,8 @@ public final class MapperConfiguration {
         unmodifiableConverters = unmodifiableList(converters);
         projectors = new ArrayList<>();
         unmodifiableProjectors = unmodifiableList(projectors);
-        mappings = new ArrayList<>();
-        unmodifiableMappings = unmodifiableList(mappings);
+        propertyMappings = new ArrayList<>();
+        unmodifiablePropertyMappings = unmodifiableList(propertyMappings);
     }
 
     public ConstructorExtractor getConstructorExtractor() {
@@ -257,7 +257,7 @@ public final class MapperConfiguration {
         PropertyMappingBuilder<S, D> builder = new PropertyMappingBuilder<>(sourceType, destinationType);
         configurer.accept(builder);
 
-        mappings.add(builder);
+        propertyMappings.add(builder);
 
         return this;
     }
@@ -272,6 +272,30 @@ public final class MapperConfiguration {
         return this;
     }
 
+    public MapperConfiguration map(
+        Function<Type, Boolean> sourceTypePredicate,
+        Function<Type, Boolean> destinationTypePredicate,
+        Consumer<MappingBuilder<Object, Object>> configurer
+    ) {
+        return null;
+    }
+
+    public <S, D> MapperConfiguration map(
+        Class<S> sourceType,
+        Class<D> destinationType,
+        Consumer<MappingBuilder<S, D>> configurer
+    ) {
+        return null;
+    }
+
+    public <S, D> MapperConfiguration map(
+        TypeReference<S> sourceTypeReference,
+        TypeReference<D> destinationTypeReference,
+        Consumer<MappingBuilder<S, D>> configurer
+    ) {
+        return null;
+    }
+
     public Collection<Converter> getConverters() {
         return unmodifiableConverters;
     }
@@ -281,6 +305,6 @@ public final class MapperConfiguration {
     }
 
     public Collection<PropertyMappingBuilder<?, ?>> getPropertyMappings() {
-        return unmodifiableMappings;
+        return unmodifiablePropertyMappings;
     }
 }
