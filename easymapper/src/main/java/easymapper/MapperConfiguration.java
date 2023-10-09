@@ -6,7 +6,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -58,87 +57,6 @@ public final class MapperConfiguration {
         }
 
         this.parameterNameResolver = value;
-
-        return this;
-    }
-
-    public <S, D> MapperConfiguration addProjector(
-        Class<S> sourceType,
-        Class<D> destinationType,
-        BiFunction<S, D, Consumer<ProjectionContext>> consumer
-    ) {
-        if (sourceType == null) {
-            throw argumentNullException("sourceType");
-        }
-
-        if (destinationType == null) {
-            throw argumentNullException("destinationType");
-        }
-
-        if (consumer == null) {
-            throw argumentNullException("consumer");
-        }
-
-        map(sourceType,
-            destinationType,
-            mapping -> mapping
-                .project((source, destination) -> context -> consumer
-                    .apply(source, destination)
-                    .accept(ProjectionContext.fromMappingContext(context))));
-
-        return this;
-    }
-
-    public <S, D> MapperConfiguration addProjector(
-        TypeReference<S> sourceTypeReference,
-        TypeReference<D> destinationTypeReference,
-        BiFunction<S, D, Consumer<ProjectionContext>> consumer
-    ) {
-        if (sourceTypeReference == null) {
-            throw argumentNullException("sourceTypeReference");
-        }
-
-        if (destinationTypeReference == null) {
-            throw argumentNullException("destinationTypeReference");
-        }
-
-        if (consumer == null) {
-            throw argumentNullException("consumer");
-        }
-
-        map(sourceTypeReference,
-            destinationTypeReference,
-            mapping -> mapping
-                .project((source, destination) -> context -> consumer
-                    .apply(source, destination)
-                    .accept(ProjectionContext.fromMappingContext(context))));
-
-        return this;
-    }
-
-    public MapperConfiguration addProjector(
-        Function<Type, Boolean> sourceTypePredicate,
-        Function<Type, Boolean> destinationTypePredicate,
-        BiFunction<Object, Object, Consumer<ProjectionContext>> consumer
-    ) {
-        if (sourceTypePredicate == null) {
-            throw argumentNullException("sourceTypePredicate");
-        }
-
-        if (destinationTypePredicate == null) {
-            throw argumentNullException("destinationTypePredicate");
-        }
-
-        if (consumer == null) {
-            throw argumentNullException("consumer");
-        }
-
-        map(sourceTypePredicate,
-            destinationTypePredicate,
-            mapping -> mapping
-                .project((source, destination) -> context -> consumer
-                    .apply(source, destination)
-                    .accept(ProjectionContext.fromMappingContext(context))));
 
         return this;
     }

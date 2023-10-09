@@ -1,8 +1,6 @@
 package test.easymapper;
 
-import easymapper.ConversionContext;
 import easymapper.Mapper;
-import java.util.function.Function;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
@@ -69,9 +67,5 @@ public class Converter_specs {
                 .convert(source -> context -> UserView.from(source))));
 
         assertThatThrownBy(action).isInstanceOf(RuntimeException.class);
-    }
-
-    <T> Function<T, Function<ConversionContext, T>> identity() {
-        return source -> context -> source;
     }
 }

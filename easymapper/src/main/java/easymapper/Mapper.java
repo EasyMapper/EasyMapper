@@ -197,11 +197,11 @@ public class Mapper {
                 destinationValue,
                 new MappingContext(this, source.type(), destination.type()));
         } else {
-            getPropertyProjector()
-                .project(
-                    sourceValue,
-                    destinationValue,
-                    new ProjectionContext(this, source.type(), destination.type()));
+            projectProperties(
+                sourceValue,
+                destinationValue,
+                source.type(),
+                destination.type());
         }
     }
 
@@ -298,17 +298,6 @@ public class Mapper {
         }
     }
 
-    private Projector getPropertyProjector() {
-        return Projector.create(
-            type -> true,
-            type -> true,
-            (source, destination) -> context -> projectProperties(
-                source,
-                destination,
-                context.getSourceType(),
-                context.getDestinationType()));
-    }
-
     private void projectProperties(
         Object source,
         Object destination,
@@ -357,33 +346,6 @@ public class Mapper {
     }
 
     private void projectOrSet(Variable source, Variable destination) {
-        Optional<Mapping<Object, Object>> mapping = mappings
-            .stream()
-            .filter(m -> m.match(source.type(), destination.type()))
-            .filter(Mapping::hasProjection)
-            .findFirst();
-
-        if (mapping.isPresent()) {
-            projectOrSet(
-                source,
-                destination,
-                Projector.create(
-                    type -> mapping.get().matchSourceType(type),
-                    type -> mapping.get().matchDestinationType(type),
-                    (s, d) -> context -> mapping.get().project(
-                        s,
-                        d,
-                        context.toMappingContext())));
-        } else {
-            destination.set(convert(source, destination.type()));
-        }
-    }
-
-    private void projectOrSet(
-        Variable source,
-        Variable destination,
-        Projector projector
-    ) {
         Object sourceValue = source.get();
 
         if (sourceValue == destination.get()) {
@@ -392,10 +354,20 @@ public class Mapper {
             throw new RuntimeException("The source '" + source.name() + "' is null.");
         }
 
-        projector.project(
-            sourceValue,
-            destination.getOrSetIfNull(() -> convert(source, destination.type())),
-            new ProjectionContext(this, source.type(), destination.type()));
+        Optional<Mapping<Object, Object>> mapping = mappings
+            .stream()
+            .filter(m -> m.match(source.type(), destination.type()))
+            .filter(Mapping::hasProjection)
+            .findFirst();
+
+        if (mapping.isPresent()) {
+            mapping.get().project(
+                sourceValue,
+                destination.getOrSetIfNull(() -> convert(source, destination.type())),
+                new MappingContext(this, source.type(), destination.type()));
+        } else {
+            destination.set(convert(source, destination.type()));
+        }
     }
 
     private void projectReadOnlyProperties(
