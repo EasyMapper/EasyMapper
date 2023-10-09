@@ -107,6 +107,18 @@ public class Mapper {
             destinationType);
     }
 
+    private Object convert(Variable source, Type destinationType) {
+        Object sourceValue = source.get();
+        return findConverter(source.type(), destinationType)
+            .map(x -> x.convert(
+                sourceValue,
+                new ConversionContext(this, source.type(), destinationType)))
+            .orElseGet(() -> sourceValue == null ? null : constructThenProject(
+                sourceValue,
+                source.type(),
+                destinationType));
+    }
+
     public <S, D> void map(S source, D destination, Type sourceType, Type destinationType) {
         if (source == null) {
             throw argumentNullException("source");
@@ -118,7 +130,7 @@ public class Mapper {
             throw argumentNullException("destinationType");
         }
 
-        projectToReadOnly(
+        project(
             new Variable(sourceType, "source", source),
             new Variable(destinationType, "destination", destination));
     }
@@ -142,21 +154,31 @@ public class Mapper {
         Type sourceType = sourceTypeReference.getType();
         Type destinationType = destinationTypeReference.getType();
 
-        projectToReadOnly(
+        project(
             new Variable(sourceType, "source", source),
             new Variable(destinationType, "destination", destination));
     }
 
-    private Object convert(Variable source, Type destinationType) {
+    private void project(Variable source, Variable destination) {
         Object sourceValue = source.get();
-        return findConverter(source.type(), destinationType)
-            .map(x -> x.convert(
+        Object destinationValue = destination.get();
+
+        if (sourceValue == destinationValue) {
+            return;
+        } else if (sourceValue == null) {
+            String message = "'" + source.name() + "' is null but '" + destination.name() + "' is not null.";
+            throw new RuntimeException(message);
+        } else if (destinationValue == null) {
+            String message = "'" + source.name() + "' is not null but '" + destination.name() + "' is null.";
+            throw new RuntimeException(message);
+        }
+
+        findProjector(source.type(), destination.type())
+            .orElseGet(this::getPropertyProjector)
+            .project(
                 sourceValue,
-                new ConversionContext(this, source.type(), destinationType)))
-            .orElseGet(() -> sourceValue == null ? null : constructThenProject(
-                sourceValue,
-                source.type(),
-                destinationType));
+                destinationValue,
+                new ProjectionContext(this, source.type(), destination.type()));
     }
 
     private Optional<Converter> findConverter(Type sourceType, Type destinationType) {
@@ -168,7 +190,7 @@ public class Mapper {
 
     private Object constructThenProject(Object source, Type sourceType, Type destinationType) {
         Object destination = construct(source, sourceType, destinationType);
-        projectToReadOnly(
+        project(
             new Variable(sourceType, "source", source),
             new Variable(destinationType, "destination", destination));
         return destination;
@@ -256,28 +278,6 @@ public class Mapper {
         }
     }
 
-    private void projectToReadOnly(Variable source, Variable destination) {
-        Object sourceValue = source.get();
-        Object destinationValue = destination.get();
-
-        if (sourceValue == destinationValue) {
-            return;
-        } else if (sourceValue == null) {
-            String message = "'" + source.name() + "' is null but '" + destination.name() + "' is not null.";
-            throw new RuntimeException(message);
-        } else if (destinationValue == null) {
-            String message = "'" + source.name() + "' is not null but '" + destination.name() + "' is null.";
-            throw new RuntimeException(message);
-        }
-
-        findProjector(source.type(), destination.type())
-            .orElseGet(this::getPropertyProjector)
-            .project(
-                sourceValue,
-                destinationValue,
-                new ProjectionContext(this, source.type(), destination.type()));
-    }
-
     private Projector getPropertyProjector() {
         return Projector.create(
             type -> true,
@@ -316,20 +316,20 @@ public class Mapper {
                     calculator.apply(source)))
                 .orElse(() -> sourceProperties
                     .find(destinationProperty.name())
-                    .ifPresent(sourceProperty -> projectToWritable(
+                    .ifPresent(sourceProperty -> projectOrSet(
                         sourceProperty.bind(source),
                         destinationProperty.bind(destination))))
                 .run());
     }
 
-    private void projectToWritable(Variable source, Variable destination) {
+    private void projectOrSet(Variable source, Variable destination) {
         findProjector(source.type(), destination.type())
-            .<Runnable>map(projector -> () -> projectToWritable(source, destination, projector))
+            .<Runnable>map(projector -> () -> projectOrSet(source, destination, projector))
             .orElse(() -> destination.set(convert(source, destination.type())))
             .run();
     }
 
-    private void projectToWritable(
+    private void projectOrSet(
         Variable source,
         Variable destination,
         Projector projector
@@ -359,7 +359,7 @@ public class Mapper {
 
         destinationProperties.useReadOnlyProperties(destinationProperty -> sourceProperties
             .find(destinationProperty.name())
-            .ifPresent(sourceProperty -> projectToReadOnly(
+            .ifPresent(sourceProperty -> project(
                 sourceProperty.bind(source),
                 destinationProperty.bind(destination))));
     }
