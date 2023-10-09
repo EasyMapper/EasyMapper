@@ -8,17 +8,17 @@ public class HasBrokenConstructor {
 
     public static final String DEFAULT_USERNAME = "Obi-Wan Kenobi";
 
-    private final long id;
+    private final int id;
     private final String username;
 
     @ConstructorProperties("id")
-    public HasBrokenConstructor(long id) {
+    public HasBrokenConstructor(int id) {
         this.id = id;
         this.username = DEFAULT_USERNAME;
     }
 
     @ConstructorProperties({"id", "username"})
-    public HasBrokenConstructor(long id, String username) {
+    public HasBrokenConstructor(int id, String username) {
         throw new RuntimeException("Broken constructor");
     }
 }

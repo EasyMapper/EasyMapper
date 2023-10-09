@@ -8,6 +8,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -41,6 +42,8 @@ public class Mapper {
         constructorExtractor = config.getConstructorExtractor();
         parameterNameResolver = config.getParameterNameResolver();
 
+        configure(config, getMappings(config));
+
         converters = copyThenReverse(config.getConverters());
         projectors = copyThenReverse(config.getProjectors());
 
@@ -49,6 +52,34 @@ public class Mapper {
             .stream()
             .map(PropertyMappingBuilder::build)
             .collect(toList()));
+    }
+
+    private static List<Mapping<?, ?>> getMappings(MapperConfiguration config) {
+        return config
+            .getMappings()
+            .stream()
+            .map(MappingBuilder::build)
+            .collect(toList());
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void configure(
+        MapperConfiguration config,
+        List<Mapping<?, ?>> mappings
+    ) {
+        for (Mapping<?, ?> mapping : mappings) {
+            configure(config, (Mapping<Object, Object>) mapping);
+        }
+    }
+
+    private static void configure(
+        MapperConfiguration config,
+        Mapping<Object, Object> mapping
+    ) {
+        config.addConverter(
+            mapping::matchSourceType,
+            mapping::matchDestinationType,
+            source -> context -> mapping.convert(source, new MappingContext()));
     }
 
     private static <T> Collection<T> copyThenReverse(Collection<T> list) {

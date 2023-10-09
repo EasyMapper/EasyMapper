@@ -23,6 +23,7 @@ public final class MapperConfiguration {
 
     private ConstructorExtractor constructorExtractor;
     private ParameterNameResolver parameterNameResolver;
+    private final List<MappingBuilder<?, ?>> mappings = new ArrayList<>();
     private final List<Converter> converters;
     private final List<Converter> unmodifiableConverters;
     private final List<Projector> projectors;
@@ -277,7 +278,23 @@ public final class MapperConfiguration {
         Function<Type, Boolean> destinationTypePredicate,
         Consumer<MappingBuilder<Object, Object>> configurer
     ) {
-        return null;
+        if (sourceTypePredicate == null) {
+            throw argumentNullException("sourceTypePredicate");
+        } else if (destinationTypePredicate == null) {
+            throw argumentNullException("destinationTypePredicate");
+        } else if (configurer == null) {
+            throw argumentNullException("configurer");
+        }
+
+        MappingBuilder<Object, Object> mapping = new MappingBuilder<>(
+            sourceTypePredicate,
+            destinationTypePredicate);
+
+        configurer.accept(mapping);
+
+        mappings.add(mapping);
+
+        return this;
     }
 
     public <S, D> MapperConfiguration map(
@@ -285,7 +302,23 @@ public final class MapperConfiguration {
         Class<D> destinationType,
         Consumer<MappingBuilder<S, D>> configurer
     ) {
-        return null;
+        if (sourceType == null) {
+            throw argumentNullException("sourceType");
+        } else if (destinationType == null) {
+            throw argumentNullException("destinationType");
+        } else if (configurer == null) {
+            throw argumentNullException("configurer");
+        }
+
+        MappingBuilder<S, D> mapping = new MappingBuilder<>(
+            type -> type.equals(sourceType),
+            type -> type.equals(destinationType));
+
+        configurer.accept(mapping);
+
+        mappings.add(mapping);
+
+        return this;
     }
 
     public <S, D> MapperConfiguration map(
@@ -293,7 +326,27 @@ public final class MapperConfiguration {
         TypeReference<D> destinationTypeReference,
         Consumer<MappingBuilder<S, D>> configurer
     ) {
-        return null;
+        if (sourceTypeReference == null) {
+            throw argumentNullException("sourceTypeReference");
+        } else if (destinationTypeReference == null) {
+            throw argumentNullException("destinationTypeReference");
+        } else if (configurer == null) {
+            throw argumentNullException("configurer");
+        }
+
+        MappingBuilder<S, D> mapping = new MappingBuilder<>(
+            type -> type.equals(sourceTypeReference.getType()),
+            type -> type.equals(destinationTypeReference.getType()));
+
+        configurer.accept(mapping);
+
+        mappings.add(mapping);
+
+        return this;
+    }
+
+    public Collection<MappingBuilder<?, ?>> getMappings() {
+        return mappings;
     }
 
     public Collection<Converter> getConverters() {

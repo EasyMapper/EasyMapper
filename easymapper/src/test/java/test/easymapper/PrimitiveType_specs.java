@@ -8,6 +8,7 @@ import lombok.Getter;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PrimitiveType_specs {
+
     @AllArgsConstructor
     public static class BooleanBag {
         private final boolean value;

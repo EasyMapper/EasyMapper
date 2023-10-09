@@ -5,9 +5,15 @@ import easymapper.ConstructorExtractor;
 import easymapper.Mapper;
 import easymapper.MapperConfiguration;
 import easymapper.ParameterNameResolver;
+import easymapper.TypeReference;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Type;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.Test;
 import test.easymapper.fixture.HasBrokenConstructor;
 import test.easymapper.fixture.ItemView;
@@ -18,8 +24,6 @@ import test.easymapper.fixture.Pricing;
 import test.easymapper.fixture.PricingView;
 import test.easymapper.fixture.Recipient;
 import test.easymapper.fixture.RecipientView;
-import test.easymapper.fixture.User;
-import test.easymapper.fixture.UserView;
 
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
@@ -29,6 +33,176 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class MapperConfiguration_specs {
+
+    private static final Function<Type, Boolean> accept = type -> true;
+
+    @AllArgsConstructor
+    @Getter
+    public static class User {
+        private final int id;
+        private final String username;
+        private final String passwordHash;
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class UserView {
+        private final int id;
+        private final String name;
+
+        public static UserView from(User user) {
+            return new UserView(user.getId(), user.getUsername());
+        }
+    }
+
+    @Test
+    void map_with_predicates_has_null_guard_for_source_type_predicate() {
+        ThrowingCallable action = () -> new Mapper(
+            config -> config.map(null, accept, mapping -> {}));
+
+        assertThatThrownBy(action)
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("sourceTypePredicate");
+    }
+
+    @Test
+    void map_with_predicates_has_null_guard_for_destination_type_predicate() {
+        ThrowingCallable action = () -> new Mapper(
+            config -> config.map(accept, null, mapping -> {}));
+
+        assertThatThrownBy(action)
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("destinationTypePredicate");
+    }
+
+    @Test
+    void map_with_predicates_has_null_guard_for_mapping_configurer() {
+        ThrowingCallable action = () -> new Mapper(
+            config -> config.map(accept, accept, null));
+
+        assertThatThrownBy(action)
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("configurer");
+    }
+
+    @Test
+    void map_with_predicates_is_fluent() {
+        new Mapper(config ->
+            assertThat(config.map(accept, accept, mapping -> {}))
+                .isSameAs(config));
+    }
+
+    @AutoParameterizedTest
+    void map_with_predicates_correctly_works(User user) {
+        Mapper mapper = new Mapper(config -> config.map(
+            type -> type.equals(User.class),
+            type -> type.equals(UserView.class),
+            mapping -> mapping.convert(
+                source -> context -> UserView.from((User) source))));
+
+        UserView actual = mapper.map(user, User.class, UserView.class);
+
+        assertThat(actual.getId()).isEqualTo(user.getId());
+        assertThat(actual.getName()).isEqualTo(user.getUsername());
+    }
+
+    @Test
+    void map_with_classes_has_null_guard_for_source_type() {
+        ThrowingCallable action = () -> new Mapper(
+            config -> config.map(null, int.class, mapping -> {}));
+
+        assertThatThrownBy(action)
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("sourceType");
+    }
+
+    @Test
+    void map_with_classes_has_null_guard_for_destination_type() {
+        ThrowingCallable action = () -> new Mapper(
+            config -> config.map(int.class, null, mapping -> {}));
+
+        assertThatThrownBy(action)
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("destinationType");
+    }
+
+    @Test
+    void map_with_classes_has_null_guard_for_mapping_configurer() {
+        ThrowingCallable action = () -> new Mapper(
+            config -> config.map(int.class, int.class, null));
+
+        assertThatThrownBy(action)
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("configurer");
+    }
+
+    @Test
+    void map_with_classes_is_fluent() {
+        new Mapper(config ->
+            assertThat(config.map(int.class, int.class, mapping -> {}))
+                .isSameAs(config));
+    }
+
+    @Test
+    void map_with_type_references_has_null_guard_for_source_type() {
+        ThrowingCallable action = () -> new Mapper(
+            config -> config.map(
+                null,
+                new TypeReference<Integer>() {},
+                mapping -> {}));
+
+        assertThatThrownBy(action)
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("sourceTypeReference");
+    }
+
+    @Test
+    void map_with_type_references_has_null_guard_for_destination_type() {
+        ThrowingCallable action = () -> new Mapper(
+            config -> config.map(
+                new TypeReference<Integer>() {},
+                null,
+                mapping -> {}));
+
+        assertThatThrownBy(action)
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("destinationTypeReference");
+    }
+
+    @Test
+    void map_with_type_references_has_null_guard_for_mapping_configurer() {
+        ThrowingCallable action = () -> new Mapper(
+            config -> config.map(
+                new TypeReference<Integer>() {},
+                new TypeReference<Integer>() {},
+                null));
+
+        assertThatThrownBy(action)
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("configurer");
+    }
+
+    @Test
+    void map_with_type_references_is_fluent() {
+        TypeReference<Integer> type = new TypeReference<Integer>() {};
+        new Mapper(config ->
+            assertThat(config.map(type, type, mapping -> {}))
+                .isSameAs(config));
+    }
+
+    @AutoParameterizedTest
+    void map_with_type_references_correctly_works(User user) {
+        Mapper mapper = new Mapper(config -> config.map(
+            new TypeReference<User>() {},
+            new TypeReference<UserView>() {},
+            mapping -> mapping.convert(
+                source -> context -> UserView.from(source))));
+
+        UserView actual = mapper.map(user, User.class, UserView.class);
+
+        assertThat(actual.getId()).isEqualTo(user.getId());
+        assertThat(actual.getName()).isEqualTo(user.getUsername());
+    }
 
     @Test
     void sut_has_guard_against_null_source_type() {
@@ -195,6 +369,7 @@ public class MapperConfiguration_specs {
     ) {
         Mapper mapper = new Mapper(config -> config
             .addPropertyMapping(UserView.class, User.class, mapping -> mapping
+                .set("username", UserView::getName)
                 .set("passwordHash", x -> null)));
 
         User actual = mapper.map(source, UserView.class, User.class);
