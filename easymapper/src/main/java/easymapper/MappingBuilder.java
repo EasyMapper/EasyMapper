@@ -1,6 +1,9 @@
 package easymapper;
 
 import java.lang.reflect.Type;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -11,8 +14,9 @@ public final class MappingBuilder<S, D> {
 
     private final Function<Type, Boolean> sourceTypePredicate;
     private final Function<Type, Boolean> destinationTypePredicate;
-    private Function<S, Function<MappingContext, D>> convert = null;
-    private BiFunction<S, D, Consumer<MappingContext>> project = null;
+    private Function<S, Function<MappingContext, D>> conversion = null;
+    private BiFunction<S, D, Consumer<MappingContext>> projection = null;
+    private final Map<String, Function<S, Function<MappingContext, Object>>> computation = new HashMap<>();
 
     MappingBuilder(
         Function<Type, Boolean> sourceTypePredicate,
@@ -29,12 +33,12 @@ public final class MappingBuilder<S, D> {
             throw argumentNullException("function");
         }
 
-        if (this.convert != null) {
+        if (this.conversion != null) {
             String message = "MappingBuilder.convert() can be called only once.";
             throw new IllegalStateException(message);
         }
 
-        this.convert = function;
+        this.conversion = function;
 
         return this;
     }
@@ -46,12 +50,12 @@ public final class MappingBuilder<S, D> {
             throw argumentNullException("action");
         }
 
-        if (this.project != null) {
+        if (this.projection != null) {
             String message = "MappingBuilder.project() can be called only once.";
             throw new IllegalStateException(message);
         }
 
-        this.project = action;
+        this.projection = action;
 
         return this;
     }
@@ -60,14 +64,23 @@ public final class MappingBuilder<S, D> {
         String destinationPropertyName,
         Function<S, Function<MappingContext, Object>> function
     ) {
-        return null;
+        if (destinationPropertyName == null) {
+            throw argumentNullException("destinationPropertyName");
+        } else if (function == null) {
+            throw argumentNullException("function");
+        }
+
+        computation.put(destinationPropertyName, function);
+
+        return this;
     }
 
     Mapping<S, D> build() {
         return new Mapping<>(
             sourceTypePredicate,
             destinationTypePredicate,
-            convert,
-            project);
+            conversion,
+            projection,
+            Collections.unmodifiableMap(computation));
     }
 }

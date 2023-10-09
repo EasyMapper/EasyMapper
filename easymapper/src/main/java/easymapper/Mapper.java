@@ -22,6 +22,7 @@ public class Mapper {
 
     private final ConstructorExtractor constructorExtractor;
     private final ParameterNameResolver parameterNameResolver;
+    private final List<Mapping<Object, Object>> mappings;
     private final Collection<Converter> converters;
     private final Collection<Projector> projectors;
     private final Collection<PropertyMapping> propertyMappings;
@@ -41,8 +42,9 @@ public class Mapper {
 
         constructorExtractor = config.getConstructorExtractor();
         parameterNameResolver = config.getParameterNameResolver();
+        mappings = getMappings(config);
 
-        configure(config, getMappings(config));
+        configure(config, mappings);
 
         converters = copyThenReverse(config.getConverters());
         projectors = copyThenReverse(config.getProjectors());
@@ -54,40 +56,40 @@ public class Mapper {
             .collect(toList()));
     }
 
-    private static List<Mapping<?, ?>> getMappings(MapperConfiguration config) {
+    @SuppressWarnings("unchecked")
+    private static List<Mapping<Object, Object>> getMappings(MapperConfiguration config) {
         return config
             .getMappings()
             .stream()
             .map(MappingBuilder::build)
+            .map(mapping -> (Mapping<Object, Object>) mapping)
             .collect(toList());
     }
 
-    @SuppressWarnings("unchecked")
     private static void configure(
         MapperConfiguration config,
-        List<Mapping<?, ?>> mappings
+        List<Mapping<Object, Object>> mappings
     ) {
-        for (Mapping<?, ?> mapping : mappings) {
-            configure(config, (Mapping<Object, Object>) mapping);
+        for (Mapping<Object, Object> mapping : mappings) {
+            if (mapping.hasConversion()) {
+                config.addConverter(
+                    mapping::matchSourceType,
+                    mapping::matchDestinationType,
+                    source -> context -> mapping.convert(
+                        source,
+                        new MappingContext()));
+            }
+
+            if (mapping.hasProjection()) {
+                config.addProjector(
+                    mapping::matchSourceType,
+                    mapping::matchDestinationType,
+                    (source, destination) -> context -> mapping.project(
+                        source,
+                        destination,
+                        new MappingContext()));
+            }
         }
-    }
-
-    private static void configure(
-        MapperConfiguration config,
-        Mapping<Object, Object> mapping
-    ) {
-        config.addConverter(
-            mapping::matchSourceType,
-            mapping::matchDestinationType,
-            source -> context -> mapping.convert(source, new MappingContext()));
-
-        config.addProjector(
-            mapping::matchSourceType,
-            mapping::matchDestinationType,
-            (source, destination) -> context -> mapping.project(
-                source,
-                destination,
-                new MappingContext()));
     }
 
     private static <T> Collection<T> copyThenReverse(Collection<T> list) {
@@ -247,15 +249,18 @@ public class Mapper {
             String propertyName = destinationPropertyNames[i];
             Parameter parameter = parameters[i];
 
-            arguments[i] = findMapping(sourceType, destinationType)
-                .flatMap(mapping -> mapping.findCalculator(propertyName))
-                .orElse(instance -> {
-                    Property sourceProperty = sourceProperties.get(propertyName);
-                    return convert(
-                        sourceProperty.bind(instance),
-                        parameterTypeResolver.apply(parameter));
-                })
-                .apply(source);
+            arguments[i] = mappings
+                .stream()
+                .filter(m -> m.matchSourceType(sourceType))
+                .filter(m -> m.matchDestinationType(destinationType))
+                .findFirst()
+                .flatMap(m -> m.compute(propertyName, source, new MappingContext()))
+                .orElseGet(() -> findMapping(sourceType, destinationType)
+                    .flatMap(mapping -> mapping.findCalculator(propertyName))
+                    .orElse(instance -> convert(
+                        sourceProperties.get(propertyName).bind(instance),
+                        parameterTypeResolver.apply(parameter)))
+                    .apply(source));
         }
 
         try {
@@ -347,18 +352,32 @@ public class Mapper {
         Properties sourceProperties = Properties.get(sourceType);
         Properties destinationProperties = Properties.get(destinationType);
 
-        destinationProperties.useWritableProperties(destinationProperty ->
-            findMapping(sourceType, destinationType)
-                .flatMap(m -> m.findCalculator(destinationProperty.name()))
-                .<Runnable>map(calculator -> () -> destinationProperty.set(
-                    destination,
-                    calculator.apply(source)))
-                .orElse(() -> sourceProperties
-                    .find(destinationProperty.name())
-                    .ifPresent(sourceProperty -> projectOrSet(
-                        sourceProperty.bind(source),
-                        destinationProperty.bind(destination))))
-                .run());
+        destinationProperties.useWritableProperties(destinationProperty -> {
+            Optional<Object> computed = mappings.stream()
+                .filter(m -> m.matchSourceType(sourceType))
+                .filter(m -> m.matchDestinationType(destinationType))
+                .findFirst()
+                .flatMap(m -> m.compute(
+                    destinationProperty.name(),
+                    source,
+                    new MappingContext()));
+
+            if (computed.isPresent()) {
+                destinationProperty.set(destination, computed.get());
+            } else {
+                findMapping(sourceType, destinationType)
+                    .flatMap(m -> m.findCalculator(destinationProperty.name()))
+                    .<Runnable>map(calculator -> () -> destinationProperty.set(
+                        destination,
+                        calculator.apply(source)))
+                    .orElse(() -> sourceProperties
+                        .find(destinationProperty.name())
+                        .ifPresent(sourceProperty -> projectOrSet(
+                            sourceProperty.bind(source),
+                            destinationProperty.bind(destination))))
+                    .run();
+            }
+        });
     }
 
     private void projectOrSet(Variable source, Variable destination) {
