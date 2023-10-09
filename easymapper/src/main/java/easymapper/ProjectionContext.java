@@ -25,4 +25,8 @@ public class ProjectionContext {
     public Type getDestinationType() {
         return destinationType;
     }
+
+    MappingContext toMappingContext() {
+        return new MappingContext(mapper, sourceType, destinationType);
+    }
 }

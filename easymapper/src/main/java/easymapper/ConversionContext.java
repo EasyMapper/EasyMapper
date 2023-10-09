@@ -25,4 +25,16 @@ public class ConversionContext {
     public Type getDestinationType() {
         return destinationType;
     }
+
+    MappingContext toMappingContext() {
+        return new MappingContext(mapper, sourceType, destinationType);
+    }
+
+    static ConversionContext fromMappingContext(MappingContext context) {
+        return new ConversionContext(
+            context.getMapper(),
+            context.getSourceType(),
+            context.getDestinationType()
+        );
+    }
 }

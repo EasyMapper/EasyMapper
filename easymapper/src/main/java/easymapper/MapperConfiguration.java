@@ -24,8 +24,6 @@ public final class MapperConfiguration {
     private ConstructorExtractor constructorExtractor;
     private ParameterNameResolver parameterNameResolver;
     private final List<MappingBuilder<?, ?>> mappings = new ArrayList<>();
-    private final List<Converter> converters;
-    private final List<Converter> unmodifiableConverters;
     private final List<Projector> projectors;
     private final List<Projector> unmodifiableProjectors;
     private final List<PropertyMappingBuilder<?, ?>> propertyMappings;
@@ -34,8 +32,6 @@ public final class MapperConfiguration {
     MapperConfiguration() {
         constructorExtractor = defaultConstructorExtractor;
         parameterNameResolver = defaultParameterNameResolver;
-        converters = new ArrayList<>();
-        unmodifiableConverters = unmodifiableList(converters);
         projectors = new ArrayList<>();
         unmodifiableProjectors = unmodifiableList(projectors);
         propertyMappings = new ArrayList<>();
@@ -87,12 +83,10 @@ public final class MapperConfiguration {
             throw argumentNullException("function");
         }
 
-        Converter converter = Converter.create(
-            type -> type.equals(sourceType),
-            type -> type.equals(destinationType),
-            function);
-
-        converters.add(converter);
+        map(sourceType, destinationType, mapping -> mapping
+            .convert(source -> context -> function
+                .apply(source)
+                .apply(ConversionContext.fromMappingContext(context))));
 
         return this;
     }
@@ -114,15 +108,10 @@ public final class MapperConfiguration {
             throw argumentNullException("function");
         }
 
-        Type sourceType = sourceTypeReference.getType();
-        Type destinationType = destinationTypeReference.getType();
-
-        Converter converter = Converter.create(
-            type -> type.equals(sourceType),
-            type -> type.equals(destinationType),
-            function);
-
-        converters.add(converter);
+        map(sourceTypeReference, destinationTypeReference, mapping -> mapping
+            .convert(source -> context -> function
+                .apply(source)
+                .apply(ConversionContext.fromMappingContext(context))));
 
         return this;
     }
@@ -144,12 +133,10 @@ public final class MapperConfiguration {
             throw argumentNullException("function");
         }
 
-        Converter converter = Converter.create(
-            sourceTypePredicate,
-            destinationTypePredicate,
-            function);
-
-        converters.add(converter);
+        map(sourceTypePredicate, destinationTypePredicate, mapping -> mapping
+            .convert(source -> context -> function
+                .apply(source)
+                .apply(ConversionContext.fromMappingContext(context))));
 
         return this;
     }
@@ -347,10 +334,6 @@ public final class MapperConfiguration {
 
     public Collection<MappingBuilder<?, ?>> getMappings() {
         return mappings;
-    }
-
-    public Collection<Converter> getConverters() {
-        return unmodifiableConverters;
     }
 
     public Collection<Projector> getProjectors() {

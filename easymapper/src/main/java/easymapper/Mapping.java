@@ -37,6 +37,11 @@ class Mapping<S, D> {
         return destinationTypePredicate.apply(destinationType);
     }
 
+    public boolean match(Type sourceType, Type destinationType) {
+        return sourceTypePredicate.apply(sourceType)
+            && destinationTypePredicate.apply(destinationType);
+    }
+
     public boolean hasConversion() {
         return conversion != null;
     }

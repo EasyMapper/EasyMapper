@@ -23,7 +23,6 @@ public class Mapper {
     private final ConstructorExtractor constructorExtractor;
     private final ParameterNameResolver parameterNameResolver;
     private final List<Mapping<Object, Object>> mappings;
-    private final Collection<Converter> converters;
     private final Collection<Projector> projectors;
     private final Collection<PropertyMapping> propertyMappings;
 
@@ -42,11 +41,10 @@ public class Mapper {
 
         constructorExtractor = config.getConstructorExtractor();
         parameterNameResolver = config.getParameterNameResolver();
-        mappings = getMappings(config);
+        mappings = copyThenReverse(getMappings(config));
 
         configure(config, mappings);
 
-        converters = copyThenReverse(config.getConverters());
         projectors = copyThenReverse(config.getProjectors());
 
         propertyMappings = copyThenReverse(config
@@ -77,7 +75,7 @@ public class Mapper {
                     mapping::matchDestinationType,
                     source -> context -> mapping.convert(
                         source,
-                        new MappingContext()));
+                        context.toMappingContext()));
             }
 
             if (mapping.hasProjection()) {
@@ -87,15 +85,15 @@ public class Mapper {
                     (source, destination) -> context -> mapping.project(
                         source,
                         destination,
-                        new MappingContext()));
+                        context.toMappingContext()));
             }
         }
     }
 
-    private static <T> Collection<T> copyThenReverse(Collection<T> list) {
+    private static <T> List<T> copyThenReverse(Collection<T> list) {
         ArrayList<T> copy = new ArrayList<>(list);
         Collections.reverse(copy);
-        return Collections.unmodifiableCollection(copy);
+        return Collections.unmodifiableList(copy);
     }
 
     @SuppressWarnings("unchecked")
@@ -150,14 +148,18 @@ public class Mapper {
 
     private Object convert(Variable source, Type destinationType) {
         Object sourceValue = source.get();
-        return findConverter(source.type(), destinationType)
-            .map(x -> x.convert(
-                sourceValue,
-                new ConversionContext(this, source.type(), destinationType)))
-            .orElseGet(() -> sourceValue == null ? null : constructThenProject(
-                sourceValue,
-                source.type(),
-                destinationType));
+        return mappings.stream()
+            .filter(m -> m.match(source.type(), destinationType))
+            .findFirst()
+            .flatMap(m -> m.hasConversion()
+                ? Optional.ofNullable(
+                    m.convert(
+                        sourceValue,
+                        new MappingContext(this, source.type(), destinationType)))
+                : Optional.empty())
+            .orElseGet(() -> sourceValue == null
+                ? null
+                : constructThenProject(sourceValue, source.type(), destinationType));
     }
 
     public <S, D> void map(S source, D destination, Type sourceType, Type destinationType) {
@@ -222,13 +224,6 @@ public class Mapper {
                 new ProjectionContext(this, source.type(), destination.type()));
     }
 
-    private Optional<Converter> findConverter(Type sourceType, Type destinationType) {
-        return converters
-            .stream()
-            .filter(converter -> converter.match(sourceType, destinationType))
-            .findFirst();
-    }
-
     private Object constructThenProject(Object source, Type sourceType, Type destinationType) {
         Object destination = construct(source, sourceType, destinationType);
         project(
@@ -254,7 +249,7 @@ public class Mapper {
                 .filter(m -> m.matchSourceType(sourceType))
                 .filter(m -> m.matchDestinationType(destinationType))
                 .findFirst()
-                .flatMap(m -> m.compute(propertyName, source, new MappingContext()))
+                .flatMap(m -> m.compute(propertyName, source, new MappingContext(this, sourceType, destinationType)))
                 .orElseGet(() -> findMapping(sourceType, destinationType)
                     .flatMap(mapping -> mapping.findCalculator(propertyName))
                     .orElse(instance -> convert(
@@ -360,7 +355,7 @@ public class Mapper {
                 .flatMap(m -> m.compute(
                     destinationProperty.name(),
                     source,
-                    new MappingContext()));
+                    new MappingContext(this, sourceType, destinationType)));
 
             if (computed.isPresent()) {
                 destinationProperty.set(destination, computed.get());
