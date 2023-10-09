@@ -11,7 +11,8 @@ public final class MappingBuilder<S, D> {
 
     private final Function<Type, Boolean> sourceTypePredicate;
     private final Function<Type, Boolean> destinationTypePredicate;
-    private Function<S, Function<MappingContext, D>> convertFunction = null;
+    private Function<S, Function<MappingContext, D>> convert = null;
+    private BiFunction<S, D, Consumer<MappingContext>> project = null;
 
     MappingBuilder(
         Function<Type, Boolean> sourceTypePredicate,
@@ -28,25 +29,36 @@ public final class MappingBuilder<S, D> {
             throw argumentNullException("function");
         }
 
-        if (this.convertFunction != null) {
+        if (this.convert != null) {
             String message = "MappingBuilder.convert() can be called only once.";
             throw new IllegalStateException(message);
         }
 
-        this.convertFunction = function;
+        this.convert = function;
 
         return this;
     }
 
     public MappingBuilder<S, D> project(
-        BiFunction<S, D, Consumer<MappingContext>> project
+        BiFunction<S, D, Consumer<MappingContext>> action
     ) {
-        return null;
+        if (action == null) {
+            throw argumentNullException("action");
+        }
+
+        if (this.project != null) {
+            String message = "MappingBuilder.project() can be called only once.";
+            throw new IllegalStateException(message);
+        }
+
+        this.project = action;
+
+        return this;
     }
 
     public MappingBuilder<S, D> compute(
         String destinationPropertyName,
-        Function<S, Function<MappingContext, Object>> compute
+        Function<S, Function<MappingContext, Object>> function
     ) {
         return null;
     }
@@ -55,6 +67,7 @@ public final class MappingBuilder<S, D> {
         return new Mapping<>(
             sourceTypePredicate,
             destinationTypePredicate,
-            convertFunction);
+            convert,
+            project);
     }
 }

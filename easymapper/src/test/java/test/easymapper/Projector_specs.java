@@ -14,7 +14,6 @@ import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import test.easymapper.fixture.MutableBag;
-import test.easymapper.fixture.User;
 
 import static java.lang.String.valueOf;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -23,11 +22,60 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 public class Projector_specs {
 
+    @AllArgsConstructor
+    @Getter
+    public static class User {
+        private final int id;
+        private final String username;
+    }
+
     @Getter
     @Setter
     public static class UserView {
         private String id;
-        private String username;
+        private String name;
+    }
+
+    @Test
+    void project_has_null_guard_for_action() {
+        assertThatThrownBy(() -> new Mapper(config -> config
+            .map(User.class, UserView.class, mapping -> mapping
+                .project(null))))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("action");
+    }
+
+    @Test
+    void project_is_fluent() {
+        new Mapper(config -> config
+            .map(User.class, UserView.class, mapping -> assertThat(mapping
+                .project((source, destination) -> context -> {}))
+                .isSameAs(mapping)));
+    }
+
+    @AutoParameterizedTest
+    void project_correctly_works(User user, UserView view) {
+        Mapper mapper = new Mapper(config -> config
+            .map(User.class, UserView.class, mapping -> mapping
+                .project((source, destination) -> context -> {
+                    destination.setId(valueOf(source.getId()));
+                    destination.setName(source.getUsername());
+                })));
+
+        mapper.map(user, view, User.class, UserView.class);
+
+        assertThat(view.getId()).isEqualTo(valueOf(user.getId()));
+        assertThat(view.getName()).isEqualTo(user.getUsername());
+    }
+
+    @Test
+    void project_throws_exception_if_projection_already_set() {
+        ThrowingCallable action = () -> new Mapper(config -> config
+            .map(User.class, UserView.class, mapping -> mapping
+                .project((source, destination) -> context -> {})
+                .project((source, destination) -> context -> {})));
+
+        assertThatThrownBy(action).isInstanceOf(RuntimeException.class);
     }
 
     @Test
@@ -110,7 +158,7 @@ public class Projector_specs {
         mapper.map(source, destination, User.class, UserView.class);
 
         assertThat(destination.getId()).isEqualTo(valueOf(source.getId()));
-        assertThat(destination.getUsername()).isEqualTo(source.getUsername());
+        assertThat(destination.getName()).isEqualTo(source.getUsername());
     }
 
     @AllArgsConstructor
@@ -139,7 +187,7 @@ public class Projector_specs {
         UserView actual = destination.getValue();
         assertThat(actual).isSameAs(userView);
         assertThat(actual.getId()).isEqualTo(valueOf(source.getValue().getId()));
-        assertThat(actual.getUsername()).isEqualTo(source.getValue().getUsername());
+        assertThat(actual.getName()).isEqualTo(source.getValue().getUsername());
     }
 
     @AutoParameterizedTest
@@ -155,7 +203,7 @@ public class Projector_specs {
         UserView actual = destination.getValue();
         assertThat(actual).isNotNull();
         assertThat(actual.getId()).isEqualTo(valueOf(source.getValue().getId()));
-        assertThat(actual.getUsername()).isEqualTo(source.getValue().getUsername());
+        assertThat(actual.getName()).isEqualTo(source.getValue().getUsername());
     }
 
     @AllArgsConstructor
@@ -175,7 +223,7 @@ public class Projector_specs {
 
         UserView actual = destination.getValue();
         assertThat(actual.getId()).isEqualTo(valueOf(source.getValue().getId()));
-        assertThat(actual.getUsername()).isEqualTo(source.getValue().getUsername());
+        assertThat(actual.getName()).isEqualTo(source.getValue().getUsername());
     }
 
     @AutoParameterizedTest
@@ -357,13 +405,13 @@ public class Projector_specs {
             new TypeReference<UserView>() {},
             (user, userView) -> context -> {
                 userView.setId(String.valueOf(user.getId()));
-                userView.setUsername(user.getUsername());
+                userView.setName(user.getUsername());
             }));
 
         mapper.map(source, destination, User.class, UserView.class);
 
         assertThat(destination.getId()).isEqualTo(valueOf(source.getId()));
-        assertThat(destination.getUsername()).isEqualTo(source.getUsername());
+        assertThat(destination.getName()).isEqualTo(source.getUsername());
     }
 
     private static void configureUserProjector(
@@ -379,7 +427,7 @@ public class Projector_specs {
     private static void configureUserProjector(MapperConfiguration config) {
         configureUserProjector(config, (user, userView) -> {
             userView.setId(valueOf(user.getId()));
-            userView.setUsername(user.getUsername());
+            userView.setName(user.getUsername());
         });
     }
 }

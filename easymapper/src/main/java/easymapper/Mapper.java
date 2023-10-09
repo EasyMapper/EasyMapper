@@ -80,6 +80,14 @@ public class Mapper {
             mapping::matchSourceType,
             mapping::matchDestinationType,
             source -> context -> mapping.convert(source, new MappingContext()));
+
+        config.addProjector(
+            mapping::matchSourceType,
+            mapping::matchDestinationType,
+            (source, destination) -> context -> mapping.project(
+                source,
+                destination,
+                new MappingContext()));
     }
 
     private static <T> Collection<T> copyThenReverse(Collection<T> list) {
