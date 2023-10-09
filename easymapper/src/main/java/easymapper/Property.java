@@ -48,16 +48,12 @@ final class Property extends ValueContainer {
     }
 
     public void set(Object instance, Object value) {
-        if (isReadOnly()) {
-            String message = "Property '" + name + "' is not read-only.";
-            throw new UnsupportedOperationException(message);
-        }
-
+        assertThatWritable();
         setter.accept(instance, value);
     }
 
-    public VariableWrapper bind(Object instance) {
-        return new VariableWrapper(
+    public Variable bind(Object instance) {
+        return new Variable(
             type,
             name,
             () -> get(instance),

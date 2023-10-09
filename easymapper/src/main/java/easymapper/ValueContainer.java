@@ -16,6 +16,13 @@ abstract class ValueContainer {
         return isReadable() && isWritable() == false;
     }
 
+    protected final void assertThatWritable() {
+        if (isReadOnly()) {
+            throw new UnsupportedOperationException(
+                "'" + name() + "' is read-only.");
+        }
+    }
+
     @Override
     public String toString() {
         StringBuilder s = new StringBuilder(type().getTypeName())

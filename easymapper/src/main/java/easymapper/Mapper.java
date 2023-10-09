@@ -66,7 +66,7 @@ public class Mapper {
         }
 
         return (T) convert(
-            new VariableWrapper(sourceType, "source", source),
+            new Variable(sourceType, "source", source),
             destinationType);
     }
 
@@ -83,7 +83,7 @@ public class Mapper {
         }
 
         return (D) convert(
-            new VariableWrapper(sourceType, "source", source),
+            new Variable(sourceType, "source", source),
             destinationType);
     }
 
@@ -103,7 +103,7 @@ public class Mapper {
         Type destinationType = destinationTypeReference.getType();
 
         return (D) convert(
-            new VariableWrapper(sourceType, "source", source),
+            new Variable(sourceType, "source", source),
             destinationType);
     }
 
@@ -119,8 +119,8 @@ public class Mapper {
         }
 
         projectToReadOnly(
-            new VariableWrapper(sourceType, "source", source),
-            new VariableWrapper(destinationType, "destination", destination));
+            new Variable(sourceType, "source", source),
+            new Variable(destinationType, "destination", destination));
     }
 
     public <S, D> void map(
@@ -143,11 +143,11 @@ public class Mapper {
         Type destinationType = destinationTypeReference.getType();
 
         projectToReadOnly(
-            new VariableWrapper(sourceType, "source", source),
-            new VariableWrapper(destinationType, "destination", destination));
+            new Variable(sourceType, "source", source),
+            new Variable(destinationType, "destination", destination));
     }
 
-    private Object convert(VariableWrapper source, Type destinationType) {
+    private Object convert(Variable source, Type destinationType) {
         Object sourceValue = source.get();
         return findConverter(source.type(), destinationType)
             .map(x -> x.convert(
@@ -169,8 +169,8 @@ public class Mapper {
     private Object constructThenProject(Object source, Type sourceType, Type destinationType) {
         Object destination = construct(source, sourceType, destinationType);
         projectToReadOnly(
-            new VariableWrapper(sourceType, "source", source),
-            new VariableWrapper(destinationType, "destination", destination));
+            new Variable(sourceType, "source", source),
+            new Variable(destinationType, "destination", destination));
         return destination;
     }
 
@@ -256,7 +256,7 @@ public class Mapper {
         }
     }
 
-    private void projectToReadOnly(VariableWrapper source, VariableWrapper destination) {
+    private void projectToReadOnly(Variable source, Variable destination) {
         Object sourceValue = source.get();
         Object destinationValue = destination.get();
 
@@ -322,7 +322,7 @@ public class Mapper {
                 .run());
     }
 
-    private void projectToWritable(VariableWrapper source, VariableWrapper destination) {
+    private void projectToWritable(Variable source, Variable destination) {
         findProjector(source.type(), destination.type())
             .<Runnable>map(projector -> () -> projectToWritable(source, destination, projector))
             .orElse(() -> destination.set(convert(source, destination.type())))
@@ -330,8 +330,8 @@ public class Mapper {
     }
 
     private void projectToWritable(
-        VariableWrapper source,
-        VariableWrapper destination,
+        Variable source,
+        Variable destination,
         Projector projector
     ) {
         Object sourceValue = source.get();

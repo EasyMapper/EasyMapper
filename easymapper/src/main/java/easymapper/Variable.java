@@ -4,14 +4,14 @@ import java.lang.reflect.Type;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-class VariableWrapper extends ValueContainer {
+class Variable extends ValueContainer {
 
     private final Type type;
     private final String name;
     private final Supplier<Object> getter;
     private final Consumer<Object> setter;
 
-    public VariableWrapper(
+    public Variable(
         Type type,
         String name,
         Supplier<Object> getter,
@@ -23,11 +23,7 @@ class VariableWrapper extends ValueContainer {
         this.setter = setter;
     }
 
-    public VariableWrapper(Type type, String name, Supplier<Object> getter) {
-        this(type, name, getter, null);
-    }
-
-    public VariableWrapper(Type type, String name, Object value) {
+    public Variable(Type type, String name, Object value) {
         this(type, name, () -> value, null);
     }
 
@@ -57,7 +53,6 @@ class VariableWrapper extends ValueContainer {
 
     public void set(Object value) {
         assertThatWritable();
-
         setter.accept(value);
     }
 
@@ -73,12 +68,5 @@ class VariableWrapper extends ValueContainer {
         Object newValue = valueSupplier.get();
         set(newValue);
         return newValue;
-    }
-
-    private void assertThatWritable() {
-        if (isReadOnly()) {
-            throw new UnsupportedOperationException(
-                "'" + name + "' is read-only.");
-        }
     }
 }
