@@ -69,15 +69,6 @@ public class Mapper {
         List<Mapping<Object, Object>> mappings
     ) {
         for (Mapping<Object, Object> mapping : mappings) {
-            if (mapping.hasConversion()) {
-                config.addConverter(
-                    mapping::matchSourceType,
-                    mapping::matchDestinationType,
-                    source -> context -> mapping.convert(
-                        source,
-                        context.toMappingContext()));
-            }
-
             if (mapping.hasProjection()) {
                 config.addProjector(
                     mapping::matchSourceType,
