@@ -23,7 +23,6 @@ public class Mapper {
     private final ConstructorExtractor constructorExtractor;
     private final ParameterNameResolver parameterNameResolver;
     private final List<Mapping<Object, Object>> mappings;
-    private final Collection<Projector> projectors;
     private final Collection<PropertyMapping> propertyMappings;
 
     public Mapper() {
@@ -43,10 +42,6 @@ public class Mapper {
         parameterNameResolver = config.getParameterNameResolver();
         mappings = copyThenReverse(getMappings(config));
 
-        configure(config, mappings);
-
-        projectors = copyThenReverse(config.getProjectors());
-
         propertyMappings = copyThenReverse(config
             .getPropertyMappings()
             .stream()
@@ -62,23 +57,6 @@ public class Mapper {
             .map(MappingBuilder::build)
             .map(mapping -> (Mapping<Object, Object>) mapping)
             .collect(toList());
-    }
-
-    private static void configure(
-        MapperConfiguration config,
-        List<Mapping<Object, Object>> mappings
-    ) {
-        for (Mapping<Object, Object> mapping : mappings) {
-            if (mapping.hasProjection()) {
-                config.addProjector(
-                    mapping::matchSourceType,
-                    mapping::matchDestinationType,
-                    (source, destination) -> context -> mapping.project(
-                        source,
-                        destination,
-                        context.toMappingContext()));
-            }
-        }
     }
 
     private static <T> List<T> copyThenReverse(Collection<T> list) {
@@ -207,12 +185,24 @@ public class Mapper {
             throw new RuntimeException(message);
         }
 
-        findProjector(source.type(), destination.type())
-            .orElseGet(this::getPropertyProjector)
-            .project(
+        Optional<Mapping<Object, Object>> mapping = mappings
+            .stream()
+            .filter(m -> m.match(source.type(), destination.type()))
+            .filter(Mapping::hasProjection)
+            .findFirst();
+
+        if (mapping.isPresent()) {
+            mapping.get().project(
                 sourceValue,
                 destinationValue,
-                new ProjectionContext(this, source.type(), destination.type()));
+                new MappingContext(this, source.type(), destination.type()));
+        } else {
+            getPropertyProjector()
+                .project(
+                    sourceValue,
+                    destinationValue,
+                    new ProjectionContext(this, source.type(), destination.type()));
+        }
     }
 
     private Object constructThenProject(Object source, Type sourceType, Type destinationType) {
@@ -367,10 +357,26 @@ public class Mapper {
     }
 
     private void projectOrSet(Variable source, Variable destination) {
-        findProjector(source.type(), destination.type())
-            .<Runnable>map(projector -> () -> projectOrSet(source, destination, projector))
-            .orElse(() -> destination.set(convert(source, destination.type())))
-            .run();
+        Optional<Mapping<Object, Object>> mapping = mappings
+            .stream()
+            .filter(m -> m.match(source.type(), destination.type()))
+            .filter(Mapping::hasProjection)
+            .findFirst();
+
+        if (mapping.isPresent()) {
+            projectOrSet(
+                source,
+                destination,
+                Projector.create(
+                    type -> mapping.get().matchSourceType(type),
+                    type -> mapping.get().matchDestinationType(type),
+                    (s, d) -> context -> mapping.get().project(
+                        s,
+                        d,
+                        context.toMappingContext())));
+        } else {
+            destination.set(convert(source, destination.type()));
+        }
     }
 
     private void projectOrSet(
@@ -406,12 +412,5 @@ public class Mapper {
             .ifPresent(sourceProperty -> project(
                 sourceProperty.bind(source),
                 destinationProperty.bind(destination))));
-    }
-
-    private Optional<Projector> findProjector(Type sourceType, Type destinationType) {
-        return projectors
-            .stream()
-            .filter(projector -> projector.match(sourceType, destinationType))
-            .findFirst();
     }
 }

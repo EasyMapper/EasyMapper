@@ -24,16 +24,12 @@ public final class MapperConfiguration {
     private ConstructorExtractor constructorExtractor;
     private ParameterNameResolver parameterNameResolver;
     private final List<MappingBuilder<?, ?>> mappings = new ArrayList<>();
-    private final List<Projector> projectors;
-    private final List<Projector> unmodifiableProjectors;
     private final List<PropertyMappingBuilder<?, ?>> propertyMappings;
     private final List<PropertyMappingBuilder<?, ?>> unmodifiablePropertyMappings;
 
     MapperConfiguration() {
         constructorExtractor = defaultConstructorExtractor;
         parameterNameResolver = defaultParameterNameResolver;
-        projectors = new ArrayList<>();
-        unmodifiableProjectors = unmodifiableList(projectors);
         propertyMappings = new ArrayList<>();
         unmodifiablePropertyMappings = unmodifiableList(propertyMappings);
     }
@@ -83,12 +79,12 @@ public final class MapperConfiguration {
             throw argumentNullException("consumer");
         }
 
-        Projector projector = Projector.create(
-            type -> type.equals(sourceType),
-            type -> type.equals(destinationType),
-            consumer);
-
-        projectors.add(projector);
+        map(sourceType,
+            destinationType,
+            mapping -> mapping
+                .project((source, destination) -> context -> consumer
+                    .apply(source, destination)
+                    .accept(ProjectionContext.fromMappingContext(context))));
 
         return this;
     }
@@ -110,15 +106,12 @@ public final class MapperConfiguration {
             throw argumentNullException("consumer");
         }
 
-        Type sourceType = sourceTypeReference.getType();
-        Type destinationType = destinationTypeReference.getType();
-
-        Projector projector = Projector.create(
-            type -> type.equals(sourceType),
-            type -> type.equals(destinationType),
-            consumer);
-
-        projectors.add(projector);
+        map(sourceTypeReference,
+            destinationTypeReference,
+            mapping -> mapping
+                .project((source, destination) -> context -> consumer
+                    .apply(source, destination)
+                    .accept(ProjectionContext.fromMappingContext(context))));
 
         return this;
     }
@@ -140,12 +133,12 @@ public final class MapperConfiguration {
             throw argumentNullException("consumer");
         }
 
-        Projector projector = Projector.create(
-            sourceTypePredicate,
+        map(sourceTypePredicate,
             destinationTypePredicate,
-            consumer);
-
-        projectors.add(projector);
+            mapping -> mapping
+                .project((source, destination) -> context -> consumer
+                    .apply(source, destination)
+                    .accept(ProjectionContext.fromMappingContext(context))));
 
         return this;
     }
@@ -259,10 +252,6 @@ public final class MapperConfiguration {
 
     public Collection<MappingBuilder<?, ?>> getMappings() {
         return mappings;
-    }
-
-    public Collection<Projector> getProjectors() {
-        return unmodifiableProjectors;
     }
 
     public Collection<PropertyMappingBuilder<?, ?>> getPropertyMappings() {

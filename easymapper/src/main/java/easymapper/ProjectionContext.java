@@ -29,4 +29,11 @@ public class ProjectionContext {
     MappingContext toMappingContext() {
         return new MappingContext(mapper, sourceType, destinationType);
     }
+
+    static ProjectionContext fromMappingContext(MappingContext mappingContext) {
+        return new ProjectionContext(
+            mappingContext.getMapper(),
+            mappingContext.getSourceType(),
+            mappingContext.getDestinationType());
+    }
 }
