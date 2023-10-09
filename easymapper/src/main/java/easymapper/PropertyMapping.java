@@ -28,6 +28,10 @@ public class PropertyMapping {
         return destinationType;
     }
 
+    Map<String, Function<Object, Object>> getCalculators() {
+        return calculators;
+    }
+
     public Optional<Function<Object, Object>> findCalculator(
         String destinationPropertyName
     ) {

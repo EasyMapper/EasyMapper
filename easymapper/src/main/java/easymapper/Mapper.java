@@ -23,7 +23,6 @@ public class Mapper {
     private final ConstructorExtractor constructorExtractor;
     private final ParameterNameResolver parameterNameResolver;
     private final List<Mapping<Object, Object>> mappings;
-    private final Collection<PropertyMapping> propertyMappings;
 
     public Mapper() {
         this(config -> {});
@@ -41,12 +40,6 @@ public class Mapper {
         constructorExtractor = config.getConstructorExtractor();
         parameterNameResolver = config.getParameterNameResolver();
         mappings = copyThenReverse(getMappings(config));
-
-        propertyMappings = copyThenReverse(config
-            .getPropertyMappings()
-            .stream()
-            .map(PropertyMappingBuilder::build)
-            .collect(toList()));
     }
 
     @SuppressWarnings("unchecked")
@@ -230,13 +223,14 @@ public class Mapper {
                 .filter(m -> m.matchSourceType(sourceType))
                 .filter(m -> m.matchDestinationType(destinationType))
                 .findFirst()
-                .flatMap(m -> m.compute(propertyName, source, new MappingContext(this, sourceType, destinationType)))
-                .orElseGet(() -> findMapping(sourceType, destinationType)
-                    .flatMap(mapping -> mapping.findCalculator(propertyName))
-                    .orElse(instance -> convert(
-                        sourceProperties.get(propertyName).bind(instance),
-                        parameterTypeResolver.apply(parameter)))
-                    .apply(source));
+                .flatMap(m -> m.compute(
+                    propertyName,
+                    source,
+                    new MappingContext(this, sourceType, destinationType)))
+                .orElseGet(() -> Optional.ofNullable(convert(
+                    sourceProperties.get(propertyName).bind(source),
+                    parameterTypeResolver.apply(parameter))))
+                .orElse(null);
         }
 
         try {
@@ -244,14 +238,6 @@ public class Mapper {
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
-    }
-
-    private Optional<PropertyMapping> findMapping(Type sourceType, Type destinationType) {
-        return propertyMappings
-            .stream()
-            .filter(mapping -> mapping.getSourceType().equals(sourceType))
-            .filter(mapping -> mapping.getDestinationType().equals(destinationType))
-            .findFirst();
     }
 
     private Constructor<?> getConstructor(Type type) {
@@ -318,7 +304,7 @@ public class Mapper {
         Properties destinationProperties = Properties.get(destinationType);
 
         destinationProperties.useWritableProperties(destinationProperty -> {
-            Optional<Object> computed = mappings.stream()
+            Optional<Optional<Object>> computed = mappings.stream()
                 .filter(m -> m.matchSourceType(sourceType))
                 .filter(m -> m.matchDestinationType(destinationType))
                 .findFirst()
@@ -328,19 +314,13 @@ public class Mapper {
                     new MappingContext(this, sourceType, destinationType)));
 
             if (computed.isPresent()) {
-                destinationProperty.set(destination, computed.get());
+                destinationProperty.set(destination, computed.get().orElse(null));
             } else {
-                findMapping(sourceType, destinationType)
-                    .flatMap(m -> m.findCalculator(destinationProperty.name()))
-                    .<Runnable>map(calculator -> () -> destinationProperty.set(
-                        destination,
-                        calculator.apply(source)))
-                    .orElse(() -> sourceProperties
-                        .find(destinationProperty.name())
-                        .ifPresent(sourceProperty -> projectOrSet(
-                            sourceProperty.bind(source),
-                            destinationProperty.bind(destination))))
-                    .run();
+                sourceProperties
+                    .find(destinationProperty.name())
+                    .ifPresent(sourceProperty -> projectOrSet(
+                        sourceProperty.bind(source),
+                        destinationProperty.bind(destination)));
             }
         });
     }

@@ -58,13 +58,13 @@ class Mapping<S, D> {
         projection.apply(source, destination).accept(context);
     }
 
-    public Optional<Object> compute(
+    public Optional<Optional<Object>> compute(
         String destinationPropertyName,
         S source,
         MappingContext context
     ) {
         return Optional
             .ofNullable(computation.get(destinationPropertyName))
-            .map(compute -> compute.apply(source).apply(context));
+            .map(compute -> Optional.ofNullable(compute.apply(source).apply(context)));
     }
 }

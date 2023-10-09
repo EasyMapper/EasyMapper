@@ -5,12 +5,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static easymapper.Exceptions.argumentNullException;
-import static java.util.Collections.unmodifiableList;
 
 public final class MapperConfiguration {
 
@@ -23,14 +23,10 @@ public final class MapperConfiguration {
     private ConstructorExtractor constructorExtractor;
     private ParameterNameResolver parameterNameResolver;
     private final List<MappingBuilder<?, ?>> mappings = new ArrayList<>();
-    private final List<PropertyMappingBuilder<?, ?>> propertyMappings;
-    private final List<PropertyMappingBuilder<?, ?>> unmodifiablePropertyMappings;
 
     MapperConfiguration() {
         constructorExtractor = defaultConstructorExtractor;
         parameterNameResolver = defaultParameterNameResolver;
-        propertyMappings = new ArrayList<>();
-        unmodifiablePropertyMappings = unmodifiableList(propertyMappings);
     }
 
     public ConstructorExtractor getConstructorExtractor() {
@@ -78,10 +74,22 @@ public final class MapperConfiguration {
             throw argumentNullException("configurer");
         }
 
-        PropertyMappingBuilder<S, D> builder = new PropertyMappingBuilder<>(sourceType, destinationType);
-        configurer.accept(builder);
-
-        propertyMappings.add(builder);
+        map(sourceType,
+            destinationType,
+            mapping -> {
+                PropertyMappingBuilder<S, D> propertyMappingBuilder =
+                    new PropertyMappingBuilder<>(sourceType, destinationType);
+                configurer.accept(propertyMappingBuilder);
+                PropertyMapping props = propertyMappingBuilder.build();
+                Map<String, Function<Object, Object>> calculators = props.getCalculators();
+                for (String destinationPropertyName : calculators.keySet()) {
+                    mapping.compute(
+                        destinationPropertyName,
+                        source -> context -> calculators
+                            .get(destinationPropertyName)
+                            .apply(source));
+                }
+            });
 
         return this;
     }
@@ -170,9 +178,5 @@ public final class MapperConfiguration {
 
     public Collection<MappingBuilder<?, ?>> getMappings() {
         return mappings;
-    }
-
-    public Collection<PropertyMappingBuilder<?, ?>> getPropertyMappings() {
-        return unmodifiablePropertyMappings;
     }
 }
