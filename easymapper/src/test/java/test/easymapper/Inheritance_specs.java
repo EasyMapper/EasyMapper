@@ -26,7 +26,7 @@ public class Inheritance_specs {
         EmployeeView source
     ) {
         Mapper sut = new Mapper(config -> config
-            .addMapping(EmployeeView.class, Employee.class, mapping -> mapping
+            .addPropertyMapping(EmployeeView.class, Employee.class, mapping -> mapping
                 .set("passwordHash", x -> null)));
 
         Employee actual = sut.map(source, EmployeeView.class, Employee.class);

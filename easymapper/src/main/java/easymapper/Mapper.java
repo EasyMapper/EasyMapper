@@ -23,7 +23,7 @@ public class Mapper {
     private final ParameterNameResolver parameterNameResolver;
     private final Collection<Converter> converters;
     private final Collection<Projector> projectors;
-    private final Collection<Mapping> mappings;
+    private final Collection<PropertyMapping> mappings;
 
     public Mapper() {
         this(config -> {});
@@ -45,9 +45,9 @@ public class Mapper {
         projectors = copyThenReverse(config.getProjectors());
 
         mappings = copyThenReverse(config
-            .getMappings()
+            .getPropertyMappings()
             .stream()
-            .map(MappingBuilder::build)
+            .map(PropertyMappingBuilder::build)
             .collect(toList()));
     }
 
@@ -226,7 +226,7 @@ public class Mapper {
         }
     }
 
-    private Optional<Mapping> findMapping(Type sourceType, Type destinationType) {
+    private Optional<PropertyMapping> findMapping(Type sourceType, Type destinationType) {
         return mappings
             .stream()
             .filter(mapping -> mapping.getSourceType().equals(sourceType))

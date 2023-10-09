@@ -6,13 +6,13 @@ import java.util.function.Function;
 
 import static easymapper.Exceptions.argumentNullException;
 
-public final class MappingBuilder<S, D> {
+public final class PropertyMappingBuilder<S, D> {
 
     private final Class<S> sourceType;
     private final Class<D> destinationType;
     private final Map<String, Function<Object, Object>> calculators;
 
-    MappingBuilder(Class<S> sourceType, Class<D> destinationType) {
+    PropertyMappingBuilder(Class<S> sourceType, Class<D> destinationType) {
         this.sourceType = sourceType;
         this.destinationType = destinationType;
         this.calculators = new HashMap<>();
@@ -26,7 +26,7 @@ public final class MappingBuilder<S, D> {
         return destinationType;
     }
 
-    public MappingBuilder<S, D> set(
+    public PropertyMappingBuilder<S, D> set(
         String destinationPropertyName,
         Function<S, Object> calculator
     ) {
@@ -49,7 +49,7 @@ public final class MappingBuilder<S, D> {
         return this;
     }
 
-    Mapping build() {
-        return new Mapping(sourceType, destinationType, calculators);
+    PropertyMapping build() {
+        return new PropertyMapping(sourceType, destinationType, calculators);
     }
 }

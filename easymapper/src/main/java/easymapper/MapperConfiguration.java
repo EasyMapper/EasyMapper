@@ -27,8 +27,8 @@ public final class MapperConfiguration {
     private final List<Converter> unmodifiableConverters;
     private final List<Projector> projectors;
     private final List<Projector> unmodifiableProjectors;
-    private final List<MappingBuilder<?, ?>> mappings;
-    private final List<MappingBuilder<?, ?>> unmodifiableMappings;
+    private final List<PropertyMappingBuilder<?, ?>> mappings;
+    private final List<PropertyMappingBuilder<?, ?>> unmodifiableMappings;
 
     MapperConfiguration() {
         constructorExtractor = defaultConstructorExtractor;
@@ -237,10 +237,10 @@ public final class MapperConfiguration {
         return this;
     }
 
-    public <S, D> MapperConfiguration addMapping(
+    public <S, D> MapperConfiguration addPropertyMapping(
         Class<S> sourceType,
         Class<D> destinationType,
-        Consumer<MappingBuilder<S, D>> configurer
+        Consumer<PropertyMappingBuilder<S, D>> configurer
     ) {
         if (sourceType == null) {
             throw argumentNullException("sourceType");
@@ -254,7 +254,7 @@ public final class MapperConfiguration {
             throw argumentNullException("configurer");
         }
 
-        MappingBuilder<S, D> builder = new MappingBuilder<>(sourceType, destinationType);
+        PropertyMappingBuilder<S, D> builder = new PropertyMappingBuilder<>(sourceType, destinationType);
         configurer.accept(builder);
 
         mappings.add(builder);
@@ -280,7 +280,7 @@ public final class MapperConfiguration {
         return unmodifiableProjectors;
     }
 
-    public Collection<MappingBuilder<?, ?>> getMappings() {
+    public Collection<PropertyMappingBuilder<?, ?>> getPropertyMappings() {
         return unmodifiableMappings;
     }
 }

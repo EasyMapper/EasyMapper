@@ -34,28 +34,28 @@ public class MapperConfiguration_specs {
     void sut_has_guard_against_null_source_type() {
         assertThatThrownBy(() ->
             new Mapper(config -> config
-                .addMapping(null, OrderView.class, mapping -> {})));
+                .addPropertyMapping(null, OrderView.class, mapping -> {})));
     }
 
     @Test
     void sut_has_guard_against_null_destination_type() {
         assertThatThrownBy(() ->
             new Mapper(config -> config
-                .addMapping(Order.class, null, mapping -> {})));
+                .addPropertyMapping(Order.class, null, mapping -> {})));
     }
 
     @Test
     void sut_has_guard_against_null_mapping_configurer() {
         assertThatThrownBy(() ->
             new Mapper(config -> config
-                .addMapping(Order.class, OrderView.class, null)))
+                .addPropertyMapping(Order.class, OrderView.class, null)))
             .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void addMapping_sets_source_type() {
         new Mapper(config -> config
-            .addMapping(
+            .addPropertyMapping(
                 Order.class,
                 OrderView.class,
                 mapping -> assertThat(mapping.getSourceType()).isEqualTo(Order.class)));
@@ -64,7 +64,7 @@ public class MapperConfiguration_specs {
     @Test
     void addMapping_sets_destination_type() {
         new Mapper(config -> config
-            .addMapping(
+            .addPropertyMapping(
                 Order.class,
                 OrderView.class,
                 mapping -> assertThat(mapping.getDestinationType()).isEqualTo(OrderView.class)));
@@ -141,12 +141,12 @@ public class MapperConfiguration_specs {
     @Test
     void addMapping_is_fluent() {
         new Mapper(c -> assertThat(
-            c.addMapping(Order.class, OrderView.class, m -> {})).isSameAs(c));
+            c.addPropertyMapping(Order.class, OrderView.class, m -> {})).isSameAs(c));
     }
 
     @AutoParameterizedTest
     void set_is_fluent(User source) {
-        new Mapper(config -> config.addMapping(
+        new Mapper(config -> config.addPropertyMapping(
             User.class,
             UserView.class,
             mapping -> assertThat(mapping.set("id", User::getId)).isSameAs(mapping)));
@@ -156,7 +156,7 @@ public class MapperConfiguration_specs {
     void set_correctly_configures_constructor_property_mapping(Pricing source) {
         // Arrange
         Mapper mapper = new Mapper(config -> config
-            .addMapping(Pricing.class, PricingView.class, mapping -> mapping
+            .addPropertyMapping(Pricing.class, PricingView.class, mapping -> mapping
                 .set("salePrice", x -> x.getListPrice() - x.getDiscount())));
 
         // Act
@@ -174,7 +174,7 @@ public class MapperConfiguration_specs {
     void set_correctly_configures_settable_property_mapping(Recipient source) {
         // Arrange
         Mapper mapper = new Mapper(config -> config
-            .addMapping(Recipient.class, RecipientView.class, mapping -> mapping
+            .addPropertyMapping(Recipient.class, RecipientView.class, mapping -> mapping
                 .set("recipientName", Recipient::getName)
                 .set("recipientPhoneNumber", Recipient::getPhoneNumber)));
 
@@ -194,7 +194,7 @@ public class MapperConfiguration_specs {
         UserView source
     ) {
         Mapper mapper = new Mapper(config -> config
-            .addMapping(UserView.class, User.class, mapping -> mapping
+            .addPropertyMapping(UserView.class, User.class, mapping -> mapping
                 .set("passwordHash", x -> null)));
 
         User actual = mapper.map(source, UserView.class, User.class);
@@ -209,7 +209,7 @@ public class MapperConfiguration_specs {
     ) {
         assertThatThrownBy(() ->
             new Mapper(config -> config
-                .addMapping(Order.class, OrderView.class, mapping -> mapping
+                .addPropertyMapping(Order.class, OrderView.class, mapping -> mapping
                     .set("numberOfItems", Order::getQuantity)
                     .set("numberOfItems", x -> destinationPropertyValue))));
     }
@@ -218,7 +218,7 @@ public class MapperConfiguration_specs {
     void set_has_guard_against_destination_property_name() {
         assertThatThrownBy(() ->
             new Mapper(config -> config
-                .addMapping(Order.class, OrderView.class, mapping -> mapping
+                .addPropertyMapping(Order.class, OrderView.class, mapping -> mapping
                     .set(null, x -> null))));
     }
 
@@ -226,7 +226,7 @@ public class MapperConfiguration_specs {
     void set_has_guard_against_calculator() {
         assertThatThrownBy(() ->
             new Mapper(config -> config
-                .addMapping(Order.class, OrderView.class, mapping -> mapping
+                .addPropertyMapping(Order.class, OrderView.class, mapping -> mapping
                     .set("numberOfItems", null))));
     }
 
@@ -234,9 +234,9 @@ public class MapperConfiguration_specs {
     @Repeat(10)
     void addMapping_overrides_existing_mapping(Order source, int quantity) {
         Mapper sut = new Mapper(config -> config
-            .addMapping(Order.class, OrderView.class, mapping -> mapping
+            .addPropertyMapping(Order.class, OrderView.class, mapping -> mapping
                 .set("numberOfItems", x -> quantity))
-            .addMapping(Order.class, OrderView.class, mapping -> mapping
+            .addPropertyMapping(Order.class, OrderView.class, mapping -> mapping
                 .set("numberOfItems", Order::getQuantity)));
 
         OrderView actual = sut.map(source, Order.class, OrderView.class);
@@ -260,7 +260,7 @@ public class MapperConfiguration_specs {
     void apply_correctly_configures_mapper(Pricing source) {
         // Arrange
         Consumer<MapperConfiguration> configurer = config -> config
-            .addMapping(Pricing.class, PricingView.class, mapping -> mapping
+            .addPropertyMapping(Pricing.class, PricingView.class, mapping -> mapping
                 .set("salePrice", x -> x.getListPrice() - x.getDiscount()));
 
         Mapper mapper = new Mapper(config -> config.apply(configurer));

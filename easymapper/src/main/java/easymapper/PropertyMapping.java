@@ -4,13 +4,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
-public class Mapping {
+public class PropertyMapping {
 
     private final Class<?> sourceType;
     private final Class<?> destinationType;
     private final Map<String, Function<Object, Object>> calculators;
 
-    Mapping(
+    PropertyMapping(
         Class<?> sourceType,
         Class<?> destinationType,
         Map<String, Function<Object, Object>> calculators
