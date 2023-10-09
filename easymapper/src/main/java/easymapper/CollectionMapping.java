@@ -7,24 +7,13 @@ import java.util.List;
 
 class CollectionMapping {
 
-    public static void configurer(MapperConfiguration config) {
-        config
-            .addConverter(
-                CollectionMapping::matchSourceType,
-                CollectionMapping::matchDestinationType,
-                source -> context -> convert(source, context))
-            .addProjector(
-                CollectionMapping::matchSourceType,
-                CollectionMapping::matchDestinationType,
-                (source, target) -> context -> {});
-    }
-
-    private static boolean matchSourceType(Type type) {
-        return isIterable(type);
-    }
-
-    private static boolean matchDestinationType(Type type) {
-        return isIterable(type);
+    public static void configure(MapperConfiguration config) {
+        config.map(
+            CollectionMapping::isIterable,
+            CollectionMapping::isIterable,
+            mapping -> mapping
+                .convert(source -> context -> convert(source, context))
+                .project((source, target) -> context -> {}));
     }
 
     private static boolean isIterable(Type type) {
@@ -38,8 +27,7 @@ class CollectionMapping {
     }
 
     private static boolean isIterable(ParameterizedType type) {
-        Type rawType = type.getRawType();
-        return isIterable(rawType);
+        return isIterable(type.getRawType());
     }
 
     private static boolean isIterable(Class<?> type) {
@@ -57,40 +45,46 @@ class CollectionMapping {
         return false;
     }
 
-    private static Object convert(
-        Object source,
-        ConversionContext context
-    ) {
+    private static Object convert(Object source, MappingContext context) {
         return source == null ? null : convert((Iterable<?>) source, context);
     }
 
-    private static Object convert(
+    private static Object convert(Iterable<?> source, MappingContext context) {
+        return convert(
+            source,
+            context.getMapper(),
+            resolveElementType(context.getSourceType()),
+            resolveElementType(context.getDestinationType()));
+    }
+
+    private static List<?> convert(
         Iterable<?> source,
-        ConversionContext context
+        Mapper mapper,
+        Type sourceElementType,
+        Type destinationElementType
     ) {
-        Mapper mapper = context.getMapper();
-
-        Type sourceElementType = getElementType(context.getSourceType());
-        Type destinationElementType = getElementType(context.getDestinationType());
-
         List<?> destination = new ArrayList<>();
+
         for (Object item : source) {
-            destination.add(mapper.map(item, sourceElementType, destinationElementType));
+            destination.add(mapper.map(
+                item,
+                sourceElementType,
+                destinationElementType));
         }
 
         return destination;
     }
 
-    private static Type getElementType(Type destinationType) {
+    private static Type resolveElementType(Type destinationType) {
         if (destinationType instanceof ParameterizedType) {
-            return getElementType((ParameterizedType) destinationType);
+            return resolveElementType((ParameterizedType) destinationType);
         } else {
-            String message = "Cannot get element type from the type: " + destinationType;
+            String message = "Cannot resolve element type from the type: " + destinationType;
             throw new RuntimeException(message);
         }
     }
 
-    private static Type getElementType(ParameterizedType destinationType) {
+    private static Type resolveElementType(ParameterizedType destinationType) {
         return destinationType.getActualTypeArguments()[0];
     }
 }

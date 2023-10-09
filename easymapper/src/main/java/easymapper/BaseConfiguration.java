@@ -2,11 +2,10 @@ package easymapper;
 
 class BaseConfiguration {
 
-    public static void configurer(MapperConfiguration config) {
+    public static void configure(MapperConfiguration config) {
         config
-            .apply(IdentityMapping::configurer)
-            .apply(UUIDMapping::configurer)
-            .apply(StringMapping::configurer)
-            .apply(CollectionMapping::configurer);
+            .apply(PrimitiveMapping::configure)
+            .apply(SimpleObjectMapping::configure)
+            .apply(CollectionMapping::configure);
     }
 }

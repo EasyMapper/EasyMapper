@@ -36,7 +36,7 @@ public class Mapper {
         }
 
         MapperConfiguration config = new MapperConfiguration()
-            .apply(BaseConfiguration::configurer)
+            .apply(BaseConfiguration::configure)
             .apply(configurer);
 
         constructorExtractor = config.getConstructorExtractor();
