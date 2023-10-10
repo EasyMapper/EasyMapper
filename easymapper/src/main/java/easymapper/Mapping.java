@@ -1,6 +1,8 @@
 package easymapper;
 
 import java.lang.reflect.Type;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -8,6 +10,14 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 class Mapping<S, D> {
+
+    public static final Mapping<Object, Object> empty = new Mapping<>(
+        TypePredicates.acceptAllTypes,
+        TypePredicates.acceptAllTypes,
+        null,
+        null,
+        Collections.unmodifiableMap(new HashMap<>())
+    );
 
     private final Function<Type, Boolean> sourceTypePredicate;
     private final Function<Type, Boolean> destinationTypePredicate;
@@ -29,42 +39,22 @@ class Mapping<S, D> {
         this.computation = computation;
     }
 
-    public boolean matchSourceType(Type sourceType) {
-        return sourceTypePredicate.apply(sourceType);
-    }
-
-    public boolean matchDestinationType(Type destinationType) {
-        return destinationTypePredicate.apply(destinationType);
-    }
-
     public boolean match(Type sourceType, Type destinationType) {
         return sourceTypePredicate.apply(sourceType)
             && destinationTypePredicate.apply(destinationType);
     }
 
-    public boolean hasConversion() {
-        return conversion != null;
+    public Optional<Function<S, Function<MappingContext, D>>> conversion() {
+        return Optional.ofNullable(conversion);
     }
 
-    public D convert(S source, MappingContext context) {
-        return conversion.apply(source).apply(context);
+    public Optional<BiFunction<S, D, Consumer<MappingContext>>> projection() {
+        return Optional.ofNullable(projection);
     }
 
-    public boolean hasProjection() {
-        return projection != null;
-    }
-
-    public void project(S source, D destination, MappingContext context) {
-        projection.apply(source, destination).accept(context);
-    }
-
-    public Optional<Optional<Object>> compute(
-        String destinationPropertyName,
-        S source,
-        MappingContext context
+    public Optional<Function<S, Function<MappingContext, Object>>> computation(
+        String destinationPropertyName
     ) {
-        return Optional
-            .ofNullable(computation.get(destinationPropertyName))
-            .map(compute -> Optional.ofNullable(compute.apply(source).apply(context)));
+        return Optional.ofNullable(computation.get(destinationPropertyName));
     }
 }

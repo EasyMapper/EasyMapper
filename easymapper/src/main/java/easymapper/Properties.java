@@ -96,7 +96,11 @@ class Properties {
         });
     }
 
-    public Optional<Property> find(String name) {
+    public void ifPresent(String name, Consumer<Property> action) {
+        find(name).ifPresent(action);
+    }
+
+    private Optional<Property> find(String name) {
         Property statedProperty = statedProperties.getOrDefault(name, null);
         return statedProperty != null
             ? Optional.of(statedProperty)
