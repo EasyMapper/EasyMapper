@@ -65,6 +65,21 @@ public class Computation_specs {
         assertThat(actual.getName()).isEqualTo(user.getUsername());
     }
 
+    @AutoParameterizedTest
+    void compute_correctly_works_for_constructor_properties_even_if_computed_value_is_null(
+        User user
+    ) {
+        Mapper mapper = new Mapper(config -> config
+            .map(User.class, UserView.class, mapping -> mapping
+                .compute("id", source -> context -> valueOf(source.getId()))
+                .compute("name", source -> context -> null)));
+
+        UserView actual = mapper.map(user, User.class, UserView.class);
+
+        assertThat(actual.getId()).isEqualTo(valueOf(user.getId()));
+        assertThat(actual.getName()).isNull();
+    }
+
     @AllArgsConstructor
     @Getter
     public static class Pricing {
@@ -95,5 +110,13 @@ public class Computation_specs {
         assertThat(actual.getListPrice()).isEqualTo(pricing.getListPrice());
         assertThat(actual.getDiscount()).isEqualTo(pricing.getDiscount());
         assertThat(actual.getSalePrice()).isEqualTo(pricing.calculateSalePrice());
+    }
+
+    @Test
+    void compute_does_not_allow_duplicate_destination_property_name() {
+        assertThatThrownBy(() -> new Mapper(config -> config
+            .map(User.class, UserView.class, mapping -> mapping
+                .compute("id", source -> context -> valueOf(source.getId()))
+                .compute("id", source -> context -> null))));
     }
 }

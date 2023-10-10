@@ -70,6 +70,14 @@ public final class MappingBuilder<S, D> {
             throw argumentNullException("function");
         }
 
+        if (computation.containsKey(destinationPropertyName)) {
+            String message = String.format(
+                "MappingBuilder.compute() can be called only once for the same destination property name. "
+                + "Destination property name: %s.",
+                destinationPropertyName);
+            throw new IllegalStateException(message);
+        }
+
         computation.put(destinationPropertyName, function);
 
         return this;

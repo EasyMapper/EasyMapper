@@ -17,15 +17,15 @@ public class Record_specs {
     }
 
     @AutoParameterizedTest
-    void sut_correctly_maps_from_record(Recipient source) {
+    void sut_correctly_maps_from_record(Recipient recipient) {
         var sut = new Mapper(config -> config
-            .addPropertyMapping(Recipient.class, RecipientView.class, mapping -> mapping
-                .set("recipientName", Recipient::name)
-                .set("recipientPhoneNumber", Recipient::phoneNumber)));
+            .map(Recipient.class, RecipientView.class, mapping -> mapping
+                .compute("recipientName", source -> context -> source.name())
+                .compute("recipientPhoneNumber", source -> context -> source.phoneNumber())));
 
-        var actual = sut.map(source, Recipient.class, RecipientView.class);
+        var actual = sut.map(recipient, Recipient.class, RecipientView.class);
 
-        assertThat(actual.getRecipientName()).isEqualTo(source.name());
-        assertThat(actual.getRecipientPhoneNumber()).isEqualTo(source.phoneNumber());
+        assertThat(actual.getRecipientName()).isEqualTo(recipient.name());
+        assertThat(actual.getRecipientPhoneNumber()).isEqualTo(recipient.phoneNumber());
     }
 }

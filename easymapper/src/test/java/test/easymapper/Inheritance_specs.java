@@ -23,14 +23,14 @@ public class Inheritance_specs {
 
     @AutoParameterizedTest
     void sut_correctly_sets_inherited_properties_through_constructors(
-        EmployeeView source
+        EmployeeView view
     ) {
         Mapper sut = new Mapper(config -> config
-            .addPropertyMapping(EmployeeView.class, Employee.class, mapping -> mapping
-                .set("passwordHash", x -> null)));
+            .map(EmployeeView.class, Employee.class, mapping -> mapping
+                .compute("passwordHash", source -> context -> null)));
 
-        Employee actual = sut.map(source, EmployeeView.class, Employee.class);
+        Employee actual = sut.map(view, EmployeeView.class, Employee.class);
 
-        assertThat(actual.getUsername()).isEqualTo(source.getUsername());
+        assertThat(actual.getUsername()).isEqualTo(view.getUsername());
     }
 }

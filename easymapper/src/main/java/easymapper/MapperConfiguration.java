@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -22,11 +21,12 @@ public final class MapperConfiguration {
 
     private ConstructorExtractor constructorExtractor;
     private ParameterNameResolver parameterNameResolver;
-    private final List<MappingBuilder<?, ?>> mappings = new ArrayList<>();
+    private final List<MappingBuilder<?, ?>> mappings;
 
     MapperConfiguration() {
         constructorExtractor = defaultConstructorExtractor;
         parameterNameResolver = defaultParameterNameResolver;
+        mappings = new ArrayList<>();
     }
 
     public ConstructorExtractor getConstructorExtractor() {
@@ -53,43 +53,6 @@ public final class MapperConfiguration {
         }
 
         this.parameterNameResolver = value;
-
-        return this;
-    }
-
-    public <S, D> MapperConfiguration addPropertyMapping(
-        Class<S> sourceType,
-        Class<D> destinationType,
-        Consumer<PropertyMappingBuilder<S, D>> configurer
-    ) {
-        if (sourceType == null) {
-            throw argumentNullException("sourceType");
-        }
-
-        if (destinationType == null) {
-            throw argumentNullException("destinationType");
-        }
-
-        if (configurer == null) {
-            throw argumentNullException("configurer");
-        }
-
-        map(sourceType,
-            destinationType,
-            mapping -> {
-                PropertyMappingBuilder<S, D> propertyMappingBuilder =
-                    new PropertyMappingBuilder<>(sourceType, destinationType);
-                configurer.accept(propertyMappingBuilder);
-                PropertyMapping props = propertyMappingBuilder.build();
-                Map<String, Function<Object, Object>> calculators = props.getCalculators();
-                for (String destinationPropertyName : calculators.keySet()) {
-                    mapping.compute(
-                        destinationPropertyName,
-                        source -> context -> calculators
-                            .get(destinationPropertyName)
-                            .apply(source));
-                }
-            });
 
         return this;
     }
