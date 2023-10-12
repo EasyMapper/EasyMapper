@@ -47,7 +47,7 @@ public final class MappingContext {
     Object convert(Object source) {
         return mapping
             .conversion()
-            .map(conversion -> conversion.apply(source).apply(this))
+            .map(conversion -> conversion.apply(this).apply(source))
             .orElseGet(() -> source == null ? null : constructThenProject(source));
     }
 

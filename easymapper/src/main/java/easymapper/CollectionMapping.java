@@ -12,7 +12,7 @@ class CollectionMapping {
             CollectionMapping::isIterable,
             CollectionMapping::isIterable,
             mapping -> mapping
-                .convert(source -> context -> convert(source, context))
+                .convert(context -> source -> convert(context, source))
                 .project((source, target) -> context -> {}));
     }
 
@@ -45,23 +45,23 @@ class CollectionMapping {
         return false;
     }
 
-    private static Object convert(Object source, MappingContext context) {
-        return source == null ? null : convert((Iterable<?>) source, context);
+    private static Object convert(MappingContext context, Object source) {
+        return source == null ? null : convert(context, (Iterable<?>) source);
     }
 
-    private static Object convert(Iterable<?> source, MappingContext context) {
+    private static Object convert(MappingContext context, Iterable<?> source) {
         return convert(
-            source,
             context.getMapper(),
             resolveElementType(context.getSourceType()),
-            resolveElementType(context.getDestinationType()));
+            resolveElementType(context.getDestinationType()),
+            source);
     }
 
     private static List<?> convert(
-        Iterable<?> source,
         Mapper mapper,
         Type sourceElementType,
-        Type destinationElementType
+        Type destinationElementType,
+        Iterable<?> source
     ) {
         List<?> destination = new ArrayList<>();
 

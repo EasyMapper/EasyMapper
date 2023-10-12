@@ -1,5 +1,7 @@
 package easymapper;
 
+import java.util.function.Function;
+
 class PrimitiveMapping {
 
     public static void configure(MapperConfiguration config) {
@@ -15,6 +17,6 @@ class PrimitiveMapping {
 
     private static void identity(MapperConfiguration config, Class<?> type) {
         config.map(type::equals, type::equals,
-            mapping -> mapping.convert(source -> context -> source));
+            mapping -> mapping.convert(context -> Function.identity()));
     }
 }

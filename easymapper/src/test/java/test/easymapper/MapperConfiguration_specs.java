@@ -94,7 +94,7 @@ public class MapperConfiguration_specs {
             type -> type.equals(User.class),
             type -> type.equals(UserView.class),
             mapping -> mapping.convert(
-                source -> context -> UserView.from((User) source))));
+                context -> source -> UserView.from((User) source))));
 
         UserView actual = mapper.map(user, User.class, UserView.class);
 
@@ -136,9 +136,9 @@ public class MapperConfiguration_specs {
     void map_with_classes_overwrites_existing_map() {
         Mapper mapper = new Mapper(config -> config
             .map(String.class, String.class, mapping -> mapping
-                .convert(source -> context -> source + "1"))
+                .convert(context -> source -> source + "1"))
             .map(String.class, String.class, mapping -> mapping
-                .convert(source -> context -> source + "2")));
+                .convert(context -> source -> source + "2")));
 
         String actual = mapper.map("0", String.class, String.class);
 
@@ -204,8 +204,7 @@ public class MapperConfiguration_specs {
         Mapper mapper = new Mapper(config -> config.map(
             new TypeReference<User>() {},
             new TypeReference<UserView>() {},
-            mapping -> mapping.convert(
-                source -> context -> UserView.from(source))));
+            mapping -> mapping.convert(context -> UserView::from)));
 
         UserView actual = mapper.map(user, User.class, UserView.class);
 

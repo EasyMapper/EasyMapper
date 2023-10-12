@@ -43,7 +43,7 @@ public class Converter_specs {
     void convert_is_fluent() {
         new Mapper(config -> config
             .map(User.class, UserView.class, mapping -> assertThat(mapping
-                .convert(source -> context -> UserView.from(source)))
+                .convert(context -> UserView::from))
                 .isSameAs(mapping)));
     }
 
@@ -51,7 +51,7 @@ public class Converter_specs {
     void convert_correctly_works(User user) {
         Mapper mapper = new Mapper(config -> config
             .map(User.class, UserView.class, mapping -> mapping
-                .convert(source -> context -> UserView.from(source))));
+                .convert(context -> UserView::from)));
 
         UserView actual = mapper.map(user, User.class, UserView.class);
 
@@ -63,8 +63,8 @@ public class Converter_specs {
     void convert_throws_exception_if_conversion_already_set() {
         ThrowingCallable action = () -> new Mapper(config -> config
             .map(User.class, UserView.class, mapping -> mapping
-                .convert(source -> context -> UserView.from(source))
-                .convert(source -> context -> UserView.from(source))));
+                .convert(context -> UserView::from)
+                .convert(context -> UserView::from)));
 
         assertThatThrownBy(action).isInstanceOf(RuntimeException.class);
     }

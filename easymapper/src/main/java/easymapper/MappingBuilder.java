@@ -14,7 +14,7 @@ public final class MappingBuilder<S, D> {
 
     private final Function<Type, Boolean> sourceTypePredicate;
     private final Function<Type, Boolean> destinationTypePredicate;
-    private Function<S, Function<MappingContext, D>> conversion = null;
+    private Function<MappingContext, Function<S, D>> conversion = null;
     private BiFunction<S, D, Consumer<MappingContext>> projection = null;
     private final Map<String, Function<S, Function<MappingContext, Object>>> computation = new HashMap<>();
 
@@ -27,7 +27,7 @@ public final class MappingBuilder<S, D> {
     }
 
     public MappingBuilder<S, D> convert(
-        Function<S, Function<MappingContext, D>> function
+        Function<MappingContext, Function<S, D>> function
     ) {
         if (function == null) {
             throw argumentNullException("function");
