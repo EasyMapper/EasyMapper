@@ -1,19 +1,39 @@
 package test.easymapper;
 
 import easymapper.Mapper;
-import test.easymapper.fixture.Recipient;
-import test.easymapper.fixture.RecipientView;
-import test.easymapper.fixture.User;
-import test.easymapper.fixture.UserView;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class Record_specs {
 
+    @AllArgsConstructor
+    @Getter
+    public static class User {
+        private long id;
+        private String username;
+        private String passwordHash;
+    }
+
+    public record UserView(long id, String username) {
+    }
+
     @AutoParameterizedTest
     void sut_correctly_maps_to_record(Mapper sut, User source) {
         var actual = sut.map(source, User.class, UserView.class);
         assertThat(actual).usingRecursiveComparison().isEqualTo(source);
+    }
+
+    public record Recipient(String name, String phoneNumber) {
+    }
+
+    @Getter
+    @Setter
+    public static class RecipientView {
+        private String recipientName;
+        private String recipientPhoneNumber;
     }
 
     @AutoParameterizedTest

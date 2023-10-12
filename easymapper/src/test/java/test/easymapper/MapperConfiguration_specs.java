@@ -1,7 +1,9 @@
 package test.easymapper;
 
+import java.beans.ConstructorProperties;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
+import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -15,11 +17,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.Test;
-import test.easymapper.fixture.HasBrokenConstructor;
-import test.easymapper.fixture.ItemView;
-import test.easymapper.fixture.Price;
-import test.easymapper.fixture.Pricing;
-import test.easymapper.fixture.PricingView;
 
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
@@ -29,6 +26,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class MapperConfiguration_specs {
+
+    @AllArgsConstructor
+    @Getter
+    public static class Pricing {
+        private final double listPrice;
+        private final double discount;
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class PricingView {
+        private final double listPrice;
+        private final double discount;
+        private final double salePrice;
+    }
 
     private static final Function<Type, Boolean> accept = type -> true;
 
@@ -224,6 +236,26 @@ public class MapperConfiguration_specs {
             .isInstanceOf(IllegalArgumentException.class);
     }
 
+    @Getter
+    public static class HasBrokenConstructor {
+
+        public static final String DEFAULT_USERNAME = "Obi-Wan Kenobi";
+
+        private final int id;
+        private final String username;
+
+        @ConstructorProperties("id")
+        public HasBrokenConstructor(int id) {
+            this.id = id;
+            this.username = DEFAULT_USERNAME;
+        }
+
+        @ConstructorProperties({"id", "username"})
+        public HasBrokenConstructor(int id, String username) {
+            throw new RuntimeException("Broken constructor");
+        }
+    }
+
     @AutoParameterizedTest
     void setConstructorExtractor_correctly_configures_extractor(User source) {
         // Arrange
@@ -254,6 +286,27 @@ public class MapperConfiguration_specs {
     void setParameterNameResolver_has_guard_against_null_value() {
         assertThatThrownBy(() -> new Mapper(c -> c.setParameterNameResolver(null)))
             .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class Price {
+        private final String currency;
+        private final BigDecimal amount;
+    }
+
+    @Getter
+    public static class ItemView {
+
+        private final long id;
+        private final String name;
+        private final Price listPrice;
+
+        public ItemView(long id, String name, Price listPrice) {
+            this.id = id;
+            this.name = name;
+            this.listPrice = listPrice;
+        }
     }
 
     @AutoParameterizedTest

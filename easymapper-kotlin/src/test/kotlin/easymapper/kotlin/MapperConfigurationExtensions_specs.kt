@@ -1,14 +1,27 @@
 package easymapper.kotlin
 
 import easymapper.Mapper
-import easymapper.kotlin.fixture.Pricing
-import easymapper.kotlin.fixture.PricingView
-import easymapper.kotlin.fixture.User
-import easymapper.kotlin.fixture.UserView
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class MapperConfigurationExtensions_specs {
+
+    class User(val id: Long, val username: String, val passwordHash: String)
+
+    class UserView(val id: Long, val username: String)
+
+    data class Pricing(val listPrice: Double, val discount: Double) {
+
+        fun calculateSalePrice(): Double {
+            return listPrice - discount
+        }
+    }
+
+    data class PricingView(
+        val listPrice: Double = 0.0,
+        val discount: Double = 0.0,
+        val salePrice: Double = 0.0
+    )
 
     @Test
     fun `useKotlin returns the same builder`() {

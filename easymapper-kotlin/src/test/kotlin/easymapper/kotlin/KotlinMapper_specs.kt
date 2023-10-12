@@ -1,8 +1,6 @@
 package easymapper.kotlin
 
 import easymapper.Mapper
-import easymapper.kotlin.fixture.Pricing
-import easymapper.kotlin.fixture.PricingView
 import org.assertj.core.api.Assertions.assertThat
 
 class KotlinMapper_specs {
@@ -11,6 +9,19 @@ class KotlinMapper_specs {
     fun `sut inherits from Mapper`(sut: KotlinMapper) {
         assertThat(sut).isInstanceOf(Mapper::class.java)
     }
+
+    data class Pricing(val listPrice: Double, val discount: Double) {
+
+        fun calculateSalePrice(): Double {
+            return listPrice - discount
+        }
+    }
+
+    data class PricingView(
+        val listPrice: Double = 0.0,
+        val discount: Double = 0.0,
+        val salePrice: Double = 0.0
+    )
 
     @AutoParameterizedTest
     fun `sut maps data classes`(source: Pricing) {

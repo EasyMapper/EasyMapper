@@ -3,16 +3,6 @@ package test.easymapper;
 import autoparams.Repeat;
 import easymapper.Mapper;
 import easymapper.TypeReference;
-import test.easymapper.fixture.DiscountPolicy;
-import test.easymapper.fixture.ImmutableBag;
-import test.easymapper.fixture.MutableBag;
-import test.easymapper.fixture.Order;
-import test.easymapper.fixture.Post;
-import test.easymapper.fixture.PostView;
-import test.easymapper.fixture.User;
-import test.easymapper.fixture.UserEntity;
-import test.easymapper.fixture.UserView;
-
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -20,11 +10,22 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class Conversion_specs {
+
+    @AllArgsConstructor
+    @Getter
+    public static class User {
+        private final long id;
+        private final String username;
+        private final String passwordHash;
+    }
 
     @AutoParameterizedTest
     void map_has_null_guard_for_source_type(Mapper sut, User source) {
@@ -69,6 +70,38 @@ public class Conversion_specs {
         assertThat(actual).isNull();
     }
 
+    @AllArgsConstructor
+    @Getter
+    public static class Order {
+        private final UUID id;
+        private final long itemId;
+        private final int quantity;
+        private final Shipment shipment;
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class Shipment {
+        private final Recipient recipient;
+        private final Address address;
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class Recipient {
+        private final String name;
+        private final String phoneNumber;
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class Address {
+        private final String country;
+        private final String state;
+        private final String city;
+        private final String zipCode;
+    }
+
     @AutoParameterizedTest
     void map_creates_copy_of_complex_object(Mapper sut, Order source) {
         // Act
@@ -86,20 +119,34 @@ public class Conversion_specs {
             .isEqualTo(source.getShipment().getAddress());
     }
 
+    @Getter
+    @Setter
+    public static class UserView {
+        private long id;
+        private String username;
+    }
+
+
     @AutoParameterizedTest
     void map_correctly_sets_settable_properties(
         Mapper sut,
-        UserEntity source
+        UserView source
     ) {
-        UserEntity destination = sut.map(
+        UserView destination = sut.map(
             source,
-            UserEntity.class,
-            UserEntity.class);
+            UserView.class,
+            UserView.class);
 
         assertThat(destination)
             .usingRecursiveComparison()
-            .ignoringFields("passwordHash")
             .isEqualTo(source);
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class DiscountPolicy {
+        private final boolean enabled;
+        private final int percentage;
     }
 
     @AutoParameterizedTest
@@ -114,6 +161,24 @@ public class Conversion_specs {
             DiscountPolicy.class);
 
         assertThat(actual.isEnabled()).isEqualTo(source.isEnabled());
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class Post {
+        private final UUID id;
+        private final UUID authorId;
+        private final String title;
+        private final String text;
+    }
+
+    @Getter
+    @Setter
+    public static class PostView {
+        private String id;
+        private String authorId;
+        private String title;
+        private String text;
     }
 
     @AutoParameterizedTest
@@ -218,6 +283,12 @@ public class Conversion_specs {
         assertThat(actual).usingRecursiveComparison().isEqualTo(source);
     }
 
+    @AllArgsConstructor
+    @Getter
+    public static class ImmutableBag<T> {
+        private final T value;
+    }
+
     @AutoParameterizedTest
     void map_has_null_guard_for_destination_type_reference(
         Mapper sut,
@@ -256,6 +327,12 @@ public class Conversion_specs {
 
         assertThat(actual).isNotNull();
         assertThat(actual.getValue()).isEqualTo(source.getValue().toString());
+    }
+
+    @Getter
+    @Setter
+    public static class MutableBag<T> {
+        private T value;
     }
 
     @AutoParameterizedTest

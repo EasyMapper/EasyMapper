@@ -1,15 +1,55 @@
 package test.easymapper;
 
 import easymapper.Mapper;
-import test.easymapper.fixture.Address;
-import test.easymapper.fixture.Recipient;
-import test.easymapper.fixture.Shipment;
-import test.easymapper.fixture.ShipmentEntity;
-import test.easymapper.fixture.ShipmentView;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class Flattening_specs {
+
+    @AllArgsConstructor
+    @Getter
+    public static class Address {
+        private final String country;
+        private final String state;
+        private final String city;
+        private final String zipCode;
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class Shipment {
+        private final Recipient recipient;
+        private final Address address;
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class Recipient {
+        private final String name;
+        private final String phoneNumber;
+    }
+
+    @Getter
+    @Setter
+    public static class ShipmentEntity {
+        private String recipientName;
+        private String recipientPhoneNumber;
+        private String addressCountry;
+        private String addressState;
+        private String addressCity;
+        private String addressZipCode;
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class ShipmentView {
+        private final String recipientName;
+        private final String recipientPhoneNumber;
+        private final Address address;
+    }
 
     @AutoParameterizedTest
     void sut_correctly_flattens_nested_properties_for_constructors(

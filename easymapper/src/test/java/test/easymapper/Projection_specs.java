@@ -3,14 +3,29 @@ package test.easymapper;
 import easymapper.Mapper;
 import easymapper.TypeReference;
 import java.util.UUID;
-import test.easymapper.fixture.MutableBag;
-import test.easymapper.fixture.User;
-import test.easymapper.fixture.UserView;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class Projection_specs {
+
+    @AllArgsConstructor
+    @Getter
+    public static class User {
+        private final long id;
+        private final String username;
+        private final String passwordHash;
+    }
+
+    @Getter
+    @Setter
+    public static class UserView {
+        private long id;
+        private String username;
+    }
 
     @AutoParameterizedTest
     void map_has_null_guard_for_source(
@@ -60,6 +75,12 @@ public class Projection_specs {
             () -> sut.map(source, destination, User.class, destinationType))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("destinationType");
+    }
+
+    @Getter
+    @Setter
+    public static class MutableBag<T> {
+        private T value;
     }
 
     @AutoParameterizedTest
