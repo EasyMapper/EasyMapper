@@ -4,8 +4,7 @@ import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import static easymapper.Exceptions.argumentNullException;
@@ -15,7 +14,7 @@ public final class MappingBuilder<S, D> {
     private final Function<Type, Boolean> sourceTypePredicate;
     private final Function<Type, Boolean> destinationTypePredicate;
     private Function<MappingContext, Function<S, D>> conversion = null;
-    private BiFunction<S, D, Consumer<MappingContext>> projection = null;
+    private Function<MappingContext, BiConsumer<S, D>> projection = null;
     private final Map<String, Function<S, Function<MappingContext, Object>>> computation = new HashMap<>();
 
     MappingBuilder(
@@ -44,7 +43,7 @@ public final class MappingBuilder<S, D> {
     }
 
     public MappingBuilder<S, D> project(
-        BiFunction<S, D, Consumer<MappingContext>> action
+        Function<MappingContext, BiConsumer<S, D>> action
     ) {
         if (action == null) {
             throw argumentNullException("action");

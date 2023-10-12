@@ -22,7 +22,7 @@ class SimpleObjectMapping {
         config.map(String.class, String.class,
             mapping -> mapping
                 .convert(context -> identity())
-                .project((source, target) -> context -> {}));
+                .project(context -> (source, target) -> {}));
 
         config.map(BigInteger.class, BigInteger.class,
             mapping -> mapping.convert(context -> identity()));

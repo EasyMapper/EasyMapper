@@ -92,9 +92,11 @@ public final class MappingContext {
 
         mapping
             .projection()
-            .map(projection -> projection.apply(sourceValue, destinationValue))
-            .orElseGet(() -> context -> context.projectProperties(sourceValue, destinationValue))
-            .accept(this);
+            .<Runnable>map(projection -> () -> projection
+                .apply(this)
+                .accept(sourceValue, destinationValue))
+            .orElse(() -> projectProperties(sourceValue, destinationValue))
+            .run();
     }
 
     private void projectProperties(Object source, Object destination) {
@@ -162,10 +164,10 @@ public final class MappingContext {
         mapping
             .projection()
             .<Runnable>map(projection -> () -> projection
-                .apply(
+                .apply(this)
+                .accept(
                     sourceValue,
-                    destination.getOrSetIfNull(() -> convert(sourceValue)))
-                .accept(this))
+                    destination.getOrSetIfNull(() -> convert(sourceValue))))
             .orElse(() -> destination.set(convert(sourceValue)))
             .run();
     }

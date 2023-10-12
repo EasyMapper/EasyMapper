@@ -13,7 +13,7 @@ class CollectionMapping {
             CollectionMapping::isIterable,
             mapping -> mapping
                 .convert(context -> source -> convert(context, source))
-                .project((source, target) -> context -> {}));
+                .project(context -> (source, target) -> {}));
     }
 
     private static boolean isIterable(Type type) {
