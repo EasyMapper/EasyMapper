@@ -22,14 +22,14 @@ class Mapping<S, D> {
     private final Function<Type, Boolean> destinationTypePredicate;
     private final Function<MappingContext, Function<S, D>> conversion;
     private final Function<MappingContext, BiConsumer<S, D>> projection;
-    private final Map<String, Function<S, Function<MappingContext, Object>>> computation;
+    private final Map<String, Function<MappingContext, Function<S, Object>>> computation;
 
     public Mapping(
         Function<Type, Boolean> sourceTypePredicate,
         Function<Type, Boolean> destinationTypePredicate,
         Function<MappingContext, Function<S, D>> conversion,
         Function<MappingContext, BiConsumer<S, D>> projection,
-        Map<String, Function<S, Function<MappingContext, Object>>> computation
+        Map<String, Function<MappingContext, Function<S, Object>>> computation
     ) {
         this.sourceTypePredicate = sourceTypePredicate;
         this.destinationTypePredicate = destinationTypePredicate;
@@ -51,7 +51,7 @@ class Mapping<S, D> {
         return Optional.ofNullable(projection);
     }
 
-    public Optional<Function<S, Function<MappingContext, Object>>> computation(
+    public Optional<Function<MappingContext, Function<S, Object>>> computation(
         String destinationPropertyName
     ) {
         return Optional.ofNullable(computation.get(destinationPropertyName));

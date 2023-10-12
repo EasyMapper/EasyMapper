@@ -124,7 +124,7 @@ public final class MappingContext {
     private Object compute(String destinationPropertyName, Object source) {
         return mapping
             .computation(destinationPropertyName)
-            .<Supplier<Object>>map(computation -> () -> computation.apply(source).apply(this))
+            .<Supplier<Object>>map(computation -> () -> computation.apply(this).apply(source))
             .orElse(() -> {
                 Property sourceProperty = getSourceProperties().get(destinationPropertyName);
                 return mapper.map(
@@ -139,7 +139,7 @@ public final class MappingContext {
         mapping
             .computation(destination.name())
             .<Runnable>map(computation -> () ->
-                destination.set(computation.apply(source).apply(this)))
+                destination.set(computation.apply(this).apply(source)))
             .orElse(() -> getDestinationProperties().ifPresent(
                 destination.name(),
                 destinationProperty -> {

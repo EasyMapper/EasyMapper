@@ -15,7 +15,7 @@ public final class MappingBuilder<S, D> {
     private final Function<Type, Boolean> destinationTypePredicate;
     private Function<MappingContext, Function<S, D>> conversion = null;
     private Function<MappingContext, BiConsumer<S, D>> projection = null;
-    private final Map<String, Function<S, Function<MappingContext, Object>>> computation = new HashMap<>();
+    private final Map<String, Function<MappingContext, Function<S, Object>>> computation = new HashMap<>();
 
     MappingBuilder(
         Function<Type, Boolean> sourceTypePredicate,
@@ -61,7 +61,7 @@ public final class MappingBuilder<S, D> {
 
     public MappingBuilder<S, D> compute(
         String destinationPropertyName,
-        Function<S, Function<MappingContext, Object>> function
+        Function<MappingContext, Function<S, Object>> function
     ) {
         if (destinationPropertyName == null) {
             throw argumentNullException("destinationPropertyName");

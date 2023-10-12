@@ -299,7 +299,7 @@ public class MapperConfiguration_specs {
             .map(Pricing.class, PricingView.class, mapping -> mapping
                 .compute(
                     "salePrice",
-                    source -> context -> source.getListPrice() - source.getDiscount()));
+                    context -> source -> source.getListPrice() - source.getDiscount()));
 
         Mapper mapper = new Mapper(config -> config.apply(configurer));
 
