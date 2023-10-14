@@ -28,7 +28,7 @@ public class Projection_specs {
     }
 
     @AutoParameterizedTest
-    void map_has_null_guard_for_source(
+    void map_with_classes_has_null_guard_for_source(
         Mapper sut,
         UserView destination
     ) {
@@ -40,7 +40,7 @@ public class Projection_specs {
     }
 
     @AutoParameterizedTest
-    void map_has_null_guard_for_destination(
+    void map_with_classes_has_null_guard_for_destination(
         Mapper sut,
         User source
     ) {
@@ -52,7 +52,7 @@ public class Projection_specs {
     }
 
     @AutoParameterizedTest
-    void map_has_null_guard_for_source_type(
+    void map_with_classes_has_null_guard_for_source_type(
         Mapper sut,
         User source,
         UserView destination
@@ -65,7 +65,7 @@ public class Projection_specs {
     }
 
     @AutoParameterizedTest
-    void map_has_null_guard_for_destination_type(
+    void map_with_classes_has_null_guard_for_destination_type(
         Mapper sut,
         User source,
         UserView destination
@@ -168,5 +168,29 @@ public class Projection_specs {
 
         assertThat(destination.getValue().getValue())
             .isEqualTo(source.getValue().getValue().toString());
+    }
+
+    @AutoParameterizedTest
+    void map_has_null_guard_for_source(Mapper sut, User destination) {
+        assertThatThrownBy(() -> sut.map(null, destination))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("source");
+    }
+
+    @AutoParameterizedTest
+    void map_has_null_guard_for_destination(Mapper sut, User source) {
+        assertThatThrownBy(() -> sut.map(source, null))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("destination");
+    }
+
+    @AutoParameterizedTest
+    void map_correctly_maps_properties(Mapper sut, User source) {
+        UserView destination = new UserView();
+
+        sut.map(source, destination);
+
+        assertThat(destination.getId()).isEqualTo(source.getId());
+        assertThat(destination.getUsername()).isEqualTo(source.getUsername());
     }
 }

@@ -157,6 +157,21 @@ public class Mapper {
             new Variable(destinationType, "destination", destination));
     }
 
+    public void map(Object source, Object destination) {
+        if (source == null) {
+            throw argumentNullException("source");
+        } else if (destination == null) {
+            throw argumentNullException("destination");
+        }
+
+        Type sourceType = source.getClass();
+        Type destinationType = destination.getClass();
+
+        createContext(sourceType, destinationType).project(
+            new Variable(sourceType, "source", source),
+            new Variable(destinationType, "destination", destination));
+    }
+
     Constructor<?> getConstructor(Type type) {
         if (type instanceof ParameterizedType) {
             Type rawType = ((ParameterizedType) type).getRawType();
