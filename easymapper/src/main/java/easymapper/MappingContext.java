@@ -36,14 +36,6 @@ public final class MappingContext {
         return destinationType;
     }
 
-    Properties getSourceProperties() {
-        return Properties.get(sourceType);
-    }
-
-    Properties getDestinationProperties() {
-        return Properties.get(destinationType);
-    }
-
     Object convert(Object source) {
         return mapping
             .conversion()
@@ -149,6 +141,14 @@ public final class MappingContext {
                         .projectOrSet(sourceProperty.bind(source), destination);
                 }))
             .run();
+    }
+
+    private Properties getSourceProperties() {
+        return Properties.get(sourceType);
+    }
+
+    private Properties getDestinationProperties() {
+        return Properties.get(destinationType);
     }
 
     private void projectOrSet(Variable source, Variable destination) {
