@@ -115,8 +115,8 @@ public class Mapper {
     public <S, D> void map(
         S source,
         D destination,
-        Type sourceType,
-        Type destinationType
+        Class<S> sourceType,
+        Class<D> destinationType
     ) {
         if (source == null) {
             throw argumentNullException("source");
