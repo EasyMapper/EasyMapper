@@ -24,16 +24,16 @@ public final class MappingContext {
         this.mapping = mapping;
     }
 
-    Mapper getMapper() {
-        return mapper;
-    }
-
     Type getSourceType() {
         return sourceType;
     }
 
     Type getDestinationType() {
         return destinationType;
+    }
+
+    MappingContext branchContext(Type sourceType, Type destinationType) {
+        return mapper.createContext(sourceType, destinationType);
     }
 
     Object convert(Object source) {
@@ -58,7 +58,7 @@ public final class MappingContext {
         Object[] arguments = new Object[parameters.length];
 
         for (int i = 0; i < parameters.length; i++) {
-            arguments[i] = compute(destinationPropertyNames[i], source);
+            arguments[i] = compute(source, destinationPropertyNames[i]);
         }
 
         try {
@@ -66,6 +66,23 @@ public final class MappingContext {
         } catch (Exception exception) {
             throw new RuntimeException(exception);
         }
+    }
+
+    private Object compute(Object source, String destinationPropertyName) {
+        return mapping
+            .computation(destinationPropertyName)
+            .<Supplier<Object>>map(computation -> () -> computation.apply(this).apply(source))
+            .orElse(() -> convertProperty(source, destinationPropertyName))
+            .get();
+    }
+
+    private Object convertProperty(Object source, String propertyName) {
+        Property sourceProperty = getSourceProperty(propertyName);
+        Property destinationProperty = getDestinationProperty(propertyName);
+        MappingContext context = branchContext(
+            sourceProperty.type(),
+            destinationProperty.type());
+        return context.convert(sourceProperty.get(source));
     }
 
     void project(Variable source, Variable destination) {
@@ -99,56 +116,27 @@ public final class MappingContext {
     private void projectWritableProperties(Object source, Object destination) {
         Properties destinationProperties = getDestinationProperties();
         destinationProperties.useWritableProperties(destinationProperty ->
-            computeIfPossible(destinationProperty.bind(destination), source));
+            computeIfPossible(source, destinationProperty.bind(destination)));
     }
 
-    private void projectReadOnlyProperties(Object source, Object destination) {
-        Properties sourceProperties = getSourceProperties();
-        Properties destinationProperties = getDestinationProperties();
-        destinationProperties.useReadOnlyProperties(destinationProperty -> sourceProperties
-            .ifPresent(destinationProperty.name(), sourceProperty -> mapper
-                .createContext(sourceProperty.type(), destinationProperty.type())
-                .project(
-                    sourceProperty.bind(source),
-                    destinationProperty.bind(destination))));
-    }
-
-    private Object compute(String destinationPropertyName, Object source) {
-        return mapping
-            .computation(destinationPropertyName)
-            .<Supplier<Object>>map(computation -> () -> computation.apply(this).apply(source))
-            .orElse(() -> {
-                Property sourceProperty = getSourceProperties().get(destinationPropertyName);
-                return mapper.map(
-                    sourceProperty.get(source),
-                    sourceProperty.type(),
-                    getDestinationProperties().get(destinationPropertyName).type());
-            })
-            .get();
-    }
-
-    private void computeIfPossible(Variable destination, Object source) {
+    private void computeIfPossible(Object source, Variable destination) {
+        String name = destination.name();
         mapping
-            .computation(destination.name())
+            .computation(name)
             .<Runnable>map(computation -> () ->
                 destination.set(computation.apply(this).apply(source)))
             .orElse(() -> getDestinationProperties().ifPresent(
-                destination.name(),
-                destinationProperty -> {
-                    Property sourceProperty = getSourceProperties().get(destination.name());
-                    mapper
-                        .createContext(sourceProperty.type(), destination.type())
-                        .projectOrSet(sourceProperty.bind(source), destination);
-                }))
+                name,
+                () -> projectOrSetProperty(source, destination)))
             .run();
     }
 
-    private Properties getSourceProperties() {
-        return Properties.get(sourceType);
-    }
-
-    private Properties getDestinationProperties() {
-        return Properties.get(destinationType);
+    private void projectOrSetProperty(Object source, Variable destination) {
+        Property sourceProperty = getSourceProperty(destination.name());
+        MappingContext context = branchContext(
+            sourceProperty.type(),
+            destination.type());
+        context.projectOrSet(sourceProperty.bind(source), destination);
     }
 
     private void projectOrSet(Variable source, Variable destination) {
@@ -170,5 +158,35 @@ public final class MappingContext {
                     destination.getOrSetIfNull(() -> convert(sourceValue))))
             .orElse(() -> destination.set(convert(sourceValue)))
             .run();
+    }
+
+    private void projectReadOnlyProperties(Object source, Object destination) {
+        getDestinationProperties().useReadOnlyProperties(destinationProperty ->
+            projectPropertyIfPresent(source, destinationProperty.bind(destination)));
+    }
+
+    private void projectPropertyIfPresent(Object source, Variable destination) {
+        getSourceProperties().ifPresent(destination.name(), sourceProperty -> {
+            MappingContext context = branchContext(
+                sourceProperty.type(),
+                destination.type());
+            context.project(sourceProperty.bind(source), destination);
+        });
+    }
+
+    private Properties getSourceProperties() {
+        return Properties.get(sourceType);
+    }
+
+    private Properties getDestinationProperties() {
+        return Properties.get(destinationType);
+    }
+
+    private Property getDestinationProperty(String name) {
+        return getDestinationProperties().get(name);
+    }
+
+    private Property getSourceProperty(String name) {
+        return getSourceProperties().get(name);
     }
 }

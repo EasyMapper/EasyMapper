@@ -3,7 +3,6 @@ package test.easymapper;
 import autoparams.Repeat;
 import easymapper.Mapper;
 import easymapper.TypeReference;
-import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -252,35 +251,6 @@ public class Conversion_specs {
             LocalDateTime.class);
 
         assertThat(actual).isEqualTo(source);
-    }
-
-    @AutoParameterizedTest
-    void map_with_types_has_null_guard_for_source_type(
-        Mapper sut,
-        User source
-    ) {
-        Type sourceType = null;
-        assertThatThrownBy(() -> sut.map(source, sourceType, User.class))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("sourceType");
-    }
-
-    @AutoParameterizedTest
-    void map_with_types_has_null_guard_for_destination_type(
-        Mapper sut,
-        User source
-    ) {
-        Type destinationType = null;
-        assertThatThrownBy(() -> sut.map(source, User.class, destinationType))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("destinationType");
-    }
-
-    @AutoParameterizedTest
-    void map_with_types_correctly_converts_object(Mapper sut, User source) {
-        Type type = User.class;
-        User actual = sut.map(source, type, type);
-        assertThat(actual).usingRecursiveComparison().isEqualTo(source);
     }
 
     @AllArgsConstructor

@@ -100,6 +100,10 @@ class Properties {
         find(name).ifPresent(action);
     }
 
+    public void ifPresent(String name, Runnable action) {
+        ifPresent(name, property -> action.run());
+    }
+
     private Optional<Property> find(String name) {
         Property statedProperty = statedProperties.getOrDefault(name, null);
         return statedProperty != null

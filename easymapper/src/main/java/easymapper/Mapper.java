@@ -69,17 +69,6 @@ public class Mapper {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T map(Object source, Type sourceType, Type destinationType) {
-        if (sourceType == null) {
-            throw argumentNullException("sourceType");
-        } else if (destinationType == null) {
-            throw argumentNullException("destinationType");
-        }
-
-        return (T) createContext(sourceType, destinationType).convert(source);
-    }
-
-    @SuppressWarnings("unchecked")
     public <S, D> D map(
         S source,
         Class<S> sourceType,

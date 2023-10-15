@@ -50,26 +50,13 @@ class CollectionMapping {
     }
 
     private static Object convert(MappingContext context, Iterable<?> source) {
-        return convert(
-            context.getMapper(),
+        MappingContext elementMappingContext = context.branchContext(
             resolveElementType(context.getSourceType()),
-            resolveElementType(context.getDestinationType()),
-            source);
-    }
+            resolveElementType(context.getDestinationType()));
 
-    private static List<?> convert(
-        Mapper mapper,
-        Type sourceElementType,
-        Type destinationElementType,
-        Iterable<?> source
-    ) {
-        List<?> destination = new ArrayList<>();
-
+        List<Object> destination = new ArrayList<>();
         for (Object item : source) {
-            destination.add(mapper.map(
-                item,
-                sourceElementType,
-                destinationElementType));
+            destination.add(elementMappingContext.convert(item));
         }
 
         return destination;
