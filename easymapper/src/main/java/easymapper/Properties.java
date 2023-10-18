@@ -1,7 +1,5 @@
 package easymapper;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.Optional;
@@ -32,7 +30,7 @@ class Properties {
 
     private static Map<String, Property> getStatedProperties(Type type) {
         Map<String, Getter> statedGetters = Getter.getStatedGetters(type);
-        Map<String, Method> statedSetters = Setter.getStatedSetters(type);
+        Map<String, Setter> statedSetters = Setter.getStatedSetters(type);
 
         Function<Getter, Type> returnTypeResolver = getReturnTypeResolver(type);
 
@@ -56,16 +54,8 @@ class Properties {
                 : statedGetter.invoke(instance);
     }
 
-    private static BiConsumer<Object, Object> getSetter(Method statedSetter) {
-        return statedSetter == null ? null : (instance, value) -> {
-            try {
-                statedSetter.invoke(instance, value);
-            } catch (IllegalAccessException
-                 | IllegalArgumentException
-                 | InvocationTargetException exception) {
-                throw new RuntimeException(exception);
-            }
-        };
+    private static BiConsumer<Object, Object> getSetter(Setter statedSetter) {
+        return statedSetter == null ? null : statedSetter::invoke;
     }
 
     public void useWritableProperties(Consumer<Property> consumer) {
