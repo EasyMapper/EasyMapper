@@ -31,10 +31,10 @@ class Properties {
     }
 
     private static Map<String, Property> getStatedProperties(Type type) {
-        Map<String, Method> statedGetters = Getter.getStatedGetters(type);
+        Map<String, Getter> statedGetters = Getter.getStatedGetters(type);
         Map<String, Method> statedSetters = Setter.getStatedSetters(type);
 
-        Function<Method, Type> returnTypeResolver = getReturnTypeResolver(type);
+        Function<Getter, Type> returnTypeResolver = getReturnTypeResolver(type);
 
         return statedGetters
             .keySet()
@@ -48,16 +48,12 @@ class Properties {
             .collect(toMap(Property::name, identity()));
     }
 
-    private static Function<Object, Object> getGetter(Method statedGetter) {
-        return statedGetter == null ? null : instance -> {
-            try {
-                return instance == null ? null : statedGetter.invoke(instance);
-            } catch (IllegalAccessException
-                 | IllegalArgumentException
-                 | InvocationTargetException exception) {
-                throw new RuntimeException(exception);
-            }
-        };
+    private static Function<Object, Object> getGetter(Getter statedGetter) {
+        return statedGetter == null
+            ? null
+            : instance -> instance == null
+                ? null
+                : statedGetter.invoke(instance);
     }
 
     private static BiConsumer<Object, Object> getSetter(Method statedSetter) {

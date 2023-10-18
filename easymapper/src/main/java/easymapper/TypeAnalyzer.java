@@ -1,6 +1,5 @@
 package easymapper;
 
-import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
@@ -11,9 +10,9 @@ import java.util.function.Function;
 
 class TypeAnalyzer {
 
-    public static Function<Method, Type> getReturnTypeResolver(Type type) {
+    public static Function<Getter, Type> getReturnTypeResolver(Type type) {
         if (type instanceof Class<?>) {
-            return Method::getGenericReturnType;
+            return Getter::type;
         } else if (type instanceof ParameterizedType) {
             return getReturnTypeResolver((ParameterizedType) type);
         } else {
@@ -22,11 +21,11 @@ class TypeAnalyzer {
         }
     }
 
-    private static Function<Method, Type> getReturnTypeResolver(ParameterizedType type) {
+    private static Function<Getter, Type> getReturnTypeResolver(ParameterizedType type) {
         Map<TypeVariable<?>, Type> typeVariableMap = getTypeVariableMap(type);
-        return method -> method.getGenericReturnType() instanceof TypeVariable<?>
-            ? typeVariableMap.get((TypeVariable<?>) method.getGenericReturnType())
-            : method.getGenericReturnType();
+        return getter -> getter.type() instanceof TypeVariable<?>
+            ? typeVariableMap.get((TypeVariable<?>) getter.type())
+            : getter.type();
     }
 
     private static Map<TypeVariable<?>, Type> getTypeVariableMap(ParameterizedType type) {
