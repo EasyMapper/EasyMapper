@@ -13,6 +13,8 @@ class TypeAnalyzer {
     public static Function<Getter, Type> getReturnTypeResolver(Type type) {
         if (type instanceof Class<?>) {
             return Getter::type;
+        } else if (type instanceof TupleType) {
+            return Getter::type;
         } else if (type instanceof ParameterizedType) {
             return getReturnTypeResolver((ParameterizedType) type);
         } else {

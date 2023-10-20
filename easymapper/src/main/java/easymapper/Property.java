@@ -59,4 +59,12 @@ final class Property extends ValueContainer {
             () -> get(instance),
             value -> set(instance, value));
     }
+
+    public Property withHeadTruncatedName(int length) {
+        return new Property(type, name().substring(length), getter, setter);
+    }
+
+    public boolean nameStartsWithIgnoreCase(String prefix) {
+        return name.toLowerCase().startsWith(prefix.toLowerCase());
+    }
 }

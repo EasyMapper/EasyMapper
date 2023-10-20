@@ -1,6 +1,7 @@
 package easymapper;
 
 import java.lang.reflect.Type;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiConsumer;
@@ -9,6 +10,7 @@ import java.util.function.Function;
 
 import static easymapper.TypeAnalyzer.getReturnTypeResolver;
 import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 class Properties {
@@ -90,37 +92,65 @@ class Properties {
         ifPresent(name, property -> action.run());
     }
 
-    private Optional<Property> find(String name) {
+    public Optional<Property> find(String name) {
         Property statedProperty = statedProperties.getOrDefault(name, null);
-        return statedProperty != null
-            ? Optional.of(statedProperty)
-            : findFlattened(this, identity(), name, name);
+        if (statedProperty == null) {
+            Property flattenedProperty = findFlattened(identity(), name, name);
+            if (flattenedProperty == null) {
+                return Optional.ofNullable(findUnflattened(name));
+            } else {
+                return Optional.of(flattenedProperty);
+            }
+        } else {
+            return Optional.of(statedProperty);
+        }
     }
 
-    private static Optional<Property> findFlattened(
-        Properties properties,
+    private Property findFlattened(
         Function<Object, Object> resolver,
         String path,
         String unresolvedPath
     ) {
-        for (Property property : properties.statedProperties.values()) {
+        for (Property property : statedProperties.values()) {
             String propertyName = property.name();
             if (unresolvedPath.equalsIgnoreCase(propertyName)) {
-                return Optional.of(
-                    new Property(
-                        property.type(),
-                        path,
-                        instance -> property.get(resolver.apply(instance)),
-                        null));
+                return new Property(
+                    property.type(),
+                    path,
+                    instance -> property.get(resolver.apply(instance)),
+                    null);
             } else if (path.toLowerCase().startsWith(propertyName.toLowerCase())) {
-                return findFlattened(
-                    Properties.get(property.type()),
+                return Properties.get(property.type()).findFlattened(
                     instance -> property.get(resolver.apply(instance)),
                     path,
                     path.substring(propertyName.length()));
             }
         }
 
-        return Optional.empty();
+        return null;
+    }
+
+    private Property findUnflattened(String name) {
+        List<Property> innerProperties = statedProperties
+            .values()
+            .stream()
+            .filter(property -> property.nameStartsWithIgnoreCase(name))
+            .map(property -> property.withHeadTruncatedName(name.length()))
+            .collect(toList());
+
+        if (innerProperties.isEmpty()) {
+            return null;
+        }
+
+        TupleType type = new TupleType(innerProperties
+            .stream()
+            .collect(toMap(Property::name, Property::type)));
+
+        Function<Object, Object> getter = instance -> new Tuple(innerProperties
+            .stream()
+            .map(property -> property.bind(instance))
+            .collect(toMap(Variable::name, Variable::get)));
+
+        return new Property(type, name, getter, null);
     }
 }

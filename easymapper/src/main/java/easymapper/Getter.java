@@ -58,6 +58,8 @@ class Getter {
             return getStatedGetters((Class<?>) type);
         } else if (type instanceof ParameterizedType) {
             return getStatedGetters((ParameterizedType) type);
+        } else if (type instanceof TupleType) {
+            return getStatedGetters(((TupleType) type));
         } else {
             String message = "Cannot provide stated getters for the type: " + type;
             throw new RuntimeException(message);
@@ -94,5 +96,9 @@ class Getter {
             String message = "Cannot provide stated getters for the type: " + type;
             throw new RuntimeException(message);
         }
+    }
+
+    private static Map<String, Getter> getStatedGetters(TupleType type) {
+        return type.getGetters();
     }
 }

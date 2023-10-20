@@ -57,6 +57,8 @@ class Setter {
             return getStatedSetters((Class<?>) type);
         } else if (type instanceof ParameterizedType) {
             return getStatedSetters((ParameterizedType) type);
+        } else if (type instanceof TupleType) {
+            return new HashMap<>();
         } else {
             String message = "Cannot provide stated setters for the type: " + type;
             throw new RuntimeException(message);
