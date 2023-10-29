@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import static easymapper.Exceptions.argumentNullException;
+import static java.lang.System.lineSeparator;
 import static java.util.Comparator.comparingInt;
 import static java.util.stream.Collectors.toList;
 
@@ -163,19 +164,25 @@ public class Mapper {
 
     Constructor<?> getConstructor(Type type) {
         if (type instanceof ParameterizedType) {
-            Type rawType = ((ParameterizedType) type).getRawType();
-            if (rawType instanceof Class<?>) {
-                return getConstructor((Class<?>) rawType);
-            } else {
-                String message = "Cannot provide constructor for the type: " + type;
-                throw new RuntimeException(message);
-            }
+            return getConstructor(((ParameterizedType) type).getRawType());
         } else if (type instanceof Class<?>) {
             return getConstructor((Class<?>) type);
         } else {
-            String message = "Cannot provide constructor for the type: " + type;
-            throw new RuntimeException(message);
+            throw new RuntimeException(composeConstructorNotFoundMessage(type));
         }
+    }
+
+    private static String composeConstructorNotFoundMessage(Type type) {
+        String newLine = lineSeparator();
+        return "Cannot provide constructor for the type: " + type +
+            newLine + "If you use Mapper to convert instances of generic classes, use the TypeReference<T> interface to specify the generic type." +
+            newLine +
+            newLine + "For example," +
+            newLine +
+            newLine + "mapper.map(" +
+            newLine + "     source," +
+            newLine + "     new TypeReference<DomainEvent<OrderPlaced>>() {}," +
+            newLine + "     new TypeReference<IntegrationEvent<OrderPlacedEvent>>() {});";
     }
 
     private Constructor<?> getConstructor(Class<?> type) {
