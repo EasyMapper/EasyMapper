@@ -10,7 +10,7 @@ import static java.lang.String.valueOf;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class Computation_specs {
+public class Compute_specs {
 
     @AllArgsConstructor
     @Getter
