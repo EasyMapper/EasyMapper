@@ -32,12 +32,12 @@ public final class MappingBuilder<S, D> {
             throw argumentNullException("function");
         }
 
-        if (this.conversion != null) {
+        if (conversion != null) {
             String message = "MappingBuilder.convert() can be called only once.";
             throw new IllegalStateException(message);
         }
 
-        this.conversion = function;
+        conversion = function;
 
         return this;
     }
@@ -49,12 +49,12 @@ public final class MappingBuilder<S, D> {
             throw argumentNullException("action");
         }
 
-        if (this.projection != null) {
+        if (projection != null) {
             String message = "MappingBuilder.project() can be called only once.";
             throw new IllegalStateException(message);
         }
 
-        this.projection = action;
+        projection = action;
 
         return this;
     }

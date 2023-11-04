@@ -41,7 +41,7 @@ class Mapper_specs {
     }
 
     @AutoParameterizedTest
-    void converting_map_with_classes_has_null_guard_for_source_type(
+    void converting_map_has_null_guard_for_source_type(
         Mapper sut,
         User source
     ) {
@@ -53,7 +53,7 @@ class Mapper_specs {
     }
 
     @AutoParameterizedTest
-    void converting_map_with_classes_has_null_guard_for_destination_type(
+    void converting_map_has_null_guard_for_destination_type(
         Mapper sut,
         User source
     ) {
@@ -65,25 +65,38 @@ class Mapper_specs {
     }
 
     @AutoParameterizedTest
-    void converting_map_with_classes_correctly_converts_object(
+    void converting_map_correctly_converts_object(
         Mapper sut,
         User source
     ) {
         User actual = sut.map(source, User.class, User.class);
+
+        assertThat(actual).isNotSameAs(source);
         assertThat(actual).usingRecursiveComparison().isEqualTo(source);
     }
 
     @AutoParameterizedTest
-    void converting_map_with_classes_works_with_default_constructor(
+    void converting_map_works_with_default_constructor(
         Mapper sut,
-        User source
+        UserView source
     ) {
-        UserView actual = sut.map(source, User.class, UserView.class);
+        UserView actual = sut.map(source, UserView.class, UserView.class);
+
         assertThat(actual).isNotNull();
+        assertThat(actual).isNotSameAs(source);
     }
 
     @AutoParameterizedTest
-    void converting_map_with_classes_ignores_extra_properties(
+    void converting_map_correctly_sets_setter_properties(
+        Mapper sut,
+        UserView source
+    ) {
+        UserView actual = sut.map(source, UserView.class, UserView.class);
+        assertThat(actual).usingRecursiveComparison().isEqualTo(source);
+    }
+
+    @AutoParameterizedTest
+    void converting_map_ignores_extra_properties(
         Mapper sut,
         User source
     ) {
@@ -92,7 +105,7 @@ class Mapper_specs {
     }
 
     @AutoParameterizedTest
-    void converting_map_with_classes_converts_null_value_to_null_value(
+    void converting_map_converts_null_value_to_null_value(
         Mapper sut
     ) {
         User actual = sut.map(null, User.class, User.class);
@@ -124,7 +137,7 @@ class Mapper_specs {
     }
 
     @AutoParameterizedTest
-    void converting_map_with_classes_creates_copy_of_complex_object(
+    void converting_map_creates_copy_of_complex_object_for_constructor_properties(
         Mapper sut,
         Order source
     ) {
@@ -143,21 +156,6 @@ class Mapper_specs {
             .isEqualTo(source.getShipment().getAddress());
     }
 
-    @AutoParameterizedTest
-    void converting_map_with_classes_correctly_sets_settable_properties(
-        Mapper sut,
-        UserView source
-    ) {
-        UserView destination = sut.map(
-            source,
-            UserView.class,
-            UserView.class);
-
-        assertThat(destination)
-            .usingRecursiveComparison()
-            .isEqualTo(source);
-    }
-
     @AllArgsConstructor
     @Getter
     public static class DiscountPolicy {
@@ -167,7 +165,7 @@ class Mapper_specs {
 
     @AutoParameterizedTest
     @Repeat(10)
-    void converting_map_with_classes_accepts_is_prefix_for_getter_of_boolean_properties(
+    void converting_map_accepts_is_prefix_for_getter_of_boolean_properties(
         Mapper sut,
         DiscountPolicy source
     ) {
@@ -198,7 +196,7 @@ class Mapper_specs {
     }
 
     @AutoParameterizedTest
-    void converting_map_with_classes_converts_uuid_to_string(
+    void converting_map_converts_uuid_to_string(
         Mapper sut,
         Post source
     ) {
@@ -209,7 +207,7 @@ class Mapper_specs {
     }
 
     @AutoParameterizedTest
-    void converting_map_with_classes_converts_null_uuid_to_null_string(
+    void converting_map_converts_null_uuid_to_null_string(
         Mapper sut,
         UUID authorId,
         String title,
@@ -222,7 +220,7 @@ class Mapper_specs {
     }
 
     @AutoParameterizedTest
-    void converting_map_with_classes_correctly_converts_big_integer_value(
+    void converting_map_correctly_converts_big_integer_value(
         Mapper sut,
         BigInteger source
     ) {
@@ -231,7 +229,7 @@ class Mapper_specs {
     }
 
     @AutoParameterizedTest
-    void converting_map_with_classes_correctly_converts_big_decimal_value(
+    void converting_map_correctly_converts_big_decimal_value(
         Mapper sut,
         BigDecimal source
     ) {
@@ -240,7 +238,7 @@ class Mapper_specs {
     }
 
     @AutoParameterizedTest
-    void converting_map_with_classes_correctly_converts_local_date_value(
+    void converting_map_correctly_converts_local_date_value(
         Mapper sut,
         LocalDate source
     ) {
@@ -249,7 +247,7 @@ class Mapper_specs {
     }
 
     @AutoParameterizedTest
-    void converting_map_with_classes_correctly_converts_local_time_value(
+    void converting_map_correctly_converts_local_time_value(
         Mapper sut,
         LocalTime source
     ) {
@@ -258,7 +256,7 @@ class Mapper_specs {
     }
 
     @AutoParameterizedTest
-    void converting_map_with_classes_correctly_converts_local_date_time_value(
+    void converting_map_correctly_converts_local_date_time_value(
         Mapper sut,
         LocalDateTime source
     ) {
@@ -367,7 +365,7 @@ class Mapper_specs {
     }
 
     @AutoParameterizedTest
-    void projecting_map_with_classes_has_null_guard_for_source(
+    void projecting_map_has_null_guard_for_source(
         Mapper sut,
         UserView destination
     ) {
@@ -379,7 +377,7 @@ class Mapper_specs {
     }
 
     @AutoParameterizedTest
-    void projecting_map_with_classes_has_null_guard_for_destination(
+    void projecting_map_has_null_guard_for_destination(
         Mapper sut,
         User source
     ) {
@@ -391,7 +389,7 @@ class Mapper_specs {
     }
 
     @AutoParameterizedTest
-    void projecting_map_with_classes_has_null_guard_for_source_type(
+    void projecting_map_has_null_guard_for_source_type(
         Mapper sut,
         User source,
         UserView destination
@@ -404,7 +402,7 @@ class Mapper_specs {
     }
 
     @AutoParameterizedTest
-    void projecting_map_with_classes_has_null_guard_for_destination_type(
+    void projecting_map_has_null_guard_for_destination_type(
         Mapper sut,
         User source,
         UserView destination
@@ -417,7 +415,7 @@ class Mapper_specs {
     }
 
     @AutoParameterizedTest
-    void projection_map_with_classes_correctly_maps_properties(
+    void projection_map_correctly_maps_properties(
         Mapper sut,
         User source
     ) {
@@ -445,7 +443,7 @@ class Mapper_specs {
     }
 
     @AutoParameterizedTest
-    void projecting_map_with_classes_fails_for_missing_property(
+    void projecting_map_fails_for_missing_property(
         Mapper sut,
         Pricing source,
         PricingView destination
@@ -457,6 +455,46 @@ class Mapper_specs {
             PricingView.class))
             .isInstanceOf(RuntimeException.class)
             .hasMessageContaining("salePrice");
+    }
+
+    @AutoParameterizedTest
+    void projecting_map_ignores_extra_properties(
+        Mapper sut,
+        User source
+    ) {
+        UserView destination = new UserView();
+        sut.map(source, destination, User.class, UserView.class);
+        assertThat(destination).usingRecursiveComparison().isEqualTo(source);
+    }
+
+    @Getter
+    @Setter
+    public static class OrderView {
+        private UUID id;
+        private long itemId;
+        private int quantity;
+        private Shipment shipment;
+    }
+
+    @AutoParameterizedTest
+    void projecting_map_creates_copy_of_complex_object_for_setter_properties(
+        Mapper sut,
+        Order source,
+        OrderView destination
+    ) {
+        // Act
+        sut.map(source, destination, Order.class, OrderView.class);
+
+        // Assert
+        assertThat(destination.getShipment())
+            .isNotSameAs(source.getShipment())
+            .usingRecursiveComparison()
+            .isEqualTo(source.getShipment());
+
+        assertThat(destination.getShipment().getAddress())
+            .isNotSameAs(source.getShipment().getAddress())
+            .usingRecursiveComparison()
+            .isEqualTo(source.getShipment().getAddress());
     }
 
     @AutoParameterizedTest
