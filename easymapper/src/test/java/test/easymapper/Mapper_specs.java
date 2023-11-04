@@ -433,14 +433,14 @@ class Mapper_specs {
     @Getter
     public static class Pricing {
         private final double listPrice;
-        private final double discount;
+        private final double discountRate;
     }
 
     @Getter
     @Setter
     public static class PricingView {
         private double listPrice;
-        private double discount;
+        private double discountRate;
         private double salePrice;
     }
 
