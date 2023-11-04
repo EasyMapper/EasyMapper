@@ -45,20 +45,18 @@ public final class MappingContext {
 
     private Object constructThenProject(Object source) {
         Object destination = construct(source);
-        project(
-            new Variable(sourceType, "source", source),
-            new Variable(destinationType, "destination", destination));
+        project(source, destination);
         return destination;
     }
 
     private Object construct(Object source) {
         Constructor<?> constructor = mapper.getConstructor(destinationType);
         Parameter[] parameters = constructor.getParameters();
-        String[] destinationPropertyNames = mapper.getPropertyNames(constructor);
+        String[] propertyNames = mapper.getPropertyNames(constructor);
         Object[] arguments = new Object[parameters.length];
 
         for (int i = 0; i < parameters.length; i++) {
-            arguments[i] = compute(source, destinationPropertyNames[i]);
+            arguments[i] = compute(source, propertyNames[i]);
         }
 
         try {
@@ -71,7 +69,8 @@ public final class MappingContext {
     private Object compute(Object source, String destinationPropertyName) {
         return mapping
             .computation(destinationPropertyName)
-            .<Supplier<Object>>map(computation -> () -> computation.apply(this).apply(source))
+            .<Supplier<Object>>map(computation ->
+                () -> computation.apply(this).apply(source))
             .orElse(() -> convertProperty(source, destinationPropertyName))
             .get();
     }
@@ -85,61 +84,55 @@ public final class MappingContext {
         return context.convert(sourceProperty.get(source));
     }
 
-    void project(Variable source, Variable destination) {
-        Object sourceValue = source.get();
-        Object destinationValue = destination.get();
-
-        if (sourceValue == destinationValue) {
+    void project(Object source, Object destination) {
+        if (source == destination) {
             return;
-        } else if (sourceValue == null) {
-            String message = "'" + source.name() + "' is null but '" + destination.name() + "' is not null.";
-            throw new RuntimeException(message);
-        } else if (destinationValue == null) {
-            String message = "'" + source.name() + "' is not null but '" + destination.name() + "' is null.";
-            throw new RuntimeException(message);
         }
 
         mapping
             .projection()
             .<Runnable>map(projection -> () -> projection
                 .apply(this)
-                .accept(sourceValue, destinationValue))
-            .orElse(() -> projectProperties(sourceValue, destinationValue))
+                .accept(source, destination))
+            .orElse(() -> {
+                setWritableProperties(source, destination);
+                projectToReadOnlyProperties(source, destination);
+            })
             .run();
     }
 
-    private void projectProperties(Object source, Object destination) {
-        projectWritableProperties(source, destination);
-        projectReadOnlyProperties(source, destination);
-    }
-
-    private void projectWritableProperties(Object source, Object destination) {
+    private void setWritableProperties(Object source, Object destination) {
         Properties destinationProperties = getDestinationProperties();
         destinationProperties.useWritableProperties(destinationProperty ->
-            computeIfPossible(source, destinationProperty.bind(destination)));
+            computeOrConvertProperty(
+                source,
+                destinationProperty.bind(destination)));
     }
 
-    private void computeIfPossible(Object source, Variable destination) {
-        String name = destination.name();
+    private void computeOrConvertProperty(
+        Object source,
+        Variable destinationProperty
+    ) {
+        String name = destinationProperty.name();
         mapping
             .computation(name)
             .<Runnable>map(computation -> () ->
-                destination.set(computation.apply(this).apply(source)))
+                destinationProperty.set(computation.apply(this).apply(source)))
             .orElse(() -> getDestinationProperties().ifPresent(
                 name,
-                () -> projectOrSetProperty(source, destination)))
+                () -> convertProperty(source, destinationProperty)))
             .run();
     }
 
-    private void projectOrSetProperty(Object source, Variable destination) {
-        Property sourceProperty = getSourceProperty(destination.name());
+    private void convertProperty(Object source, Variable destinationProperty) {
+        Property sourceProperty = getSourceProperty(destinationProperty.name());
         MappingContext context = branchContext(
             sourceProperty.type(),
-            destination.type());
-        context.projectOrSet(sourceProperty.bind(source), destination);
+            destinationProperty.type());
+        context.setProperty(sourceProperty.bind(source), destinationProperty);
     }
 
-    private void projectOrSet(Variable source, Variable destination) {
+    private void setProperty(Variable source, Variable destination) {
         Object sourceValue = source.get();
 
         if (sourceValue == destination.get()) {
@@ -149,29 +142,39 @@ public final class MappingContext {
             throw new RuntimeException(message);
         }
 
-        mapping
-            .projection()
-            .<Runnable>map(projection -> () -> projection
-                .apply(this)
-                .accept(
-                    sourceValue,
-                    destination.getOrSetIfNull(() -> convert(sourceValue))))
-            .orElse(() -> destination.set(convert(sourceValue)))
-            .run();
+        destination.set(convert(sourceValue));
     }
 
-    private void projectReadOnlyProperties(Object source, Object destination) {
+    private void projectToReadOnlyProperties(
+        Object source,
+        Object destination
+    ) {
         getDestinationProperties().useReadOnlyProperties(destinationProperty ->
-            projectPropertyIfPresent(source, destinationProperty.bind(destination)));
+            projectIfPresent(source, destinationProperty.bind(destination)));
     }
 
-    private void projectPropertyIfPresent(Object source, Variable destination) {
+    private void projectIfPresent(Object source, Variable destination) {
         getSourceProperties().ifPresent(destination.name(), sourceProperty -> {
             MappingContext context = branchContext(
                 sourceProperty.type(),
                 destination.type());
             context.project(sourceProperty.bind(source), destination);
         });
+    }
+
+    private void project(Variable source, Variable destination) {
+        Object sourceValue = source.get();
+        Object destinationValue = destination.get();
+
+        if (sourceValue == null && destinationValue != null) {
+            String message = "'" + source.name() + "' is null but '" + destination.name() + "' is not null.";
+            throw new RuntimeException(message);
+        } else if (sourceValue != null && destinationValue == null) {
+            String message = "'" + source.name() + "' is not null but '" + destination.name() + "' is null.";
+            throw new RuntimeException(message);
+        }
+
+        project(sourceValue, destinationValue);
     }
 
     private Properties getSourceProperties() {

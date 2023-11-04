@@ -415,16 +415,17 @@ class Mapper_specs {
     }
 
     @AutoParameterizedTest
-    void projection_map_correctly_maps_properties(
+    void projection_map_correctly_projects_properties(
         Mapper sut,
-        User source
+        Post source,
+        PostView destination
     ) {
-        UserView destination = new UserView();
+        sut.map(source, destination, Post.class, PostView.class);
 
-        sut.map(source, destination, User.class, UserView.class);
-
-        assertThat(destination.getId()).isEqualTo(source.getId());
-        assertThat(destination.getUsername()).isEqualTo(source.getUsername());
+        assertThat(destination.getId()).isEqualTo(source.getId().toString());
+        assertThat(destination.getAuthorId()).isEqualTo(source.getAuthorId().toString());
+        assertThat(destination.getTitle()).isEqualTo(source.getTitle());
+        assertThat(destination.getText()).isEqualTo(source.getText());
     }
 
     @AllArgsConstructor
@@ -495,6 +496,41 @@ class Mapper_specs {
             .isNotSameAs(source.getShipment().getAddress())
             .usingRecursiveComparison()
             .isEqualTo(source.getShipment().getAddress());
+    }
+
+    @AutoParameterizedTest
+    void projecting_map_fails_if_source_property_is_null_and_read_only_destination_property_is_not_null(
+        Mapper sut,
+        User destination
+    ) {
+        User source = new User(
+            destination.getId(),
+            destination.getUsername(),
+            null);
+
+        assertThatThrownBy(() -> sut.map(
+            source,
+            destination,
+            User.class,
+            User.class))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessageContaining("passwordHash");
+    }
+
+    @AutoParameterizedTest
+    void projecting_map_fails_if_source_property_is_not_null_and_read_only_destination_property_is_null(
+        Mapper sut,
+        User source
+    ) {
+        User destination = new User(source.getId(), source.getUsername(), null);
+
+        assertThatThrownBy(() -> sut.map(
+            source,
+            destination,
+            User.class,
+            User.class))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessageContaining("passwordHash");
     }
 
     @AutoParameterizedTest
@@ -608,10 +644,9 @@ class Mapper_specs {
     @AutoParameterizedTest
     void projecting_map_with_no_type_hint_correctly_maps_properties(
         Mapper sut,
-        User source
+        User source,
+        UserView destination
     ) {
-        UserView destination = new UserView();
-
         sut.map(source, destination);
 
         assertThat(destination.getId()).isEqualTo(source.getId());

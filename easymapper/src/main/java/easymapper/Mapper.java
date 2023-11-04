@@ -118,9 +118,7 @@ public class Mapper {
             throw argumentNullException("destinationType");
         }
 
-        createContext(sourceType, destinationType).project(
-            new Variable(sourceType, "source", source),
-            new Variable(destinationType, "destination", destination));
+        createContext(sourceType, destinationType).project(source, destination);
     }
 
     public <S, D> void map(
@@ -142,9 +140,7 @@ public class Mapper {
         Type sourceType = sourceTypeReference.getType();
         Type destinationType = destinationTypeReference.getType();
 
-        createContext(sourceType, destinationType).project(
-            new Variable(sourceType, "source", source),
-            new Variable(destinationType, "destination", destination));
+        createContext(sourceType, destinationType).project(source, destination);
     }
 
     public void map(Object source, Object destination) {
@@ -157,9 +153,7 @@ public class Mapper {
         Type sourceType = source.getClass();
         Type destinationType = destination.getClass();
 
-        createContext(sourceType, destinationType).project(
-            new Variable(sourceType, "source", source),
-            new Variable(destinationType, "destination", destination));
+        createContext(sourceType, destinationType).project(source, destination);
     }
 
     Constructor<?> getConstructor(Type type) {
