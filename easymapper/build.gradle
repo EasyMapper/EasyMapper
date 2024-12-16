@@ -23,8 +23,8 @@ dependencies {
     testImplementation 'io.github.autoparams:autoparams-mockito:3.0.3'
     testImplementation 'org.assertj:assertj-core:3.23.1'
     testImplementation 'javax.persistence:javax.persistence-api:2.2'
-    testCompileOnly 'org.projectlombok:lombok:1.18.24'
-    testAnnotationProcessor 'org.projectlombok:lombok:1.18.24'
+    testCompileOnly 'org.projectlombok:lombok:1.18.30'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.30'
 }
 
 test {
