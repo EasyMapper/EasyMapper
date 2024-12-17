@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@SuppressWarnings({ "DataFlowIssue", "ConstantValue" })
 class Mapper_specs {
 
     @Test
@@ -444,22 +445,18 @@ class Mapper_specs {
     }
 
     @AutoParameterizedTest
-    void projecting_map_fails_for_missing_property(
+    void projecting_map_ignores_for_missing_property_of_target(
         Mapper sut,
         Pricing source,
         PricingView destination
     ) {
-        assertThatThrownBy(() -> sut.map(
-            source,
-            destination,
-            Pricing.class,
-            PricingView.class))
-            .isInstanceOf(RuntimeException.class)
-            .hasMessageContaining("salePrice");
+        double snapshot = destination.getSalePrice();
+        sut.map(source, destination, Pricing.class, PricingView.class);
+        assertThat(destination.getSalePrice()).isEqualTo(snapshot);
     }
 
     @AutoParameterizedTest
-    void projecting_map_ignores_extra_properties(
+    void projecting_map_ignores_extra_properties_of_source(
         Mapper sut,
         User source
     ) {

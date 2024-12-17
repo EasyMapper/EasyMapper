@@ -120,16 +120,17 @@ public final class MappingContext {
                 destinationProperty.set(computation.apply(this).apply(source)))
             .orElse(() -> getDestinationProperties().ifPresent(
                 name,
-                () -> convertProperty(source, destinationProperty)))
+                () -> convertIfPresent(source, destinationProperty)))
             .run();
     }
 
-    private void convertProperty(Object source, Variable destinationProperty) {
-        Property sourceProperty = getSourceProperty(destinationProperty.name());
-        MappingContext context = branchContext(
-            sourceProperty.type(),
-            destinationProperty.type());
-        context.setProperty(sourceProperty.bind(source), destinationProperty);
+    private void convertIfPresent(Object source, Variable destination) {
+        getSourceProperties().ifPresent(destination.name(), sourceProperty -> {
+            MappingContext context = branchContext(
+                sourceProperty.type(),
+                destination.type());
+            context.setProperty(sourceProperty.bind(source), destination);
+        });
     }
 
     private void setProperty(Variable source, Variable destination) {
