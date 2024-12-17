@@ -95,16 +95,42 @@ public class Mapper {
         return (D) context.convert(source);
     }
 
+    @Deprecated
     public <S, D> void map(
         @NonNull S source,
         @NonNull D destination,
         @NonNull Class<S> sourceType,
         @NonNull Class<D> destinationType
     ) {
-        createContext(sourceType, destinationType).project(source, destination);
+        project(source, destination, sourceType, destinationType);
     }
 
+    public <S, D> void project(
+        @NonNull S source,
+        @NonNull D destination,
+        @NonNull Class<S> sourceType,
+        @NonNull Class<D> destinationType
+    ) {
+        MappingContext context = createContext(sourceType, destinationType);
+        context.project(source, destination);
+    }
+
+    @Deprecated
     public <S, D> void map(
+        @NonNull S source,
+        @NonNull D destination,
+        @NonNull TypeReference<S> sourceTypeReference,
+        @NonNull TypeReference<D> destinationTypeReference
+    ) {
+        project(
+            source,
+            destination,
+            sourceTypeReference,
+            destinationTypeReference
+        );
+    }
+
+    public <S, D> void project(
         @NonNull S source,
         @NonNull D destination,
         @NonNull TypeReference<S> sourceTypeReference,
@@ -112,13 +138,20 @@ public class Mapper {
     ) {
         Type sourceType = sourceTypeReference.getType();
         Type destinationType = destinationTypeReference.getType();
-        createContext(sourceType, destinationType).project(source, destination);
+        MappingContext context = createContext(sourceType, destinationType);
+        context.project(source, destination);
     }
 
+    @Deprecated
     public void map(@NonNull Object source, @NonNull Object destination) {
+        project(source, destination);
+    }
+
+    public void project(@NonNull Object source, @NonNull Object destination) {
         Type sourceType = source.getClass();
         Type destinationType = destination.getClass();
-        createContext(sourceType, destinationType).project(source, destination);
+        MappingContext context = createContext(sourceType, destinationType);
+        context.project(source, destination);
     }
 
     Constructor<?> getConstructor(Type type) {
