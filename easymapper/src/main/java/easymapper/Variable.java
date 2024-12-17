@@ -23,10 +23,6 @@ class Variable extends ValueContainer {
         this.setter = setter;
     }
 
-    public Variable(Type type, String name, Object value) {
-        this(type, name, () -> value, null);
-    }
-
     @Override
     public Type type() {
         return type;
@@ -54,19 +50,5 @@ class Variable extends ValueContainer {
     public void set(Object value) {
         assertThatWritable();
         setter.accept(value);
-    }
-
-    public Object getOrSetIfNull(Supplier<Object> valueSupplier) {
-        assertThatWritable();
-
-        Object value = get();
-
-        if (value != null) {
-            return value;
-        }
-
-        Object newValue = valueSupplier.get();
-        set(newValue);
-        return newValue;
     }
 }
