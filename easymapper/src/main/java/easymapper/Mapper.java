@@ -64,14 +64,17 @@ public class Mapper {
         return convert(source, sourceType, destinationType);
     }
 
-    @SuppressWarnings("unchecked")
     public <S, D> D convert(
         S source,
         @NonNull Class<S> sourceType,
         @NonNull Class<D> destinationType
     ) {
-        MappingContext context = createContext(sourceType, destinationType);
-        return (D) context.convert(source);
+        return convertObject(source, sourceType, destinationType);
+    }
+
+    public <S, D> D convert(S source, @NonNull Class<D> destinationType) {
+        Type sourceType = source.getClass();
+        return convertObject(source, sourceType, destinationType);
     }
 
     @Deprecated
@@ -83,7 +86,6 @@ public class Mapper {
         return convert(source, sourceTypeReference, destinationTypeReference);
     }
 
-    @SuppressWarnings("unchecked")
     public <S, D> D convert(
         S source,
         @NonNull TypeReference<S> sourceTypeReference,
@@ -91,6 +93,15 @@ public class Mapper {
     ) {
         Type sourceType = sourceTypeReference.getType();
         Type destinationType = destinationTypeReference.getType();
+        return convertObject(source, sourceType, destinationType);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <S, D> D convertObject(
+        S source,
+        Type sourceType,
+        Type destinationType
+    ) {
         MappingContext context = createContext(sourceType, destinationType);
         return (D) context.convert(source);
     }
