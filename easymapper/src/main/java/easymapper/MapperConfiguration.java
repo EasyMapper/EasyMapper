@@ -2,10 +2,8 @@ package easymapper;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -13,27 +11,22 @@ import static easymapper.Exceptions.argumentNullException;
 
 public final class MapperConfiguration {
 
-    private static final ConstructorExtractor defaultConstructorExtractor =
-        t -> Arrays.asList(t.getConstructors());
-
-    private static final ParameterNameResolver defaultParameterNameResolver =
-        p -> p.isNamePresent() ? Optional.of(p.getName()) : Optional.empty();
-
     private ConstructorExtractor constructorExtractor;
     private ParameterNameResolver parameterNameResolver;
-    private final List<MappingBuilder<?, ?>> mappings;
+    private final List<MappingBuilder<?, ?>> mappings = new ArrayList<>();
 
     MapperConfiguration() {
-        constructorExtractor = defaultConstructorExtractor;
-        parameterNameResolver = defaultParameterNameResolver;
-        mappings = new ArrayList<>();
+        constructorExtractor = DefaultConstructorExtractor.INSTANCE;
+        parameterNameResolver = DefaultParameterNameResolver.INSTANCE;
     }
 
     public ConstructorExtractor getConstructorExtractor() {
         return constructorExtractor;
     }
 
-    public MapperConfiguration setConstructorExtractor(ConstructorExtractor value) {
+    public MapperConfiguration setConstructorExtractor(
+        ConstructorExtractor value
+    ) {
         if (value == null) {
             throw argumentNullException("value");
         }
@@ -47,7 +40,9 @@ public final class MapperConfiguration {
         return parameterNameResolver;
     }
 
-    public MapperConfiguration setParameterNameResolver(ParameterNameResolver value) {
+    public MapperConfiguration setParameterNameResolver(
+        ParameterNameResolver value
+    ) {
         if (value == null) {
             throw argumentNullException("value");
         }
@@ -55,6 +50,10 @@ public final class MapperConfiguration {
         this.parameterNameResolver = value;
 
         return this;
+    }
+
+    public Collection<MappingBuilder<?, ?>> getMappings() {
+        return mappings;
     }
 
     public MapperConfiguration apply(Consumer<MapperConfiguration> configurer) {
@@ -137,9 +136,5 @@ public final class MapperConfiguration {
         mappings.add(mapping);
 
         return this;
-    }
-
-    public Collection<MappingBuilder<?, ?>> getMappings() {
-        return mappings;
     }
 }
