@@ -4,24 +4,15 @@ import java.lang.reflect.Type;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+import lombok.AllArgsConstructor;
+
+@AllArgsConstructor
 final class Property extends ValueContainer {
 
     private final Type type;
     private final String name;
     private final Function<Object, Object> getter;
     private final BiConsumer<Object, Object> setter;
-
-    public Property(
-        Type type,
-        String name,
-        Function<Object, Object> getter,
-        BiConsumer<Object, Object> setter
-    ) {
-        this.type = type;
-        this.name = name;
-        this.getter = getter;
-        this.setter = setter;
-    }
 
     @Override
     public Type type() {
