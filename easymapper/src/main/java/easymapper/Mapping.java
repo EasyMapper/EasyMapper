@@ -41,9 +41,7 @@ class Mapping<S, D> {
         return Optional.ofNullable(projection);
     }
 
-    public Optional<Computation<S>> computation(
-        String destinationPropertyName
-    ) {
-        return Optional.ofNullable(computation.get(destinationPropertyName));
+    public Optional<Computation<S>> computation(String propertyName) {
+        return Optional.ofNullable(computation.get(propertyName));
     }
 }
