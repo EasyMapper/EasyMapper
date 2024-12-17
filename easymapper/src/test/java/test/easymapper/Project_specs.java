@@ -1,6 +1,7 @@
 package test.easymapper;
 
 import easymapper.Mapper;
+import easymapper.Projection;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -40,7 +41,7 @@ public class Project_specs {
     void project_is_fluent() {
         new Mapper(config -> config
             .map(User.class, UserView.class, mapping -> assertThat(mapping
-                .project(context -> (source, destination) -> {}))
+                .project(Projection.empty()))
                 .isSameAs(mapping)));
     }
 
@@ -48,7 +49,7 @@ public class Project_specs {
     void project_correctly_works(User user, UserView view) {
         Mapper mapper = new Mapper(config -> config
             .map(User.class, UserView.class, mapping -> mapping
-                .project(context -> (source, destination) -> {
+                .project((context, source, destination) -> {
                     destination.setId(valueOf(source.getId()));
                     destination.setName(source.getUsername());
                 })));
@@ -79,7 +80,7 @@ public class Project_specs {
         // Arrange
         Mapper mapper = new Mapper(config -> config
             .map(User.class, UserView.class, mapping -> mapping
-                .project(context -> (source, destination) -> {
+                .project((context, source, destination) -> {
                     destination.setId(valueOf(source.getId()));
                     destination.setName(source.getUsername());
                 })));
@@ -103,8 +104,8 @@ public class Project_specs {
     void project_throws_exception_if_projection_already_set() {
         ThrowingCallable action = () -> new Mapper(config -> config
             .map(User.class, UserView.class, mapping -> mapping
-                .project(context -> (source, destination) -> {})
-                .project(context -> (source, destination) -> {})));
+                .project(Projection.empty())
+                .project(Projection.empty())));
 
         assertThatThrownBy(action).isInstanceOf(RuntimeException.class);
     }

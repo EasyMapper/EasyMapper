@@ -30,7 +30,7 @@ public class Compute_specs {
     void compute_has_null_guard_for_destination_property_name() {
         assertThatThrownBy(() -> new Mapper(config -> config
             .map(User.class, UserView.class, mapping -> mapping
-                .compute(null, context -> source -> valueOf(source.getId())))))
+                .compute(null, (context, source) -> valueOf(source.getId())))))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("destinationPropertyName");
     }
@@ -48,7 +48,7 @@ public class Compute_specs {
     void compute_is_fluent() {
         new Mapper(config -> config
             .map(User.class, UserView.class, mapping -> assertThat(mapping
-                .compute("id", context -> source -> valueOf(source.getId())))
+                .compute("id", (context, source) -> valueOf(source.getId())))
                 .isSameAs(mapping)));
     }
 
@@ -56,8 +56,8 @@ public class Compute_specs {
     void compute_correctly_works_for_constructor_properties(User user) {
         Mapper mapper = new Mapper(config -> config
             .map(User.class, UserView.class, mapping -> mapping
-                .compute("id", context -> source -> valueOf(source.getId()))
-                .compute("name", context -> User::getUsername)));
+                .compute("id", (context, source) -> valueOf(source.getId()))
+                .compute("name", (context, source) -> source.getUsername())));
 
         UserView actual = mapper.map(user, User.class, UserView.class);
 
@@ -71,8 +71,8 @@ public class Compute_specs {
     ) {
         Mapper mapper = new Mapper(config -> config
             .map(User.class, UserView.class, mapping -> mapping
-                .compute("id", context -> source -> valueOf(source.getId()))
-                .compute("name", context -> source -> null)));
+                .compute("id", (context, source) -> valueOf(source.getId()))
+                .compute("name", (context, source) -> null)));
 
         UserView actual = mapper.map(user, User.class, UserView.class);
 
@@ -103,7 +103,7 @@ public class Compute_specs {
     void compute_correctly_works_for_setter_properties(Pricing pricing) {
         Mapper mapper = new Mapper(config -> config
             .map(Pricing.class, PricingView.class, mapping -> mapping
-                .compute("salePrice", context -> Pricing::calculateSalePrice)));
+                .compute("salePrice", (context, source) -> source.calculateSalePrice())));
 
         PricingView actual = mapper.map(pricing, Pricing.class, PricingView.class);
 
@@ -116,7 +116,7 @@ public class Compute_specs {
     void compute_does_not_allow_duplicate_destination_property_name() {
         assertThatThrownBy(() -> new Mapper(config -> config
             .map(User.class, UserView.class, mapping -> mapping
-                .compute("id", context -> source -> valueOf(source.getId()))
-                .compute("id", context -> source -> null))));
+                .compute("id", (context, source) -> valueOf(source.getId()))
+                .compute("id", (context, source) -> null))));
     }
 }

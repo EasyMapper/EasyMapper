@@ -63,7 +63,7 @@ public class Mapper {
                 .stream()
                 .filter(m -> m.match(sourceType, destinationType))
                 .findFirst()
-                .orElse(Mapping.empty));
+                .orElse(Mapping.EMPTY));
     }
 
     @SuppressWarnings("unchecked")

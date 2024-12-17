@@ -12,8 +12,8 @@ class CollectionMapping {
             CollectionMapping::isIterable,
             CollectionMapping::isIterable,
             mapping -> mapping
-                .convert(context -> source -> convert(context, source))
-                .project(context -> (source, target) -> {}));
+                .convert(CollectionMapping::convert)
+                .project(Projection.empty()));
     }
 
     private static boolean isIterable(Type type) {

@@ -1,11 +1,9 @@
 package easymapper;
 
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import static easymapper.Exceptions.argumentNullException;
 
@@ -67,8 +65,8 @@ public final class MapperConfiguration {
     }
 
     public MapperConfiguration map(
-        Function<Type, Boolean> sourceTypePredicate,
-        Function<Type, Boolean> destinationTypePredicate,
+        TypePredicate sourceTypePredicate,
+        TypePredicate destinationTypePredicate,
         Consumer<MappingBuilder<Object, Object>> configurer
     ) {
         if (sourceTypePredicate == null) {

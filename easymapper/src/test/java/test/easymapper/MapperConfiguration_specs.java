@@ -2,16 +2,15 @@ package test.easymapper;
 
 import java.beans.ConstructorProperties;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import easymapper.ConstructorExtractor;
 import easymapper.Mapper;
 import easymapper.MapperConfiguration;
 import easymapper.ParameterNameResolver;
+import easymapper.TypePredicate;
 import easymapper.TypeReference;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -42,7 +41,7 @@ public class MapperConfiguration_specs {
         private final double salePrice;
     }
 
-    private static final Function<Type, Boolean> accept = type -> true;
+    private static final TypePredicate accept = type -> true;
 
     @AllArgsConstructor
     @Getter
@@ -106,7 +105,7 @@ public class MapperConfiguration_specs {
             type -> type.equals(User.class),
             type -> type.equals(UserView.class),
             mapping -> mapping.convert(
-                context -> source -> UserView.from((User) source))));
+                (context, source) -> UserView.from((User) source))));
 
         UserView actual = mapper.map(user, User.class, UserView.class);
 
@@ -148,9 +147,9 @@ public class MapperConfiguration_specs {
     void map_with_classes_overwrites_existing_map() {
         Mapper mapper = new Mapper(config -> config
             .map(String.class, String.class, mapping -> mapping
-                .convert(context -> source -> source + "1"))
+                .convert((context, source) -> source + "1"))
             .map(String.class, String.class, mapping -> mapping
-                .convert(context -> source -> source + "2")));
+                .convert((context, source) -> source + "2")));
 
         String actual = mapper.map("0", String.class, String.class);
 
@@ -216,7 +215,7 @@ public class MapperConfiguration_specs {
         Mapper mapper = new Mapper(config -> config.map(
             new TypeReference<User>() {},
             new TypeReference<UserView>() {},
-            mapping -> mapping.convert(context -> UserView::from)));
+            mapping -> mapping.convert((context, source) -> UserView.from(source))));
 
         UserView actual = mapper.map(user, User.class, UserView.class);
 
@@ -352,7 +351,7 @@ public class MapperConfiguration_specs {
             .map(Pricing.class, PricingView.class, mapping -> mapping
                 .compute(
                     "salePrice",
-                    context -> source -> source.getListPrice() - source.getDiscount()));
+                    (context, source) -> source.getListPrice() - source.getDiscount()));
 
         Mapper mapper = new Mapper(config -> config.apply(configurer));
 

@@ -5,31 +5,32 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 class Mapping<S, D> {
 
-    public static final Mapping<Object, Object> empty = new Mapping<>(
-        TypePredicates.acceptAllTypes,
-        TypePredicates.acceptAllTypes,
-        null,
-        null,
-        Collections.unmodifiableMap(new HashMap<>())
-    );
+    public static final Mapping<Object, Object> EMPTY = emptyMapping();
 
-    private final Function<Type, Boolean> sourceTypePredicate;
-    private final Function<Type, Boolean> destinationTypePredicate;
-    private final Function<MappingContext, Function<S, D>> conversion;
-    private final Function<MappingContext, BiConsumer<S, D>> projection;
-    private final Map<String, Function<MappingContext, Function<S, Object>>> computation;
+    private static Mapping<Object, Object> emptyMapping() {
+        TypePredicate acceptAll = TypePredicate.ACCEPT_ALL_TYPES;
+        return new Mapping<>(acceptAll, acceptAll, null, null, emptyMap());
+    }
+
+    private static Map<String, Computation<Object>> emptyMap() {
+        return Collections.unmodifiableMap(new HashMap<>());
+    }
+
+    private final TypePredicate sourceTypePredicate;
+    private final TypePredicate destinationTypePredicate;
+    private final Conversion<S, D> conversion;
+    private final Projection<S, D> projection;
+    private final Map<String, Computation<S>> computation;
 
     public Mapping(
-        Function<Type, Boolean> sourceTypePredicate,
-        Function<Type, Boolean> destinationTypePredicate,
-        Function<MappingContext, Function<S, D>> conversion,
-        Function<MappingContext, BiConsumer<S, D>> projection,
-        Map<String, Function<MappingContext, Function<S, Object>>> computation
+        TypePredicate sourceTypePredicate,
+        TypePredicate destinationTypePredicate,
+        Conversion<S, D> conversion,
+        Projection<S, D> projection,
+        Map<String, Computation<S>> computation
     ) {
         this.sourceTypePredicate = sourceTypePredicate;
         this.destinationTypePredicate = destinationTypePredicate;
@@ -39,19 +40,19 @@ class Mapping<S, D> {
     }
 
     public boolean match(Type sourceType, Type destinationType) {
-        return sourceTypePredicate.apply(sourceType)
-            && destinationTypePredicate.apply(destinationType);
+        return sourceTypePredicate.test(sourceType)
+            && destinationTypePredicate.test(destinationType);
     }
 
-    public Optional<Function<MappingContext, Function<S, D>>> conversion() {
+    public Optional<Conversion<S, D>> conversion() {
         return Optional.ofNullable(conversion);
     }
 
-    public Optional<Function<MappingContext, BiConsumer<S, D>>> projection() {
+    public Optional<Projection<S, D>> projection() {
         return Optional.ofNullable(projection);
     }
 
-    public Optional<Function<MappingContext, Function<S, Object>>> computation(
+    public Optional<Computation<S>> computation(
         String destinationPropertyName
     ) {
         return Optional.ofNullable(computation.get(destinationPropertyName));

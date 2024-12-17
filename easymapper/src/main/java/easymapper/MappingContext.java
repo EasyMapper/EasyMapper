@@ -3,13 +3,10 @@ package easymapper;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
-import java.util.function.Supplier;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
-import static easymapper.Reflection.invoke;
 
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
 public final class MappingContext {
@@ -31,7 +28,7 @@ public final class MappingContext {
     Object convert(Object source) {
         return mapping
             .conversion()
-            .map(conversion -> conversion.apply(this).apply(source))
+            .map(conversion -> conversion.convert(this, source))
             .orElseGet(() -> convertInDefaultWay(source));
     }
 
@@ -69,8 +66,7 @@ public final class MappingContext {
     ) {
         return mapping
             .computation(destinationPropertyName)
-            .<Supplier<Object>>map(computation ->
-                () -> computation.apply(this).apply(source))
+            .map(computation -> computation.bind(this, source))
             .orElse(() -> convertProperty(source, destinationPropertyName))
             .get();
     }
@@ -84,6 +80,17 @@ public final class MappingContext {
         return context.convert(sourceProperty.get(source));
     }
 
+    private static Object invoke(
+        Constructor<?> constructor,
+        Object[] arguments
+    ) {
+        try {
+            return constructor.newInstance(arguments);
+        } catch (Exception exception) {
+            throw new RuntimeException(exception);
+        }
+    }
+
     void project(Object source, Object destination) {
         if (source == destination) {
             return;
@@ -92,8 +99,7 @@ public final class MappingContext {
         mapping
             .projection()
             .<Runnable>map(projection -> () -> projection
-                .apply(this)
-                .accept(source, destination))
+                .project(this, source, destination))
             .orElse(() -> {
                 setWritableProperties(source, destination);
                 projectToReadOnlyProperties(source, destination);
@@ -117,7 +123,7 @@ public final class MappingContext {
         mapping
             .computation(name)
             .<Runnable>map(computation -> () ->
-                destinationProperty.set(computation.apply(this).apply(source)))
+                destinationProperty.set(computation.compute(this, source)))
             .orElse(() -> getDestinationProperties().ifPresent(
                 name,
                 () -> convertIfPresent(source, destinationProperty)))

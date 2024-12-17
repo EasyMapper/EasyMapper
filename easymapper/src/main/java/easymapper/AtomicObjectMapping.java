@@ -7,8 +7,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.UUID;
 
-import static java.util.function.Function.identity;
-
 class AtomicObjectMapping {
 
     public static void configure(MapperConfiguration config) {
@@ -25,8 +23,12 @@ class AtomicObjectMapping {
         MapperConfiguration config,
         Class<T> type
     ) {
-        config.map(type, type, mapping -> mapping
-            .convert(context -> identity())
-            .project(context -> (source, target) -> {}));
+        config.map(
+            type,
+            type,
+            mapping -> mapping
+                .convert(Conversion.identity())
+                .project(Projection.empty())
+        );
     }
 }

@@ -60,6 +60,6 @@ class PrimitiveObjectMapping {
         config.map(
             sourceType,
             destinationType,
-            mapping -> mapping.convert(context -> source -> (D) source));
+            mapping -> mapping.convert((context, source) -> (D) source));
     }
 }

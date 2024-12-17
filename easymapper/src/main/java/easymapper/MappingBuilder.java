@@ -1,33 +1,29 @@
 package easymapper;
 
-import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import static easymapper.Exceptions.argumentNullException;
 
 public final class MappingBuilder<S, D> {
 
-    private final Function<Type, Boolean> sourceTypePredicate;
-    private final Function<Type, Boolean> destinationTypePredicate;
-    private Function<MappingContext, Function<S, D>> conversion = null;
-    private Function<MappingContext, BiConsumer<S, D>> projection = null;
-    private final Map<String, Function<MappingContext, Function<S, Object>>> computation = new HashMap<>();
+    private final TypePredicate sourceTypePredicate;
+    private final TypePredicate destinationTypePredicate;
+    private Conversion<S, D> conversion = null;
+    private Projection<S, D> projection = null;
+    private final Map<String, Computation<S>> computations = new HashMap<>();
 
     MappingBuilder(
-        Function<Type, Boolean> sourceTypePredicate,
-        Function<Type, Boolean> destinationTypePredicate
+        TypePredicate sourceTypePredicate,
+        TypePredicate destinationTypePredicate
     ) {
         this.sourceTypePredicate = sourceTypePredicate;
         this.destinationTypePredicate = destinationTypePredicate;
     }
 
-    public MappingBuilder<S, D> convert(
-        Function<MappingContext, Function<S, D>> function
-    ) {
+    public MappingBuilder<S, D> convert(Conversion<S, D> function) {
         if (function == null) {
             throw argumentNullException("function");
         }
@@ -42,9 +38,7 @@ public final class MappingBuilder<S, D> {
         return this;
     }
 
-    public MappingBuilder<S, D> project(
-        Function<MappingContext, BiConsumer<S, D>> action
-    ) {
+    public MappingBuilder<S, D> project(Projection<S, D> action) {
         if (action == null) {
             throw argumentNullException("action");
         }
@@ -61,7 +55,7 @@ public final class MappingBuilder<S, D> {
 
     public MappingBuilder<S, D> compute(
         String destinationPropertyName,
-        Function<MappingContext, Function<S, Object>> function
+        Computation<S> function
     ) {
         if (destinationPropertyName == null) {
             throw argumentNullException("destinationPropertyName");
@@ -69,7 +63,7 @@ public final class MappingBuilder<S, D> {
             throw argumentNullException("function");
         }
 
-        if (computation.containsKey(destinationPropertyName)) {
+        if (computations.containsKey(destinationPropertyName)) {
             String message = String.format(
                 "MappingBuilder.compute() can be called only once for the same destination property name. "
                 + "Destination property name: %s.",
@@ -77,7 +71,7 @@ public final class MappingBuilder<S, D> {
             throw new IllegalStateException(message);
         }
 
-        computation.put(destinationPropertyName, function);
+        computations.put(destinationPropertyName, function);
 
         return this;
     }
@@ -88,6 +82,6 @@ public final class MappingBuilder<S, D> {
             destinationTypePredicate,
             conversion,
             projection,
-            Collections.unmodifiableMap(computation));
+            Collections.unmodifiableMap(computations));
     }
 }
