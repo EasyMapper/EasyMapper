@@ -55,24 +55,44 @@ public class Mapper {
         return new MappingContext(this, sourceType, destinationType, mapping);
     }
 
-    @SuppressWarnings("unchecked")
+    @Deprecated
     public <S, D> D map(
         S source,
         @NonNull Class<S> sourceType,
         @NonNull Class<D> destinationType
     ) {
-        return (D) createContext(sourceType, destinationType).convert(source);
+        return convert(source, sourceType, destinationType);
     }
 
     @SuppressWarnings("unchecked")
+    public <S, D> D convert(
+        S source,
+        @NonNull Class<S> sourceType,
+        @NonNull Class<D> destinationType
+    ) {
+        MappingContext context = createContext(sourceType, destinationType);
+        return (D) context.convert(source);
+    }
+
+    @Deprecated
     public <S, D> D map(
+        S source,
+        @NonNull TypeReference<S> sourceTypeReference,
+        @NonNull TypeReference<D> destinationTypeReference
+    ) {
+        return convert(source, sourceTypeReference, destinationTypeReference);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <S, D> D convert(
         S source,
         @NonNull TypeReference<S> sourceTypeReference,
         @NonNull TypeReference<D> destinationTypeReference
     ) {
         Type sourceType = sourceTypeReference.getType();
         Type destinationType = destinationTypeReference.getType();
-        return (D) createContext(sourceType, destinationType).convert(source);
+        MappingContext context = createContext(sourceType, destinationType);
+        return (D) context.convert(source);
     }
 
     public <S, D> void map(
