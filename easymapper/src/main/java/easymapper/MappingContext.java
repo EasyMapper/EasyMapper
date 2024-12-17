@@ -60,23 +60,27 @@ public final class MappingContext {
         return arguments;
     }
 
-    private Object computeOrConvert(
-        Object source,
-        String destinationPropertyName
-    ) {
+    private Object computeOrConvert(Object source, String propertyName) {
         return mapping
-            .computation(destinationPropertyName)
+            .computation(propertyName)
             .map(computation -> computation.bind(this, source))
-            .orElse(() -> convertProperty(source, destinationPropertyName))
+            .orElse(() -> convertProperty(source, propertyName))
             .get();
     }
 
     private Object convertProperty(Object source, String propertyName) {
-        Property sourceProperty = getSourceProperty(propertyName);
-        Property destinationProperty = getDestinationProperty(propertyName);
+        Property sourceProperty = Properties
+            .get(sourceType)
+            .get(propertyName);
+
+        Property destinationProperty = Properties
+            .get(destinationType)
+            .get(propertyName);
+
         MappingContext context = branchContext(
             sourceProperty.type(),
             destinationProperty.type());
+
         return context.convert(sourceProperty.get(source));
     }
 
@@ -98,74 +102,73 @@ public final class MappingContext {
 
         mapping
             .projection()
-            .<Runnable>map(projection -> () -> projection
-                .project(this, source, destination))
-            .orElse(() -> {
-                setWritableProperties(source, destination);
-                projectToReadOnlyProperties(source, destination);
-            })
+            .map(projection -> projection.bind(this, source, destination))
+            .orElse(() -> projectInDefaultWay(source, destination))
             .run();
+    }
+
+    private void projectInDefaultWay(Object source, Object destination) {
+        setWritableProperties(source, destination);
+        projectToReadOnlyProperties(source, destination);
     }
 
     private void setWritableProperties(Object source, Object destination) {
-        Properties destinationProperties = getDestinationProperties();
-        destinationProperties.useWritableProperties(destinationProperty ->
-            computeOrConvertProperty(
-                source,
-                destinationProperty.bind(destination)));
+        Properties properties = Properties.get(destinationType);
+        properties.useWritableProperties(property ->
+            computeOrConvertProperty(source, property.bind(destination)));
     }
 
-    private void computeOrConvertProperty(
-        Object source,
-        Variable destinationProperty
-    ) {
-        String name = destinationProperty.name();
+    private void computeOrConvertProperty(Object source, Variable property) {
         mapping
-            .computation(name)
-            .<Runnable>map(computation -> () ->
-                destinationProperty.set(computation.compute(this, source)))
-            .orElse(() -> getDestinationProperties().ifPresent(
-                name,
-                () -> convertIfPresent(source, destinationProperty)))
+            .computation(property.name())
+            .map(computation -> computation.bind(this, source))
+            .<Runnable>map(factory -> () -> property.set(factory.get()))
+            .orElse(() -> convertPropertyIfPresent(source, property))
             .run();
     }
 
-    private void convertIfPresent(Object source, Variable destination) {
-        getSourceProperties().ifPresent(destination.name(), sourceProperty -> {
+    private void convertPropertyIfPresent(Object source, Variable destination) {
+        Properties properties = Properties.get(sourceType);
+        properties.ifPresent(destination.name(), property -> {
             MappingContext context = branchContext(
-                sourceProperty.type(),
+                property.type(),
                 destination.type());
-            context.setProperty(sourceProperty.bind(source), destination);
+            context.convertThenSet(property.bind(source), destination);
         });
     }
 
-    private void setProperty(Variable source, Variable destination) {
+    private void convertThenSet(Variable source, Variable destination) {
         Object sourceValue = source.get();
 
         if (sourceValue == destination.get()) {
             return;
-        } else if (sourceValue == null) {
-            String message = "The source '" + source.name() + "' is null.";
-            throw new RuntimeException(message);
         }
 
-        destination.set(convert(sourceValue));
+        if (sourceValue == null) {
+            String message = "The source '" + source.name() + "' is null.";
+            throw new RuntimeException(message);
+        } else {
+            Object destinationValue = convert(sourceValue);
+            destination.set(destinationValue);
+        }
     }
 
     private void projectToReadOnlyProperties(
         Object source,
         Object destination
     ) {
-        getDestinationProperties().useReadOnlyProperties(destinationProperty ->
-            projectIfPresent(source, destinationProperty.bind(destination)));
+        Properties properties = Properties.get(destinationType);
+        properties.useReadOnlyProperties(property ->
+            projectPropertyIfPresent(source, property.bind(destination)));
     }
 
-    private void projectIfPresent(Object source, Variable destination) {
-        getSourceProperties().ifPresent(destination.name(), sourceProperty -> {
+    private void projectPropertyIfPresent(Object source, Variable destination) {
+        Properties properties = Properties.get(sourceType);
+        properties.ifPresent(destination.name(), property -> {
             MappingContext context = branchContext(
-                sourceProperty.type(),
+                property.type(),
                 destination.type());
-            context.project(sourceProperty.bind(source), destination);
+            context.project(property.bind(source), destination);
         });
     }
 
@@ -174,29 +177,21 @@ public final class MappingContext {
         Object destinationValue = destination.get();
 
         if (sourceValue == null && destinationValue != null) {
-            String message = "'" + source.name() + "' is null but '" + destination.name() + "' is not null.";
+            String message = "'"
+                + source.name()
+                + "' is null but '"
+                + destination.name()
+                + "' is not null.";
             throw new RuntimeException(message);
         } else if (sourceValue != null && destinationValue == null) {
-            String message = "'" + source.name() + "' is not null but '" + destination.name() + "' is null.";
+            String message = "'"
+                + source.name()
+                + "' is not null but '"
+                + destination.name()
+                + "' is null.";
             throw new RuntimeException(message);
         }
 
         project(sourceValue, destinationValue);
-    }
-
-    private Properties getSourceProperties() {
-        return Properties.get(sourceType);
-    }
-
-    private Properties getDestinationProperties() {
-        return Properties.get(destinationType);
-    }
-
-    private Property getDestinationProperty(String name) {
-        return getDestinationProperties().get(name);
-    }
-
-    private Property getSourceProperty(String name) {
-        return getSourceProperties().get(name);
     }
 }

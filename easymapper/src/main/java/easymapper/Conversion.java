@@ -1,6 +1,5 @@
 package easymapper;
 
-
 @FunctionalInterface
 public interface Conversion<S, D> {
 
