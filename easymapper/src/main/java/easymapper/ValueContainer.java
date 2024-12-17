@@ -18,8 +18,8 @@ abstract class ValueContainer {
 
     protected final void assertThatWritable() {
         if (isReadOnly()) {
-            throw new UnsupportedOperationException(
-                "'" + name() + "' is read-only.");
+            String message = "'" + name() + "' is read-only.";
+            throw new UnsupportedOperationException(message);
         }
     }
 
