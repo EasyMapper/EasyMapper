@@ -380,62 +380,66 @@ class Mapper_specs {
     }
 
     @AutoParameterizedTest
-    void projecting_map_has_null_guard_for_source(
+    void project_has_null_guard_for_source(
         Mapper sut,
         UserView destination
     ) {
         User source = null;
+
         assertThatThrownBy(
-            () -> sut.map(source, destination, User.class, UserView.class))
+            () -> sut.project(source, destination, User.class, UserView.class))
             .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("source");
     }
 
     @AutoParameterizedTest
-    void projecting_map_has_null_guard_for_destination(
+    void project_has_null_guard_for_destination(
         Mapper sut,
         User source
     ) {
         UserView destination = null;
+
         assertThatThrownBy(
-            () -> sut.map(source, destination, User.class, UserView.class))
+            () -> sut.project(source, destination, User.class, UserView.class))
             .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("destination");
     }
 
     @AutoParameterizedTest
-    void projecting_map_has_null_guard_for_source_type(
+    void project_has_null_guard_for_source_type(
         Mapper sut,
         User source,
         UserView destination
     ) {
         Class<User> sourceType = null;
+
         assertThatThrownBy(
-            () -> sut.map(source, destination, sourceType, UserView.class))
+            () -> sut.project(source, destination, sourceType, UserView.class))
             .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("sourceType");
     }
 
     @AutoParameterizedTest
-    void projecting_map_has_null_guard_for_destination_type(
+    void project_has_null_guard_for_destination_type(
         Mapper sut,
         User source,
         UserView destination
     ) {
         Class<UserView> destinationType = null;
+
         assertThatThrownBy(
-            () -> sut.map(source, destination, User.class, destinationType))
+            () -> sut.project(source, destination, User.class, destinationType))
             .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("destinationType");
     }
 
     @AutoParameterizedTest
-    void projection_map_correctly_projects_properties(
+    void project_correctly_projects_properties(
         Mapper sut,
         Post source,
         PostView destination
     ) {
-        sut.map(source, destination, Post.class, PostView.class);
+        sut.project(source, destination, Post.class, PostView.class);
 
         assertThat(destination.getId()).isEqualTo(source.getId().toString());
         assertThat(destination.getAuthorId()).isEqualTo(source.getAuthorId().toString());
@@ -443,62 +447,94 @@ class Mapper_specs {
         assertThat(destination.getText()).isEqualTo(source.getText());
     }
 
+    @AutoParameterizedTest
+    void project_with_no_type_hint_has_null_guard_for_source(
+        Mapper sut,
+        User destination
+    ) {
+        assertThatThrownBy(() -> sut.project(null, destination))
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("source");
+    }
+
+    @AutoParameterizedTest
+    void project_with_no_type_hint_has_null_guard_for_destination(
+        Mapper sut,
+        User source
+    ) {
+        assertThatThrownBy(() -> sut.project(source, null))
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("destination");
+    }
+
+    @AutoParameterizedTest
+    void project_with_no_type_hint_correctly_maps_properties(
+        Mapper sut,
+        User source,
+        UserView destination
+    ) {
+        sut.project(source, destination);
+
+        assertThat(destination.getId()).isEqualTo(source.getId());
+        assertThat(destination.getUsername()).isEqualTo(source.getUsername());
+    }
+
     @AllArgsConstructor
     @Getter
     public static class Pricing {
-
         private final double listPrice;
         private final double discountRate;
+
     }
 
     @Getter
     @Setter
     public static class PricingView {
-
         private double listPrice;
         private double discountRate;
         private double salePrice;
+
     }
 
     @AutoParameterizedTest
-    void projecting_map_ignores_for_missing_property_of_target(
+    void project_ignores_for_missing_property_of_target(
         Mapper sut,
         Pricing source,
         PricingView destination
     ) {
         double snapshot = destination.getSalePrice();
-        sut.map(source, destination, Pricing.class, PricingView.class);
+        sut.project(source, destination);
         assertThat(destination.getSalePrice()).isEqualTo(snapshot);
     }
 
     @AutoParameterizedTest
-    void projecting_map_ignores_extra_properties_of_source(
+    void project_ignores_extra_properties_of_source(
         Mapper sut,
         User source
     ) {
         UserView destination = new UserView();
-        sut.map(source, destination, User.class, UserView.class);
+        sut.project(source, destination);
         assertThat(destination).usingRecursiveComparison().isEqualTo(source);
     }
 
     @Getter
     @Setter
     public static class OrderView {
-
         private UUID id;
         private long itemId;
         private int quantity;
         private Shipment shipment;
+
     }
 
     @AutoParameterizedTest
-    void projecting_map_creates_copy_of_complex_object_for_setter_properties(
+    void project_creates_copy_of_complex_object_for_setter_properties(
         Mapper sut,
         Order source,
         OrderView destination
     ) {
         // Act
-        sut.map(source, destination, Order.class, OrderView.class);
+        sut.project(source, destination);
 
         // Assert
         assertThat(destination.getShipment())
@@ -513,7 +549,7 @@ class Mapper_specs {
     }
 
     @AutoParameterizedTest
-    void projecting_map_fails_if_source_property_is_null_and_read_only_destination_property_is_not_null(
+    void project_fails_if_source_property_is_null_and_read_only_destination_property_is_not_null(
         Mapper sut,
         User destination
     ) {
@@ -523,39 +559,29 @@ class Mapper_specs {
             null
         );
 
-        assertThatThrownBy(() -> sut.map(
-            source,
-            destination,
-            User.class,
-            User.class
-        ))
+        assertThatThrownBy(() -> sut.project(source, destination))
             .isInstanceOf(RuntimeException.class)
             .hasMessageContaining("passwordHash");
     }
 
     @AutoParameterizedTest
-    void projecting_map_fails_if_source_property_is_not_null_and_read_only_destination_property_is_null(
+    void project_fails_if_source_property_is_not_null_and_read_only_destination_property_is_null(
         Mapper sut,
         User source
     ) {
         User destination = new User(source.getId(), source.getUsername(), null);
 
-        assertThatThrownBy(() -> sut.map(
-            source,
-            destination,
-            User.class,
-            User.class
-        ))
+        assertThatThrownBy(() -> sut.project(source, destination))
             .isInstanceOf(RuntimeException.class)
             .hasMessageContaining("passwordHash");
     }
 
     @AutoParameterizedTest
-    void projecting_map_with_type_reference_has_null_guard_for_source(
+    void project_with_type_reference_has_null_guard_for_source(
         Mapper sut,
         MutableBag<String> destination
     ) {
-        assertThatThrownBy(() -> sut.map(
+        assertThatThrownBy(() -> sut.project(
             null,
             destination,
             new TypeReference<MutableBag<UUID>>() { },
@@ -565,11 +591,11 @@ class Mapper_specs {
     }
 
     @AutoParameterizedTest
-    void projecting_map_with_type_reference_has_null_guard_for_destination(
+    void project_with_type_reference_has_null_guard_for_destination(
         Mapper sut,
         MutableBag<UUID> source
     ) {
-        assertThatThrownBy(() -> sut.map(
+        assertThatThrownBy(() -> sut.project(
             source,
             null,
             new TypeReference<MutableBag<UUID>>() { },
@@ -579,13 +605,14 @@ class Mapper_specs {
     }
 
     @AutoParameterizedTest
-    void projecting_map_with_type_reference_has_null_guard_for_source_type_reference(
+    void project_with_type_reference_has_null_guard_for_source_type_reference(
         Mapper sut,
         MutableBag<UUID> source,
         MutableBag<String> destination
     ) {
         TypeReference<MutableBag<UUID>> sourceTypeReference = null;
-        assertThatThrownBy(() -> sut.map(
+
+        assertThatThrownBy(() -> sut.project(
             source,
             destination,
             sourceTypeReference,
@@ -595,13 +622,14 @@ class Mapper_specs {
     }
 
     @AutoParameterizedTest
-    void projecting_map_with_type_reference_has_null_guard_for_destination_type_reference(
+    void project_with_type_reference_has_null_guard_for_destination_type_reference(
         Mapper sut,
         MutableBag<UUID> source,
         MutableBag<String> destination
     ) {
         TypeReference<MutableBag<String>> destinationTypeReference = null;
-        assertThatThrownBy(() -> sut.map(
+
+        assertThatThrownBy(() -> sut.project(
             source,
             destination,
             new TypeReference<MutableBag<UUID>>() { },
@@ -611,12 +639,12 @@ class Mapper_specs {
     }
 
     @AutoParameterizedTest
-    void projecting_map_with_type_reference_correctly_converts_value_of_type_argument(
+    void project_with_type_reference_correctly_converts_value_of_type_argument(
         Mapper sut,
         MutableBag<UUID> source,
         MutableBag<String> destination
     ) {
-        sut.map(
+        sut.project(
             source,
             destination,
             new TypeReference<MutableBag<UUID>>() { },
@@ -628,12 +656,12 @@ class Mapper_specs {
     }
 
     @AutoParameterizedTest
-    void projecting_map_with_type_reference_correctly_maps_value_of_deep_type_argument(
+    void project_with_type_reference_correctly_maps_value_of_deep_type_argument(
         Mapper sut,
         MutableBag<MutableBag<UUID>> source,
         MutableBag<MutableBag<String>> destination
     ) {
-        sut.map(
+        sut.project(
             source,
             destination,
             new TypeReference<MutableBag<MutableBag<UUID>>>() { },
@@ -642,37 +670,5 @@ class Mapper_specs {
 
         assertThat(destination.getValue().getValue())
             .isEqualTo(source.getValue().getValue().toString());
-    }
-
-    @AutoParameterizedTest
-    void projecting_map_with_no_type_hint_has_null_guard_for_source(
-        Mapper sut,
-        User destination
-    ) {
-        assertThatThrownBy(() -> sut.map(null, destination))
-            .isInstanceOf(NullPointerException.class)
-            .hasMessageContaining("source");
-    }
-
-    @AutoParameterizedTest
-    void projecting_map_with_no_type_hint_has_null_guard_for_destination(
-        Mapper sut,
-        User source
-    ) {
-        assertThatThrownBy(() -> sut.map(source, null))
-            .isInstanceOf(NullPointerException.class)
-            .hasMessageContaining("destination");
-    }
-
-    @AutoParameterizedTest
-    void projecting_map_with_no_type_hint_correctly_maps_properties(
-        Mapper sut,
-        User source,
-        UserView destination
-    ) {
-        sut.map(source, destination);
-
-        assertThat(destination.getId()).isEqualTo(source.getId());
-        assertThat(destination.getUsername()).isEqualTo(source.getUsername());
     }
 }

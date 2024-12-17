@@ -122,8 +122,7 @@ public class Mapper {
         @NonNull Class<S> sourceType,
         @NonNull Class<D> destinationType
     ) {
-        MappingContext context = createContext(sourceType, destinationType);
-        context.project(source, destination);
+        projectObject(source, destination, sourceType, destinationType);
     }
 
     @Deprecated
@@ -149,8 +148,7 @@ public class Mapper {
     ) {
         Type sourceType = sourceTypeReference.getType();
         Type destinationType = destinationTypeReference.getType();
-        MappingContext context = createContext(sourceType, destinationType);
-        context.project(source, destination);
+        projectObject(source, destination, sourceType, destinationType);
     }
 
     @Deprecated
@@ -161,6 +159,15 @@ public class Mapper {
     public void project(@NonNull Object source, @NonNull Object destination) {
         Type sourceType = source.getClass();
         Type destinationType = destination.getClass();
+        projectObject(source, destination, sourceType, destinationType);
+    }
+
+    private void projectObject(
+        Object source,
+        Object destination,
+        Type sourceType,
+        Type destinationType
+    ) {
         MappingContext context = createContext(sourceType, destinationType);
         context.project(source, destination);
     }
