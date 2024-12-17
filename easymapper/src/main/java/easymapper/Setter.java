@@ -8,36 +8,32 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
+import lombok.AllArgsConstructor;
+
 import static easymapper.CamelCase.camelize;
 
+@AllArgsConstructor
 class Setter {
 
     private final Type type;
     private final String name;
     private final BiConsumer<Object, Object> operation;
 
-    public Setter(
-        Type type,
-        String name,
-        BiConsumer<Object, Object> operation
-    ) {
-        this.type = type;
-        this.name = name;
-        this.operation = operation;
-    }
-
     private static Setter create(Method method) {
         return new Setter(
             method.getGenericParameterTypes()[0],
             method.getName(),
-            (instance, value) -> {
-                try {
-                    method.invoke(instance, value);
-                } catch (IllegalAccessException |
-                     InvocationTargetException exception) {
-                    throw new RuntimeException(exception);
-                }
-            });
+            (instance, value) -> invoke(method, instance, value)
+        );
+    }
+
+    private static void invoke(Method method, Object instance, Object arg) {
+        try {
+            method.invoke(instance, arg);
+        } catch (IllegalAccessException |
+                 InvocationTargetException exception) {
+            throw new RuntimeException(exception);
+        }
     }
 
     public Type type() {
@@ -60,22 +56,26 @@ class Setter {
         } else if (type instanceof TupleType) {
             return new HashMap<>();
         } else {
-            String message = "Cannot provide stated setters for the type: " + type;
-            throw new RuntimeException(message);
+            throw new RuntimeException(
+                "Cannot provide stated setters for the type: " + type
+            );
         }
     }
 
     private static Map<String, Setter> getStatedSetters(Class<?> type) {
         Map<String, Setter> setters = new HashMap<>();
+
         for (Method method : type.getMethods()) {
             if (method.getParameterCount() != 1) {
                 continue;
             }
+
             String methodName = method.getName();
             if (methodName.startsWith("set")) {
                 setters.put(camelize(methodName.substring(3)), create(method));
             }
         }
+
         return setters;
     }
 
@@ -83,8 +83,9 @@ class Setter {
         if (type.getRawType() instanceof Class<?>) {
             return getStatedSetters((Class<?>) type.getRawType());
         } else {
-            String message = "Cannot provide stated setters for the type: " + type;
-            throw new RuntimeException(message);
+            throw new RuntimeException(
+                "Cannot provide stated setters for the type: " + type
+            );
         }
     }
 }
