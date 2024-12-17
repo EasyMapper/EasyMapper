@@ -88,10 +88,6 @@ class Properties {
         find(name).ifPresent(action);
     }
 
-    public void ifPresent(String name, Runnable action) {
-        ifPresent(name, property -> action.run());
-    }
-
     public Optional<Property> find(String name) {
         Property statedProperty = statedProperties.getOrDefault(name, null);
         if (statedProperty == null) {
@@ -113,13 +109,16 @@ class Properties {
     ) {
         for (Property property : statedProperties.values()) {
             String propertyName = property.name();
+
             if (unresolvedPath.equalsIgnoreCase(propertyName)) {
                 return new Property(
                     property.type(),
                     path,
                     instance -> property.get(resolver.apply(instance)),
                     null);
-            } else if (path.toLowerCase().startsWith(propertyName.toLowerCase())) {
+            }
+
+            if (path.toLowerCase().startsWith(propertyName.toLowerCase())) {
                 return Properties.get(property.type()).findFlattened(
                     instance -> property.get(resolver.apply(instance)),
                     path,
