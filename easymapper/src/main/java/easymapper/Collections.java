@@ -2,6 +2,10 @@ package easymapper;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.util.Collections.reverse;
 
 class Collections {
 
@@ -46,5 +50,11 @@ class Collections {
 
     private static Type resolveElementType(ParameterizedType type) {
         return type.getActualTypeArguments()[0];
+    }
+
+    public static <T> List<T> copyInReverseOrder(List<T> list) {
+        ArrayList<T> copy = new ArrayList<>(list);
+        reverse(copy);
+        return java.util.Collections.unmodifiableList(copy);
     }
 }

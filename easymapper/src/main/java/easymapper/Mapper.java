@@ -4,14 +4,12 @@ import java.beans.ConstructorProperties;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
 import lombok.NonNull;
 
+import static easymapper.Collections.copyInReverseOrder;
 import static java.lang.System.lineSeparator;
 import static java.util.Comparator.comparingInt;
 import static java.util.stream.Collectors.toList;
@@ -48,22 +46,13 @@ public class Mapper {
             .collect(toList()));
     }
 
-    private static <T> List<T> copyInReverseOrder(Collection<T> list) {
-        ArrayList<T> copy = new ArrayList<>(list);
-        Collections.reverse(copy);
-        return Collections.unmodifiableList(copy);
-    }
-
     MappingContext createContext(Type sourceType, Type destinationType) {
-        return new MappingContext(
-            this,
-            sourceType,
-            destinationType,
-            mappings
-                .stream()
-                .filter(m -> m.match(sourceType, destinationType))
-                .findFirst()
-                .orElse(Mapping.EMPTY));
+        Mapping<Object, Object> mapping = mappings
+            .stream()
+            .filter(m -> m.match(sourceType, destinationType))
+            .findFirst()
+            .orElse(Mapping.EMPTY);
+        return new MappingContext(this, sourceType, destinationType, mapping);
     }
 
     @SuppressWarnings("unchecked")
@@ -124,15 +113,15 @@ public class Mapper {
 
     private static String composeConstructorNotFoundMessage(Type type) {
         String newLine = lineSeparator();
-        return "Cannot provide constructor for the type: " + type +
-            newLine + "If you use Mapper to convert instances of generic classes, use the TypeReference<T> interface to specify the generic type." +
-            newLine +
-            newLine + "For example," +
-            newLine +
-            newLine + "mapper.map(" +
-            newLine + "     source," +
-            newLine + "     new TypeReference<DomainEvent<OrderPlaced>>() {}," +
-            newLine + "     new TypeReference<IntegrationEvent<OrderPlacedEvent>>() {});";
+        return "Cannot provide constructor for the type: " + type
+            + newLine + "If you use Mapper to convert instances of generic classes, use the TypeReference<T> interface to specify the generic type."
+            + newLine
+            + newLine + "For example,"
+            + newLine
+            + newLine + "mapper.map("
+            + newLine + "     source,"
+            + newLine + "     new TypeReference<DomainEvent<OrderPlaced>>() {},"
+            + newLine + "     new TypeReference<IntegrationEvent<OrderPlacedEvent>>() {});";
     }
 
     private Constructor<?> getConstructor(Class<?> type) {
@@ -147,18 +136,16 @@ public class Mapper {
     }
 
     String[] getPropertyNames(Constructor<?> constructor) {
-        return constructor.getParameterCount() == 0
-            ? new String[0]
-            : parameterNameResolver
-                .tryResolveNames(constructor)
-                .orElseGet(() -> getAnnotatedPropertyNames(constructor));
+        return parameterNameResolver
+            .tryResolveNames(constructor)
+            .orElseGet(() -> getAnnotatedPropertyNames(constructor));
     }
 
     private static String[] getAnnotatedPropertyNames(
         Constructor<?> constructor
     ) {
-        ConstructorProperties annotation =
-            constructor.getAnnotation(ConstructorProperties.class);
+        ConstructorProperties annotation = constructor
+            .getAnnotation(ConstructorProperties.class);
 
         if (annotation == null) {
             String message = "The constructor " + constructor
