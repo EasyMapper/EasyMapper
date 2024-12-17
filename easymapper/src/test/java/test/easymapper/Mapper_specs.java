@@ -23,7 +23,7 @@ class Mapper_specs {
     @Test
     void constructor_has_guard_against_null_configurer() {
         assertThatThrownBy(() -> new Mapper(null))
-            .isInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(NullPointerException.class);
     }
 
     @AllArgsConstructor
@@ -49,7 +49,7 @@ class Mapper_specs {
         Class<User> sourceType = null;
         assertThatThrownBy(
             () -> sut.map(source, sourceType, User.class))
-            .isInstanceOf(IllegalArgumentException.class)
+            .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("sourceType");
     }
 
@@ -61,7 +61,7 @@ class Mapper_specs {
         Class<User> destinationType = null;
         assertThatThrownBy(
             () -> sut.map(source, User.class, destinationType))
-            .isInstanceOf(IllegalArgumentException.class)
+            .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("destinationType");
     }
 
@@ -291,7 +291,7 @@ class Mapper_specs {
             source,
             new TypeReference<ImmutableBag<UUID>>() {},
             destinationTypeReference))
-            .isInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(NullPointerException.class);
     }
 
     @AutoParameterizedTest
@@ -304,7 +304,7 @@ class Mapper_specs {
             source,
             sourceTypeReference,
             new TypeReference<ImmutableBag<String>>() {}))
-            .isInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(NullPointerException.class);
     }
 
     @AutoParameterizedTest
@@ -373,7 +373,7 @@ class Mapper_specs {
         User source = null;
         assertThatThrownBy(
             () -> sut.map(source, destination, User.class, UserView.class))
-            .isInstanceOf(IllegalArgumentException.class)
+            .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("source");
     }
 
@@ -385,7 +385,7 @@ class Mapper_specs {
         UserView destination = null;
         assertThatThrownBy(
             () -> sut.map(source, destination, User.class, UserView.class))
-            .isInstanceOf(IllegalArgumentException.class)
+            .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("destination");
     }
 
@@ -398,7 +398,7 @@ class Mapper_specs {
         Class<User> sourceType = null;
         assertThatThrownBy(
             () -> sut.map(source, destination, sourceType, UserView.class))
-            .isInstanceOf(IllegalArgumentException.class)
+            .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("sourceType");
     }
 
@@ -411,7 +411,7 @@ class Mapper_specs {
         Class<UserView> destinationType = null;
         assertThatThrownBy(
             () -> sut.map(source, destination, User.class, destinationType))
-            .isInstanceOf(IllegalArgumentException.class)
+            .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("destinationType");
     }
 
@@ -540,7 +540,7 @@ class Mapper_specs {
             destination,
             new TypeReference<MutableBag<UUID>>() {},
             new TypeReference<MutableBag<String>>() {}))
-            .isInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(NullPointerException.class);
     }
 
     @AutoParameterizedTest
@@ -553,7 +553,7 @@ class Mapper_specs {
             null,
             new TypeReference<MutableBag<UUID>>() {},
             new TypeReference<MutableBag<String>>() {}))
-            .isInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(NullPointerException.class);
     }
 
     @AutoParameterizedTest
@@ -568,7 +568,7 @@ class Mapper_specs {
             destination,
             sourceTypeReference,
             new TypeReference<MutableBag<String>>() {}))
-            .isInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(NullPointerException.class);
     }
 
     @AutoParameterizedTest
@@ -583,7 +583,7 @@ class Mapper_specs {
             destination,
             new TypeReference<MutableBag<UUID>>() {},
             destinationTypeReference))
-            .isInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(NullPointerException.class);
     }
 
     @AutoParameterizedTest
@@ -624,7 +624,7 @@ class Mapper_specs {
         User destination
     ) {
         assertThatThrownBy(() -> sut.map(null, destination))
-            .isInstanceOf(IllegalArgumentException.class)
+            .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("source");
     }
 
@@ -634,7 +634,7 @@ class Mapper_specs {
         User source
     ) {
         assertThatThrownBy(() -> sut.map(source, null))
-            .isInstanceOf(IllegalArgumentException.class)
+            .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("destination");
     }
 

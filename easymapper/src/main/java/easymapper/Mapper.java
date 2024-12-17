@@ -10,7 +10,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static easymapper.Exceptions.argumentNullException;
+import lombok.NonNull;
+
 import static java.lang.System.lineSeparator;
 import static java.util.Comparator.comparingInt;
 import static java.util.stream.Collectors.toList;
@@ -25,11 +26,7 @@ public class Mapper {
         this(config -> {});
     }
 
-    public Mapper(Consumer<MapperConfiguration> configurer) {
-        if (configurer == null) {
-            throw argumentNullException("configurer");
-        }
-
+    public Mapper(@NonNull Consumer<MapperConfiguration> configurer) {
         MapperConfiguration config = new MapperConfiguration()
             .apply(BaseConfiguration::configure)
             .apply(configurer);
@@ -43,7 +40,7 @@ public class Mapper {
     private static List<Mapping<Object, Object>> getMappings(
         MapperConfiguration config
     ) {
-        return copyThenReverse(config
+        return copyInReverseOrder(config
             .getMappings()
             .stream()
             .map(MappingBuilder::build)
@@ -51,7 +48,7 @@ public class Mapper {
             .collect(toList()));
     }
 
-    private static <T> List<T> copyThenReverse(Collection<T> list) {
+    private static <T> List<T> copyInReverseOrder(Collection<T> list) {
         ArrayList<T> copy = new ArrayList<>(list);
         Collections.reverse(copy);
         return Collections.unmodifiableList(copy);
@@ -72,87 +69,46 @@ public class Mapper {
     @SuppressWarnings("unchecked")
     public <S, D> D map(
         S source,
-        Class<S> sourceType,
-        Class<D> destinationType
+        @NonNull Class<S> sourceType,
+        @NonNull Class<D> destinationType
     ) {
-        if (sourceType == null) {
-            throw argumentNullException("sourceType");
-        } else if (destinationType == null) {
-            throw argumentNullException("destinationType");
-        }
-
         return (D) createContext(sourceType, destinationType).convert(source);
     }
 
     @SuppressWarnings("unchecked")
     public <S, D> D map(
         S source,
-        TypeReference<S> sourceTypeReference,
-        TypeReference<D> destinationTypeReference
+        @NonNull TypeReference<S> sourceTypeReference,
+        @NonNull TypeReference<D> destinationTypeReference
     ) {
-        if (sourceTypeReference == null) {
-            throw argumentNullException("sourceTypeReference");
-        } else if (destinationTypeReference == null) {
-            throw argumentNullException("destinationTypeReference");
-        }
-
         Type sourceType = sourceTypeReference.getType();
         Type destinationType = destinationTypeReference.getType();
-
         return (D) createContext(sourceType, destinationType).convert(source);
     }
 
     public <S, D> void map(
-        S source,
-        D destination,
-        Class<S> sourceType,
-        Class<D> destinationType
+        @NonNull S source,
+        @NonNull D destination,
+        @NonNull Class<S> sourceType,
+        @NonNull Class<D> destinationType
     ) {
-        if (source == null) {
-            throw argumentNullException("source");
-        } else if (destination == null) {
-            throw argumentNullException("destination");
-        } else if (sourceType == null) {
-            throw argumentNullException("sourceType");
-        } else if (destinationType == null) {
-            throw argumentNullException("destinationType");
-        }
-
         createContext(sourceType, destinationType).project(source, destination);
     }
 
     public <S, D> void map(
-        S source,
-        D destination,
-        TypeReference<S> sourceTypeReference,
-        TypeReference<D> destinationTypeReference
+        @NonNull S source,
+        @NonNull D destination,
+        @NonNull TypeReference<S> sourceTypeReference,
+        @NonNull TypeReference<D> destinationTypeReference
     ) {
-        if (source == null) {
-            throw argumentNullException("source");
-        } else if (destination == null) {
-            throw argumentNullException("destination");
-        } else if (sourceTypeReference == null) {
-            throw argumentNullException("sourceTypeReference");
-        } else if (destinationTypeReference == null) {
-            throw argumentNullException("destinationTypeReference");
-        }
-
         Type sourceType = sourceTypeReference.getType();
         Type destinationType = destinationTypeReference.getType();
-
         createContext(sourceType, destinationType).project(source, destination);
     }
 
-    public void map(Object source, Object destination) {
-        if (source == null) {
-            throw argumentNullException("source");
-        } else if (destination == null) {
-            throw argumentNullException("destination");
-        }
-
+    public void map(@NonNull Object source, @NonNull Object destination) {
         Type sourceType = source.getClass();
         Type destinationType = destination.getClass();
-
         createContext(sourceType, destinationType).project(source, destination);
     }
 
@@ -198,8 +154,12 @@ public class Mapper {
                 .orElseGet(() -> getAnnotatedPropertyNames(constructor));
     }
 
-    private static String[] getAnnotatedPropertyNames(Constructor<?> constructor) {
-        ConstructorProperties annotation = constructor.getAnnotation(ConstructorProperties.class);
+    private static String[] getAnnotatedPropertyNames(
+        Constructor<?> constructor
+    ) {
+        ConstructorProperties annotation =
+            constructor.getAnnotation(ConstructorProperties.class);
+
         if (annotation == null) {
             String message = "The constructor " + constructor
                 + " is not decorated with @ConstructorProperties annotation.";
