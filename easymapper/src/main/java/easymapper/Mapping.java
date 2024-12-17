@@ -6,7 +6,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import lombok.AllArgsConstructor;
+
+@AllArgsConstructor
 class Mapping<S, D> {
+
+    private final TypePredicate sourceTypePredicate;
+    private final TypePredicate destinationTypePredicate;
+    private final Conversion<S, D> conversion;
+    private final Projection<S, D> projection;
+    private final Map<String, Computation<S>> computation;
 
     public static final Mapping<Object, Object> EMPTY = emptyMapping();
 
@@ -17,26 +26,6 @@ class Mapping<S, D> {
 
     private static Map<String, Computation<Object>> emptyMap() {
         return Collections.unmodifiableMap(new HashMap<>());
-    }
-
-    private final TypePredicate sourceTypePredicate;
-    private final TypePredicate destinationTypePredicate;
-    private final Conversion<S, D> conversion;
-    private final Projection<S, D> projection;
-    private final Map<String, Computation<S>> computation;
-
-    public Mapping(
-        TypePredicate sourceTypePredicate,
-        TypePredicate destinationTypePredicate,
-        Conversion<S, D> conversion,
-        Projection<S, D> projection,
-        Map<String, Computation<S>> computation
-    ) {
-        this.sourceTypePredicate = sourceTypePredicate;
-        this.destinationTypePredicate = destinationTypePredicate;
-        this.conversion = conversion;
-        this.projection = projection;
-        this.computation = computation;
     }
 
     public boolean match(Type sourceType, Type destinationType) {
