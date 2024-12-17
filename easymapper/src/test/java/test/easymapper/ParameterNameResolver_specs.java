@@ -4,12 +4,15 @@ import easymapper.ParameterNameResolver;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@SuppressWarnings("DataFlowIssue")
 public class ParameterNameResolver_specs {
 
     @AutoParameterizedTest
-    void tryResolveNames_has_null_guard_for_constructor(ParameterNameResolver sut) {
+    void tryResolveNames_has_null_guard_for_constructor(
+        ParameterNameResolver sut
+    ) {
         assertThatThrownBy(() -> sut.tryResolveNames(null))
-            .isInstanceOf(IllegalArgumentException.class)
+            .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("constructor");
     }
 }

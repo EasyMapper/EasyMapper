@@ -5,6 +5,8 @@ import java.lang.reflect.Parameter;
 import java.util.List;
 import java.util.Optional;
 
+import lombok.NonNull;
+
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toList;
 
@@ -13,11 +15,9 @@ public interface ParameterNameResolver {
 
     Optional<String> tryResolveName(Parameter parameter);
 
-    default Optional<String[]> tryResolveNames(Constructor<?> constructor) {
-        if (constructor == null) {
-            throw new IllegalArgumentException("constructor");
-        }
-
+    default Optional<String[]> tryResolveNames(
+        @NonNull Constructor<?> constructor
+    ) {
         List<String> names = stream(constructor.getParameters())
             .map(this::tryResolveName)
             .map(x -> x.orElse(null))
