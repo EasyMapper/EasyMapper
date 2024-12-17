@@ -8,23 +8,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+import lombok.AllArgsConstructor;
+
 import static easymapper.CamelCase.camelize;
 
+@AllArgsConstructor
 class Getter {
 
     private final Type type;
     private final String name;
     private final Function<Object, Object> function;
-
-    public Getter(
-        Type type,
-        String name,
-        Function<Object, Object> function
-    ) {
-        this.type = type;
-        this.name = name;
-        this.function = function;
-    }
 
     private static Getter create(Method method) {
         return new Getter(
@@ -61,13 +54,15 @@ class Getter {
         } else if (type instanceof TupleType) {
             return getStatedGetters(((TupleType) type));
         } else {
-            String message = "Cannot provide stated getters for the type: " + type;
-            throw new RuntimeException(message);
+            throw new RuntimeException(
+                "Cannot provide stated getters for the type: " + type
+            );
         }
     }
 
     private static Map<String, Getter> getStatedGetters(Class<?> type) {
         Map<String, Getter> getters = new HashMap<>();
+
         for (Method method : type.getMethods()) {
             if (method.getParameterCount() > 0 ||
                 method.getDeclaringClass().equals(Object.class)) {
@@ -89,12 +84,15 @@ class Getter {
         return getters;
     }
 
-    private static Map<String, Getter> getStatedGetters(ParameterizedType type) {
+    private static Map<String, Getter> getStatedGetters(
+        ParameterizedType type
+    ) {
         if (type.getRawType() instanceof Class<?>) {
             return getStatedGetters((Class<?>) type.getRawType());
         } else {
-            String message = "Cannot provide stated getters for the type: " + type;
-            throw new RuntimeException(message);
+            throw new RuntimeException(
+                "Cannot provide stated getters for the type: " + type
+            );
         }
     }
 
