@@ -48,8 +48,4 @@ public final class PropertyMappingBuilder<S, D> {
 
         return this;
     }
-
-    PropertyMapping build() {
-        return new PropertyMapping(sourceType, destinationType, calculators);
-    }
 }
