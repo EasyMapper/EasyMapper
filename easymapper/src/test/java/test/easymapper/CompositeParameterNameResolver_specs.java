@@ -21,13 +21,13 @@ public class CompositeParameterNameResolver_specs {
     void sut_has_guard_against_null_resolvers() {
         ParameterNameResolver[] resolvers = null;
         assertThatThrownBy(() -> new CompositeParameterNameResolver(resolvers))
-            .isInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(NullPointerException.class);
     }
 
     @Test
     void sut_has_guard_against_null_resolver() {
         assertThatThrownBy(() -> new CompositeParameterNameResolver(null, null))
-            .isInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(NullPointerException.class);
     }
 
     @AutoParameterizedTest

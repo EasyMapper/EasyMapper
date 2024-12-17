@@ -5,22 +5,22 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static easymapper.Exceptions.argumentNullException;
+import lombok.NonNull;
+
 import static java.util.Collections.unmodifiableList;
 
 public class CompositeParameterNameResolver implements ParameterNameResolver {
 
     private final List<ParameterNameResolver> resolvers;
 
-    public CompositeParameterNameResolver(ParameterNameResolver... resolvers) {
-        if (resolvers == null) {
-            throw argumentNullException("resolvers");
-        }
-
+    @SuppressWarnings("ConstantValue")
+    public CompositeParameterNameResolver(
+        @NonNull ParameterNameResolver... resolvers
+    ) {
         for (ParameterNameResolver resolver : resolvers) {
             if (resolver == null) {
                 String message = "resolvers cannot contain null";
-                throw new IllegalArgumentException(message);
+                throw new NullPointerException(message);
             }
         }
 
