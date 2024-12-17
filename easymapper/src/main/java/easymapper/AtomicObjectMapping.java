@@ -23,12 +23,9 @@ class AtomicObjectMapping {
         MapperConfiguration config,
         Class<T> type
     ) {
-        config.map(
-            type,
-            type,
-            mapping -> mapping
-                .convert(Conversion.identity())
-                .project(Projection.empty())
+        config.map(type, type, mapping -> mapping
+            .convert(Conversion.identity())
+            .project(Projection.empty())
         );
     }
 }
