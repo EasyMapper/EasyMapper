@@ -171,7 +171,7 @@ public class Mapper {
             + newLine
             + newLine + "For example,"
             + newLine
-            + newLine + "mapper.map("
+            + newLine + "mapper.convert("
             + newLine + "     source,"
             + newLine + "     new TypeReference<DomainEvent<OrderPlaced>>() {},"
             + newLine + "     new TypeReference<IntegrationEvent<OrderPlacedEvent>>() {});";
