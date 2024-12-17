@@ -5,32 +5,24 @@ import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
 import java.util.function.Supplier;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+import static easymapper.Reflection.invoke;
+
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
 public final class MappingContext {
 
     private final Mapper mapper;
+
+    @Getter(AccessLevel.PACKAGE)
     private final Type sourceType;
+
+    @Getter(AccessLevel.PACKAGE)
     private final Type destinationType;
+
     private final Mapping<Object, Object> mapping;
-
-    MappingContext(
-        Mapper mapper,
-        Type sourceType,
-        Type destinationType,
-        Mapping<Object, Object> mapping
-    ) {
-        this.mapper = mapper;
-        this.sourceType = sourceType;
-        this.destinationType = destinationType;
-        this.mapping = mapping;
-    }
-
-    Type getSourceType() {
-        return sourceType;
-    }
-
-    Type getDestinationType() {
-        return destinationType;
-    }
 
     MappingContext branchContext(Type sourceType, Type destinationType) {
         return mapper.createContext(sourceType, destinationType);
@@ -40,7 +32,11 @@ public final class MappingContext {
         return mapping
             .conversion()
             .map(conversion -> conversion.apply(this).apply(source))
-            .orElseGet(() -> source == null ? null : constructThenProject(source));
+            .orElseGet(() -> convertInDefaultWay(source));
+    }
+
+    private Object convertInDefaultWay(Object source) {
+        return source == null ? null : constructThenProject(source);
     }
 
     private Object constructThenProject(Object source) {
@@ -51,22 +47,26 @@ public final class MappingContext {
 
     private Object construct(Object source) {
         Constructor<?> constructor = mapper.getConstructor(destinationType);
+        Object[] arguments = buildArguments(source, constructor);
+        return invoke(constructor, arguments);
+    }
+
+    private Object[] buildArguments(Object source, Constructor<?> constructor) {
         Parameter[] parameters = constructor.getParameters();
         String[] propertyNames = mapper.getPropertyNames(constructor);
         Object[] arguments = new Object[parameters.length];
 
         for (int i = 0; i < parameters.length; i++) {
-            arguments[i] = compute(source, propertyNames[i]);
+            arguments[i] = computeOrConvert(source, propertyNames[i]);
         }
 
-        try {
-            return constructor.newInstance(arguments);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
+        return arguments;
     }
 
-    private Object compute(Object source, String destinationPropertyName) {
+    private Object computeOrConvert(
+        Object source,
+        String destinationPropertyName
+    ) {
         return mapping
             .computation(destinationPropertyName)
             .<Supplier<Object>>map(computation ->
