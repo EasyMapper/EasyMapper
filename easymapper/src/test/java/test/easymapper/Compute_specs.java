@@ -31,7 +31,7 @@ public class Compute_specs {
         assertThatThrownBy(() -> new Mapper(config -> config
             .map(User.class, UserView.class, mapping -> mapping
                 .compute(null, (context, source) -> valueOf(source.getId())))))
-            .isInstanceOf(IllegalArgumentException.class)
+            .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("destinationPropertyName");
     }
 
@@ -40,7 +40,7 @@ public class Compute_specs {
         assertThatThrownBy(() -> new Mapper(config -> config
             .map(User.class, UserView.class, mapping -> mapping
                 .compute("id", null))))
-            .isInstanceOf(IllegalArgumentException.class)
+            .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("function");
     }
 

@@ -3,9 +3,8 @@ package easymapper;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
 
-import static easymapper.Exceptions.argumentNullException;
+import lombok.NonNull;
 
 public final class MappingBuilder<S, D> {
 
@@ -23,56 +22,40 @@ public final class MappingBuilder<S, D> {
         this.destinationTypePredicate = destinationTypePredicate;
     }
 
-    public MappingBuilder<S, D> convert(Conversion<S, D> function) {
-        if (function == null) {
-            throw argumentNullException("function");
-        }
-
+    public MappingBuilder<S, D> convert(@NonNull Conversion<S, D> function) {
         if (conversion != null) {
             String message = "MappingBuilder.convert() can be called only once.";
             throw new IllegalStateException(message);
         }
 
         conversion = function;
-
         return this;
     }
 
-    public MappingBuilder<S, D> project(Projection<S, D> action) {
-        if (action == null) {
-            throw argumentNullException("action");
-        }
-
+    public MappingBuilder<S, D> project(@NonNull Projection<S, D> action) {
         if (projection != null) {
             String message = "MappingBuilder.project() can be called only once.";
             throw new IllegalStateException(message);
         }
 
         projection = action;
-
         return this;
     }
 
     public MappingBuilder<S, D> compute(
-        String destinationPropertyName,
-        Computation<S> function
+        @NonNull String destinationPropertyName,
+        @NonNull Computation<S> function
     ) {
-        if (destinationPropertyName == null) {
-            throw argumentNullException("destinationPropertyName");
-        } else if (function == null) {
-            throw argumentNullException("function");
-        }
-
         if (computations.containsKey(destinationPropertyName)) {
             String message = String.format(
-                "MappingBuilder.compute() can be called only once for the same destination property name. "
-                + "Destination property name: %s.",
+                "MappingBuilder.compute() can be called only once for"
+                    + " the same destination property name."
+                    + " Destination property name: %s.",
                 destinationPropertyName);
             throw new IllegalStateException(message);
         }
 
         computations.put(destinationPropertyName, function);
-
         return this;
     }
 

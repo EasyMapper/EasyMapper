@@ -35,7 +35,7 @@ public class Convert_specs {
         assertThatThrownBy(() -> new Mapper(config -> config
             .map(User.class, UserView.class, mapping -> mapping
                 .convert(null))))
-            .isInstanceOf(IllegalArgumentException.class)
+            .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("function");
     }
 

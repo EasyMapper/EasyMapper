@@ -33,7 +33,7 @@ public class Project_specs {
         assertThatThrownBy(() -> new Mapper(config -> config
             .map(User.class, UserView.class, mapping -> mapping
                 .project(null))))
-            .isInstanceOf(IllegalArgumentException.class)
+            .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("action");
     }
 
