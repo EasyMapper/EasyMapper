@@ -4,13 +4,12 @@ import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import lombok.AllArgsConstructor;
+
+@AllArgsConstructor
 class TupleType implements Type {
 
     private final Map<String, Type> properties;
-
-    public TupleType(Map<String, Type> properties) {
-        this.properties = properties;
-    }
 
     public Map<String, Getter> getGetters() {
         return properties
