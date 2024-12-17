@@ -68,7 +68,7 @@ public class MapperConfiguration_specs {
             config -> config.map(null, accept, mapping -> {}));
 
         assertThatThrownBy(action)
-            .isInstanceOf(IllegalArgumentException.class)
+            .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("sourceTypePredicate");
     }
 
@@ -78,7 +78,7 @@ public class MapperConfiguration_specs {
             config -> config.map(accept, null, mapping -> {}));
 
         assertThatThrownBy(action)
-            .isInstanceOf(IllegalArgumentException.class)
+            .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("destinationTypePredicate");
     }
 
@@ -88,7 +88,7 @@ public class MapperConfiguration_specs {
             config -> config.map(accept, accept, null));
 
         assertThatThrownBy(action)
-            .isInstanceOf(IllegalArgumentException.class)
+            .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("configurer");
     }
 
@@ -119,7 +119,7 @@ public class MapperConfiguration_specs {
             config -> config.map(null, int.class, mapping -> {}));
 
         assertThatThrownBy(action)
-            .isInstanceOf(IllegalArgumentException.class)
+            .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("sourceType");
     }
 
@@ -129,7 +129,7 @@ public class MapperConfiguration_specs {
             config -> config.map(int.class, null, mapping -> {}));
 
         assertThatThrownBy(action)
-            .isInstanceOf(IllegalArgumentException.class)
+            .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("destinationType");
     }
 
@@ -139,7 +139,7 @@ public class MapperConfiguration_specs {
             config -> config.map(int.class, int.class, null));
 
         assertThatThrownBy(action)
-            .isInstanceOf(IllegalArgumentException.class)
+            .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("configurer");
     }
 
@@ -172,7 +172,7 @@ public class MapperConfiguration_specs {
                 mapping -> {}));
 
         assertThatThrownBy(action)
-            .isInstanceOf(IllegalArgumentException.class)
+            .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("sourceTypeReference");
     }
 
@@ -185,7 +185,7 @@ public class MapperConfiguration_specs {
                 mapping -> {}));
 
         assertThatThrownBy(action)
-            .isInstanceOf(IllegalArgumentException.class)
+            .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("destinationTypeReference");
     }
 
@@ -198,7 +198,7 @@ public class MapperConfiguration_specs {
                 null));
 
         assertThatThrownBy(action)
-            .isInstanceOf(IllegalArgumentException.class)
+            .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("configurer");
     }
 
@@ -232,7 +232,7 @@ public class MapperConfiguration_specs {
     @AutoParameterizedTest
     void setConstructorExtractor_has_guard_against_null_value() {
         assertThatThrownBy(() -> new Mapper(c -> c.setConstructorExtractor(null)))
-            .isInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(NullPointerException.class);
     }
 
     @Getter
@@ -284,7 +284,7 @@ public class MapperConfiguration_specs {
     @Test
     void setParameterNameResolver_has_guard_against_null_value() {
         assertThatThrownBy(() -> new Mapper(c -> c.setParameterNameResolver(null)))
-            .isInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(NullPointerException.class);
     }
 
     @AllArgsConstructor
@@ -335,7 +335,7 @@ public class MapperConfiguration_specs {
     @Test
     void apply_has_null_guard_for_configurer() {
         assertThatThrownBy(() -> new Mapper(c -> c.apply(null)))
-            .isInstanceOf(IllegalArgumentException.class)
+            .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("configurer");
     }
 
