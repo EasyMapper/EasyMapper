@@ -761,4 +761,393 @@ class Mapper_specs {
             .isInstanceOf(RuntimeException.class)
             .hasMessageContainingAll("UserDto", "@ConstructorProperties");
     }
+
+    @AllArgsConstructor
+    public static class BooleanBag {
+
+        private final boolean value;
+
+        public boolean getValue() {
+            return value;
+        }
+    }
+
+    @AutoParameterizedTest
+    @Repeat(10)
+    void convert_correctly_converts_boolean_value(
+        Mapper sut,
+        BooleanBag source
+    ) {
+        BooleanBag actual = sut.convert(source, BooleanBag.class);
+        assertThat(actual.getValue()).isEqualTo(source.getValue());
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class BoxedBooleanBag {
+
+        private final Boolean value;
+    }
+
+    @AutoParameterizedTest
+    @Repeat(10)
+    void convert_correctly_converts_boxed_boolean_value(
+        Mapper sut,
+        BoxedBooleanBag source
+    ) {
+        BoxedBooleanBag actual = sut.convert(source, BoxedBooleanBag.class);
+        assertThat(actual.getValue()).isEqualTo(source.getValue());
+    }
+
+    @AutoParameterizedTest
+    @Repeat(10)
+    void convert_correctly_converts_boolean_value_to_boxed_boolean_value(
+        Mapper sut,
+        BooleanBag source
+    ) {
+        BoxedBooleanBag actual = sut.convert(source, BoxedBooleanBag.class);
+        assertThat(actual.getValue()).isEqualTo(source.getValue());
+    }
+
+    @AutoParameterizedTest
+    @Repeat(10)
+    void convert_correctly_converts_boxed_boolean_value_to_boolean_value(
+        Mapper sut,
+        BoxedBooleanBag source
+    ) {
+        BooleanBag actual = sut.convert(source, BooleanBag.class);
+        assertThat(actual.getValue()).isEqualTo(source.getValue());
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class ByteBag {
+
+        private final byte value;
+    }
+
+    @AutoParameterizedTest
+    void convert_correctly_converts_byte_value(Mapper sut, ByteBag source) {
+        ByteBag actual = sut.convert(source, ByteBag.class);
+        assertThat(actual.getValue()).isEqualTo(source.getValue());
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class BoxedByteBag {
+
+        private final Byte value;
+    }
+
+    @AutoParameterizedTest
+    void convert_correctly_converts_boxed_byte_value(
+        Mapper sut,
+        BoxedByteBag source
+    ) {
+        BoxedByteBag actual = sut.convert(source, BoxedByteBag.class);
+        assertThat(actual.getValue()).isEqualTo(source.getValue());
+    }
+
+    @AutoParameterizedTest
+    void convert_correctly_converts_byte_value_to_boxed_byte_value(
+        Mapper sut,
+        ByteBag source
+    ) {
+        BoxedByteBag actual = sut.convert(source, BoxedByteBag.class);
+        assertThat(actual.getValue()).isEqualTo(source.getValue());
+    }
+
+    @AutoParameterizedTest
+    void convert_correctly_converts_boxed_byte_value_to_byte_value(
+        Mapper sut,
+        BoxedByteBag source
+    ) {
+        ByteBag actual = sut.convert(source, ByteBag.class);
+        assertThat(actual.getValue()).isEqualTo(source.getValue());
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class ShortBag {
+
+        private final short value;
+    }
+
+    @AutoParameterizedTest
+    void convert_correctly_converts_short_value(Mapper sut, ShortBag source) {
+        ShortBag actual = sut.convert(source, ShortBag.class);
+        assertThat(actual.getValue()).isEqualTo(source.getValue());
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class BoxedShortBag {
+
+        private final Short value;
+    }
+
+    @AutoParameterizedTest
+    void convert_correctly_converts_boxed_short_value(
+        Mapper sut,
+        BoxedShortBag source
+    ) {
+        BoxedShortBag actual = sut.convert(source, BoxedShortBag.class);
+        assertThat(actual.getValue()).isEqualTo(source.getValue());
+    }
+
+    @AutoParameterizedTest
+    void convert_correctly_converts_short_value_to_boxed_short_value(
+        Mapper sut,
+        ShortBag source
+    ) {
+        BoxedShortBag actual = sut.convert(source, BoxedShortBag.class);
+        assertThat(actual.getValue()).isEqualTo(source.getValue());
+    }
+
+    @AutoParameterizedTest
+    void convert_correctly_converts_boxed_short_value_to_short_value(
+        Mapper sut,
+        BoxedShortBag source
+    ) {
+        ShortBag actual = sut.convert(source, ShortBag.class);
+        assertThat(actual.getValue()).isEqualTo(source.getValue());
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class IntBag {
+
+        private final int value;
+    }
+
+    @AutoParameterizedTest
+    void convert_correctly_converts_int_value(Mapper sut, IntBag source) {
+        IntBag actual = sut.convert(source, IntBag.class);
+        assertThat(actual.getValue()).isEqualTo(source.getValue());
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class BoxedIntBag {
+
+        private final Integer value;
+    }
+
+    @AutoParameterizedTest
+    void convert_correctly_converts_boxed_int_value(
+        Mapper sut,
+        BoxedIntBag source
+    ) {
+        BoxedIntBag actual = sut.convert(source, BoxedIntBag.class);
+        assertThat(actual.getValue()).isEqualTo(source.getValue());
+    }
+
+    @AutoParameterizedTest
+    void convert_correctly_converts_int_value_to_boxed_int_value(
+        Mapper sut,
+        IntBag source
+    ) {
+        BoxedIntBag actual = sut.convert(source, BoxedIntBag.class);
+        assertThat(actual.getValue()).isEqualTo(source.getValue());
+    }
+
+    @AutoParameterizedTest
+    void convert_correctly_converts_boxed_int_value_to_int_value(
+        Mapper sut,
+        BoxedIntBag source
+    ) {
+        IntBag actual = sut.convert(source, IntBag.class);
+        assertThat(actual.getValue()).isEqualTo(source.getValue());
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class LongBag {
+
+        private final long value;
+    }
+
+    @AutoParameterizedTest
+    void convert_correctly_converts_long_value(Mapper sut, LongBag source) {
+        LongBag actual = sut.convert(source, LongBag.class);
+        assertThat(actual.getValue()).isEqualTo(source.getValue());
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class BoxedLongBag {
+
+        private final Long value;
+    }
+
+    @AutoParameterizedTest
+    void convert_correctly_converts_boxed_long_value(
+        Mapper sut,
+        BoxedLongBag source
+    ) {
+        BoxedLongBag actual = sut.convert(source, BoxedLongBag.class);
+        assertThat(actual.getValue()).isEqualTo(source.getValue());
+    }
+
+    @AutoParameterizedTest
+    void convert_correctly_converts_long_value_to_boxed_long_value(
+        Mapper sut,
+        LongBag source
+    ) {
+        BoxedLongBag actual = sut.convert(source, BoxedLongBag.class);
+        assertThat(actual.getValue()).isEqualTo(source.getValue());
+    }
+
+    @AutoParameterizedTest
+    void convert_correctly_converts_boxed_long_value_to_long_value(
+        Mapper sut,
+        BoxedLongBag source
+    ) {
+        LongBag actual = sut.convert(source, LongBag.class);
+        assertThat(actual.getValue()).isEqualTo(source.getValue());
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class FloatBag {
+
+        private final float value;
+    }
+
+    @AutoParameterizedTest
+    void convert_correctly_converts_float_value(Mapper sut, FloatBag source) {
+        FloatBag actual = sut.convert(source, FloatBag.class);
+        assertThat(actual.getValue()).isEqualTo(source.getValue());
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class BoxedFloatBag {
+
+        private final Float value;
+    }
+
+    @AutoParameterizedTest
+    void convert_correctly_converts_boxed_float_value(
+        Mapper sut,
+        BoxedFloatBag source
+    ) {
+        BoxedFloatBag actual = sut.convert(source, BoxedFloatBag.class);
+        assertThat(actual.getValue()).isEqualTo(source.getValue());
+    }
+
+    @AutoParameterizedTest
+    void convert_correctly_converts_float_value_to_boxed_float_value(
+        Mapper sut,
+        FloatBag source
+    ) {
+        BoxedFloatBag actual = sut.convert(source, BoxedFloatBag.class);
+        assertThat(actual.getValue()).isEqualTo(source.getValue());
+    }
+
+    @AutoParameterizedTest
+    void convert_correctly_converts_boxed_float_value_to_float_value(
+        Mapper sut,
+        BoxedFloatBag source
+    ) {
+        FloatBag actual = sut.convert(source, FloatBag.class);
+        assertThat(actual.getValue()).isEqualTo(source.getValue());
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class DoubleBag {
+
+        private final double value;
+    }
+
+    @AutoParameterizedTest
+    void convert_correctly_converts_double_value(
+        Mapper sut,
+        DoubleBag source
+    ) {
+        DoubleBag actual = sut.convert(source, DoubleBag.class);
+        assertThat(actual.getValue()).isEqualTo(source.getValue());
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class BoxedDoubleBag {
+
+        private final Double value;
+    }
+
+    @AutoParameterizedTest
+    void convert_correctly_converts_boxed_double_value(
+        Mapper sut,
+        BoxedDoubleBag source
+    ) {
+        BoxedDoubleBag actual = sut.convert(source, BoxedDoubleBag.class);
+        assertThat(actual.getValue()).isEqualTo(source.getValue());
+    }
+
+    @AutoParameterizedTest
+    void convert_correctly_converts_double_value_to_boxed_double_value(
+        Mapper sut,
+        DoubleBag source
+    ) {
+        BoxedDoubleBag actual = sut.convert(source, BoxedDoubleBag.class);
+        assertThat(actual.getValue()).isEqualTo(source.getValue());
+    }
+
+    @AutoParameterizedTest
+    void convert_correctly_converts_boxed_double_value_to_double_value(
+        Mapper sut,
+        BoxedDoubleBag source
+    ) {
+        DoubleBag actual = sut.convert(source, DoubleBag.class);
+        assertThat(actual.getValue()).isEqualTo(source.getValue());
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class CharBag {
+
+        private final char value;
+    }
+
+    @AutoParameterizedTest
+    void convert_correctly_converts_char_value(Mapper sut, CharBag source) {
+        CharBag actual = sut.convert(source, CharBag.class);
+        assertThat(actual.getValue()).isEqualTo(source.getValue());
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class BoxedCharBag {
+
+        private final Character value;
+    }
+
+    @AutoParameterizedTest
+    void convert_correctly_converts_boxed_char_value(
+        Mapper sut,
+        BoxedCharBag source
+    ) {
+        BoxedCharBag actual = sut.convert(source, BoxedCharBag.class);
+        assertThat(actual.getValue()).isEqualTo(source.getValue());
+    }
+
+    @AutoParameterizedTest
+    void convert_correctly_converts_char_value_to_boxed_char_value(
+        Mapper sut,
+        CharBag source
+    ) {
+        BoxedCharBag actual = sut.convert(source, BoxedCharBag.class);
+        assertThat(actual.getValue()).isEqualTo(source.getValue());
+    }
+
+    @AutoParameterizedTest
+    void convert_correctly_converts_boxed_char_value_to_char_value(
+        Mapper sut,
+        BoxedCharBag source
+    ) {
+        CharBag actual = sut.convert(source, CharBag.class);
+        assertThat(actual.getValue()).isEqualTo(source.getValue());
+    }
 }
