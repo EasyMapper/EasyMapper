@@ -7,17 +7,23 @@ import java.util.function.Consumer;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.experimental.Accessors;
+import lombok.val;
 
 public final class MapperConfiguration {
 
     @Getter
+    @Accessors(fluent = true)
     private ConstructorExtractor constructorExtractor;
 
     @Getter
+    @Accessors(fluent = true)
     private ParameterNameResolver parameterNameResolver;
 
     @Getter(AccessLevel.PACKAGE)
     private final List<MappingBuilder<?, ?>> mappings = new ArrayList<>();
+
+    private final Converters converters = new Converters();
 
     MapperConfiguration() {
         constructorExtractor = DefaultConstructorExtractor.INSTANCE;
@@ -38,10 +44,25 @@ public final class MapperConfiguration {
         return this;
     }
 
+    Converters converters() {
+        val converters = new Converters();
+        converters.addRange(this.converters);
+        return converters;
+    }
+
     public MapperConfiguration apply(
         @NonNull Consumer<MapperConfiguration> configurer
     ) {
         configurer.accept(this);
+        return this;
+    }
+
+    public <S, T> MapperConfiguration addConverter(
+        @NonNull Class<S> sourceType,
+        @NonNull Class<T> targetType,
+        @NonNull Converter<S, T> converter
+    ) {
+        converters.add(sourceType, targetType, converter);
         return this;
     }
 

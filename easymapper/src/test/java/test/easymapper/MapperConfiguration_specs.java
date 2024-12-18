@@ -12,11 +12,17 @@ import easymapper.MapperConfiguration;
 import easymapper.ParameterNameResolver;
 import easymapper.TypePredicate;
 import easymapper.TypeReference;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import lombok.val;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.Test;
 
+import static java.lang.String.valueOf;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static java.util.Comparator.comparingInt;
@@ -28,6 +34,172 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class MapperConfiguration_specs {
 
     private static final TypePredicate acceptAll = type -> true;
+
+    @AllArgsConstructor
+    @Getter
+    @Accessors(fluent = true)
+    public static class User {
+
+        private final int id;
+        private final String username;
+        private final String passwordHash;
+    }
+
+    @Test
+    void addConverter_has_null_guard_for_source_type() {
+        ThrowingCallable action = () -> new Mapper(
+            config -> config.addConverter(
+                (Class<User>) null,
+                User.class,
+                (context, source) -> source
+            )
+        );
+
+        assertThatThrownBy(action)
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("sourceType");
+    }
+
+    @Test
+    void addConverter_has_null_guard_for_target_type() {
+        ThrowingCallable action = () -> new Mapper(
+            config -> config.addConverter(
+                User.class,
+                null,
+                (context, source) -> source
+            )
+        );
+
+        assertThatThrownBy(action)
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("targetType");
+    }
+
+    @Test
+    void addConverter_has_null_guard_for_converter() {
+        ThrowingCallable action = () -> new Mapper(
+            config -> config.addConverter(User.class, User.class, null)
+        );
+
+        assertThatThrownBy(action)
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("converter");
+    }
+
+    @Test
+    void addConverter_is_fluent() {
+        new Mapper(config -> {
+            MapperConfiguration actual = config.addConverter(
+                User.class,
+                User.class,
+                (context, source) -> source
+            );
+            assertThat(actual).isSameAs(config);
+        });
+    }
+
+    @NoArgsConstructor
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    @Getter
+    @Setter
+    @Accessors(fluent = true)
+    public static class UserView {
+
+        private String id;
+        private String username;
+
+        public static UserView from(User user) {
+            return new UserView(valueOf(user.id()), user.username());
+        }
+    }
+
+    @AutoParameterizedTest
+    void addConverter_correctly_works(User user) {
+        val mapper = new Mapper(
+            config -> config.addConverter(
+                User.class,
+                UserView.class,
+                (context, source) -> UserView.from(source)
+            )
+        );
+
+        UserView actual = mapper.convert(user, UserView.class);
+
+        assertThat(actual.id()).isEqualTo(valueOf(user.id()));
+        assertThat(actual.username()).isEqualTo(user.username());
+    }
+
+    @AutoParameterizedTest
+    void addConverter_correctly_works_for_parameter(User user) {
+        val mapper = new Mapper(
+            config -> config.addConverter(
+                int.class,
+                String.class,
+                (context, source) -> valueOf(source)
+            )
+        );
+
+        UserView actual = mapper.convert(user, UserView.class);
+
+        assertThat(actual.id()).isEqualTo(valueOf(user.id()));
+        assertThat(actual.username()).isEqualTo(user.username());
+    }
+
+    @AllArgsConstructor
+    @Getter
+    @Accessors(fluent = true)
+    public static class Post {
+
+        private final int id;
+        private final int authorId;
+        private final String title;
+        private final String text;
+    }
+
+    @Getter
+    @Setter
+    @Accessors(fluent = true)
+    public static class PostView {
+
+        private String id;
+        private String authorId;
+        private String title;
+        private String text;
+    }
+
+    @AutoParameterizedTest
+    void addConverter_correctly_works_for_property(Post post) {
+        val mapper = new Mapper(
+            config -> config.addConverter(
+                int.class,
+                String.class,
+                (context, source) -> valueOf(source)
+            )
+        );
+
+        PostView actual = mapper.convert(post, PostView.class);
+
+        assertThat(actual.id()).isEqualTo(valueOf(post.id()));
+        assertThat(actual.authorId()).isEqualTo(valueOf(post.authorId()));
+        assertThat(actual.title()).isEqualTo(post.title());
+        assertThat(actual.text()).isEqualTo(post.text());
+    }
+
+    @AutoParameterizedTest
+    void addConverter_overrides_previous_converter(
+        Post post,
+        String anonymous
+    ) {
+        val mapper = new Mapper(config -> config
+            .addConverter(int.class, String.class, (c, s) -> anonymous)
+            .addConverter(int.class, String.class, (c, s) -> s.toString())
+        );
+
+        PostView actual = mapper.convert(post, PostView.class);
+
+        assertThat(actual.id()).isEqualTo(valueOf(post.id()));
+        assertThat(actual.authorId()).isEqualTo(valueOf(post.authorId()));
+    }
 
     @AllArgsConstructor
     @Getter
@@ -48,27 +220,6 @@ public class MapperConfiguration_specs {
         private final double listPrice;
         private final double discount;
         private final double salePrice;
-    }
-
-    @AllArgsConstructor
-    @Getter
-    public static class User {
-
-        private final int id;
-        private final String username;
-        private final String passwordHash;
-    }
-
-    @AllArgsConstructor
-    @Getter
-    public static class UserView {
-
-        private final int id;
-        private final String name;
-
-        public static UserView from(User user) {
-            return new UserView(user.getId(), user.getUsername());
-        }
     }
 
     @Test
@@ -130,8 +281,8 @@ public class MapperConfiguration_specs {
 
         UserView actual = mapper.convert(user, UserView.class);
 
-        assertThat(actual.getId()).isEqualTo(user.getId());
-        assertThat(actual.getName()).isEqualTo(user.getUsername());
+        assertThat(actual.id()).isEqualTo(valueOf(user.id()));
+        assertThat(actual.username()).isEqualTo(user.username());
     }
 
     @Test
@@ -267,8 +418,8 @@ public class MapperConfiguration_specs {
 
         UserView actual = mapper.convert(user, UserView.class);
 
-        assertThat(actual.getId()).isEqualTo(user.getId());
-        assertThat(actual.getName()).isEqualTo(user.getUsername());
+        assertThat(actual.id()).isEqualTo(valueOf(user.id()));
+        assertThat(actual.username()).isEqualTo(user.username());
     }
 
     @AutoParameterizedTest
@@ -327,7 +478,7 @@ public class MapperConfiguration_specs {
         );
 
         // Assert
-        assertThat(actual.getId()).isEqualTo(source.getId());
+        assertThat(actual.getId()).isEqualTo(source.id());
         assertThat(actual.getUsername())
             .isEqualTo(HasBrokenConstructor.DEFAULT_USERNAME);
     }

@@ -5,6 +5,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.function.Supplier;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -37,7 +38,11 @@ public final class MappingContext {
             .orElse(Mapping.EMPTY)
             .conversion()
             .map(conversion -> conversion.bind(this, source))
-            .orElse(() -> convertInDefaultWay(source))
+            .orElseGet(() -> settings
+                .converters()
+                .find(sourceType, destinationType)
+                .<Supplier<Object>>map(converter -> () -> converter.convert(this, source))
+                .orElse(() -> convertInDefaultWay(source)))
             .get();
     }
 

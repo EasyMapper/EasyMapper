@@ -23,6 +23,12 @@ class AtomicObjectMapping {
         MapperConfiguration config,
         Class<T> type
     ) {
+        config.map(
+            TypePredicate.ACCEPT_ALL_TYPES,
+            TypePredicate.from(type),
+            mapping -> mapping.project(Projection.empty())
+        );
+
         config.map(type, type, mapping -> mapping
             .convert(Conversion.identity())
             .project(Projection.empty())

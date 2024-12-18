@@ -17,12 +17,14 @@ class MappingSettings {
 
     private final ConstructorExtractor constructorExtractor;
     private final ParameterNameResolver parameterNameResolver;
+    private final Converters converters;
     private final List<Mapping<Object, Object>> mappings;
 
     public static MappingSettings from(MapperConfiguration config) {
         return new MappingSettings(
-            config.getConstructorExtractor(),
-            config.getParameterNameResolver(),
+            config.constructorExtractor(),
+            config.parameterNameResolver(),
+            config.converters(),
             buildMappings(config)
         );
     }

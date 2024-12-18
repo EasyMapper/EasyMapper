@@ -71,9 +71,10 @@ class Setter {
             }
 
             String methodName = method.getName();
-            if (methodName.startsWith("set")) {
-                setters.put(camelize(methodName.substring(3)), create(method));
-            }
+            String propertyName = methodName.startsWith("set")
+                ? camelize(methodName.substring(3))
+                : methodName;
+            setters.put(propertyName, create(method));
         }
 
         return setters;
