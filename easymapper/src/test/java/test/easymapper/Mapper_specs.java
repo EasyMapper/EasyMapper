@@ -140,6 +140,7 @@ class Mapper_specs {
     @Getter
     public static class Shipment {
 
+        private final long id;
         private final Recipient recipient;
         private final Address address;
     }
@@ -1188,6 +1189,8 @@ class Mapper_specs {
     public static class ShipmentEntity {
 
         @Id
+        private Long id;
+
         private String recipientName;
 
         private String recipientPhoneNumber;
@@ -1217,14 +1220,136 @@ class Mapper_specs {
     @AutoParameterizedTest
     void convert_correctly_flattens_nested_properties_for_setters_with_null(
         Mapper sut,
+        long id,
         Address address
     ) {
         Recipient recipient = null;
-        Shipment source = new Shipment(recipient, address);
+        Shipment source = new Shipment(id, recipient, address);
 
         ShipmentEntity actual = sut.convert(source, ShipmentEntity.class);
 
         assertThat(actual.getRecipientName()).isNull();
         assertThat(actual.getRecipientPhoneNumber()).isNull();
+    }
+
+    @AutoParameterizedTest
+    void convert_correctly_unflattens_properties_for_constructors(
+        Mapper sut,
+        ShipmentEntity source
+    ) {
+        Shipment destination = sut.convert(source, Shipment.class);
+
+        assertThat(destination.getRecipient().getName())
+            .isEqualTo(source.getRecipientName());
+        assertThat(destination.getRecipient().getPhoneNumber())
+            .isEqualTo(source.getRecipientPhoneNumber());
+        assertThat(destination.getAddress().getCountry())
+            .isEqualTo(source.getAddressCountry());
+        assertThat(destination.getAddress().getState())
+            .isEqualTo(source.getAddressState());
+        assertThat(destination.getAddress().getCity())
+            .isEqualTo(source.getAddressCity());
+        assertThat(destination.getAddress().getZipCode())
+            .isEqualTo(source.getAddressZipCode());
+    }
+
+    @Getter
+    @Setter
+    public static class ShipmentDto {
+
+        private long id;
+        private Recipient recipient;
+        private Address address;
+    }
+
+    @AutoParameterizedTest
+    void convert_correctly_unflattens_properties_for_setters(
+        Mapper sut,
+        ShipmentEntity source
+    ) {
+        ShipmentDto destination = sut.convert(source, ShipmentDto.class);
+
+        assertThat(destination.getRecipient().getName())
+            .isEqualTo(source.getRecipientName());
+        assertThat(destination.getRecipient().getPhoneNumber())
+            .isEqualTo(source.getRecipientPhoneNumber());
+        assertThat(destination.getAddress().getCountry())
+            .isEqualTo(source.getAddressCountry());
+        assertThat(destination.getAddress().getState())
+            .isEqualTo(source.getAddressState());
+        assertThat(destination.getAddress().getCity())
+            .isEqualTo(source.getAddressCity());
+        assertThat(destination.getAddress().getZipCode())
+            .isEqualTo(source.getAddressZipCode());
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class Receipt {
+
+        private final Price price;
+        private final Shipment shipment;
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class Price {
+
+        private final long amount;
+        private final String currency;
+    }
+
+    @Entity
+    @Getter
+    @Setter
+    public static class ReceiptEntity {
+
+        @Id
+        private Long id;
+
+        private Long priceAmount;
+
+        private String priceCurrency;
+
+        private Long shipmentId;
+
+        private String shipmentRecipientName;
+
+        private String shipmentRecipientPhoneNumber;
+
+        private String shipmentAddressCountry;
+
+        private String shipmentAddressState;
+
+        private String shipmentAddressCity;
+
+        private String shipmentAddressZipCode;
+    }
+
+    @AutoParameterizedTest
+    void convert_correctly_unflattens_deep_properties_for_constructors(
+        Mapper sut,
+        ReceiptEntity source
+    ) {
+        Receipt destination = sut.convert(source, Receipt.class);
+
+        assertThat(destination.getPrice().getAmount())
+            .isEqualTo(source.getPriceAmount());
+        assertThat(destination.getPrice().getCurrency())
+            .isEqualTo(source.getPriceCurrency());
+        assertThat(destination.getShipment().getId())
+            .isEqualTo(source.getShipmentId());
+        assertThat(destination.getShipment().getRecipient().getName())
+            .isEqualTo(source.getShipmentRecipientName());
+        assertThat(destination.getShipment().getRecipient().getPhoneNumber())
+            .isEqualTo(source.getShipmentRecipientPhoneNumber());
+        assertThat(destination.getShipment().getAddress().getCountry())
+            .isEqualTo(source.getShipmentAddressCountry());
+        assertThat(destination.getShipment().getAddress().getState())
+            .isEqualTo(source.getShipmentAddressState());
+        assertThat(destination.getShipment().getAddress().getCity())
+            .isEqualTo(source.getShipmentAddressCity());
+        assertThat(destination.getShipment().getAddress().getZipCode())
+            .isEqualTo(source.getShipmentAddressZipCode());
     }
 }
