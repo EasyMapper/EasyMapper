@@ -20,7 +20,7 @@ class CollectionMapping {
     }
 
     private static Object convert(MappingContext context, Iterable<?> source) {
-        MappingContext elementMappingContext = context.branchContext(
+        MappingContext elementMappingContext = context.branch(
             resolveElementType(context.getSourceType()),
             resolveElementType(context.getDestinationType()));
 

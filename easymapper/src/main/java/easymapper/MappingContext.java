@@ -24,7 +24,7 @@ public final class MappingContext {
     @Getter(AccessLevel.PACKAGE)
     private final Type destinationType;
 
-    MappingContext branchContext(Type sourceType, Type destinationType) {
+    MappingContext branch(Type sourceType, Type destinationType) {
         return new MappingContext(settings, sourceType, destinationType);
     }
 
@@ -56,7 +56,7 @@ public final class MappingContext {
         return invoke(constructor, arguments);
     }
 
-    Constructor<?> getConstructor(Type type) {
+    private Constructor<?> getConstructor(Type type) {
         if (type instanceof ParameterizedType) {
             return getConstructor(((ParameterizedType) type).getRawType());
         } else if (type instanceof Class<?>) {
@@ -103,7 +103,7 @@ public final class MappingContext {
         return arguments;
     }
 
-    String[] getPropertyNames(Constructor<?> constructor) {
+    private String[] getPropertyNames(Constructor<?> constructor) {
         return settings
             .parameterNameResolver()
             .tryResolveNames(constructor)
@@ -147,7 +147,7 @@ public final class MappingContext {
             .get(destinationType)
             .get(propertyName);
 
-        MappingContext context = branchContext(
+        MappingContext context = branch(
             sourceProperty.type(),
             destinationProperty.type()
         );
@@ -212,7 +212,7 @@ public final class MappingContext {
         Properties properties = Properties.get(sourceType);
         properties.ifPresent(
             destination.name(), property -> {
-                MappingContext context = branchContext(
+                MappingContext context = branch(
                     property.type(),
                     destination.type()
                 );
@@ -249,36 +249,14 @@ public final class MappingContext {
     private void projectPropertyIfPresent(Object source, Variable destination) {
         Properties properties = Properties.get(sourceType);
         properties.ifPresent(
-            destination.name(), property -> {
-                MappingContext context = branchContext(
+            destination.name(),
+            property -> {
+                MappingContext context = branch(
                     property.type(),
                     destination.type()
                 );
-                context.project(property.bind(source), destination);
+                context.project(property.bind(source).get(), destination.get());
             }
         );
-    }
-
-    private void project(Variable source, Variable destination) {
-        Object sourceValue = source.get();
-        Object destinationValue = destination.get();
-
-        if (sourceValue == null && destinationValue != null) {
-            String message = "'"
-                + source.name()
-                + "' is null but '"
-                + destination.name()
-                + "' is not null.";
-            throw new RuntimeException(message);
-        } else if (sourceValue != null && destinationValue == null) {
-            String message = "'"
-                + source.name()
-                + "' is not null but '"
-                + destination.name()
-                + "' is null.";
-            throw new RuntimeException(message);
-        }
-
-        project(sourceValue, destinationValue);
     }
 }

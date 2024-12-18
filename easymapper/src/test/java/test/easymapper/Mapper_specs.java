@@ -599,7 +599,7 @@ class Mapper_specs {
     }
 
     @AutoParameterizedTest
-    void project_fails_if_source_property_is_null_and_read_only_destination_property_is_not_null(
+    void project_does_not_project_if_source_property_is_null_and_read_only_destination_property_is_not_null(
         Mapper sut,
         User destination
     ) {
@@ -608,22 +608,21 @@ class Mapper_specs {
             destination.getUsername(),
             null
         );
+        String snapshot = destination.getPasswordHash();
 
-        assertThatThrownBy(() -> sut.project(source, destination))
-            .isInstanceOf(RuntimeException.class)
-            .hasMessageContaining("passwordHash");
+        sut.project(source, destination);
+
+        assertThat(destination.getPasswordHash()).isEqualTo(snapshot);
     }
 
     @AutoParameterizedTest
-    void project_fails_if_source_property_is_not_null_and_read_only_destination_property_is_null(
+    void project_does_not_project_if_source_property_is_not_null_and_read_only_destination_property_is_null(
         Mapper sut,
         User source
     ) {
         val destination = new User(source.getId(), source.getUsername(), null);
-
-        assertThatThrownBy(() -> sut.project(source, destination))
-            .isInstanceOf(RuntimeException.class)
-            .hasMessageContaining("passwordHash");
+        sut.project(source, destination);
+        assertThat(destination.getPasswordHash()).isNull();
     }
 
     @AutoParameterizedTest
