@@ -31,9 +31,11 @@ public class Mapper {
         return convertObject(source, sourceType, destinationType);
     }
 
-    public <S, D> D convert(S source, @NonNull Class<D> destinationType) {
-        Type sourceType = source.getClass();
-        return convertObject(source, sourceType, destinationType);
+    public <S, D> D convert(
+        @NonNull S source,
+        @NonNull Class<D> destinationType
+    ) {
+        return convertObject(source, source.getClass(), destinationType);
     }
 
     public <S, D> D convert(

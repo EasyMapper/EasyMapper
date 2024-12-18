@@ -80,6 +80,14 @@ class Mapper_specs {
     }
 
     @AutoParameterizedTest
+    void convert_without_source_type_has_null_guard_for_source(Mapper sut) {
+        User source = null;
+        assertThatThrownBy(() -> sut.convert(source, User.class))
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("source");
+    }
+
+    @AutoParameterizedTest
     void convert_without_source_type_has_null_guard_for_destination_type(
         Mapper sut,
         User source
