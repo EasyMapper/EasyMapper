@@ -1,9 +1,5 @@
 package test.easymapper;
 
-import autoparams.Repeat;
-import easymapper.Mapper;
-import easymapper.TypeReference;
-
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -11,10 +7,14 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.UUID;
 
+import autoparams.Repeat;
+import easymapper.Mapper;
+import easymapper.TypeReference;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -287,12 +287,13 @@ class Mapper_specs {
     ) {
         TypeReference<ImmutableBag<UUID>> sourceTypeReference = null;
 
-        assertThatThrownBy(() -> sut.convert(
+        ThrowingCallable action = () -> sut.convert(
             source,
             sourceTypeReference,
             new TypeReference<ImmutableBag<String>>() { }
-        ))
-            .isInstanceOf(NullPointerException.class);
+        );
+
+        assertThatThrownBy(action).isInstanceOf(NullPointerException.class);
     }
 
     @AutoParameterizedTest
@@ -302,12 +303,13 @@ class Mapper_specs {
     ) {
         TypeReference<ImmutableBag<String>> destinationTypeReference = null;
 
-        assertThatThrownBy(() -> sut.convert(
+        ThrowingCallable action = () -> sut.convert(
             source,
             new TypeReference<ImmutableBag<UUID>>() { },
             destinationTypeReference
-        ))
-            .isInstanceOf(NullPointerException.class);
+        );
+
+        assertThatThrownBy(action).isInstanceOf(NullPointerException.class);
     }
 
     @AutoParameterizedTest
@@ -386,8 +388,14 @@ class Mapper_specs {
     ) {
         User source = null;
 
-        assertThatThrownBy(
-            () -> sut.project(source, destination, User.class, UserView.class))
+        ThrowingCallable action = () -> sut.project(
+            source,
+            destination,
+            User.class,
+            UserView.class
+        );
+
+        assertThatThrownBy(action)
             .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("source");
     }
@@ -399,8 +407,14 @@ class Mapper_specs {
     ) {
         UserView destination = null;
 
-        assertThatThrownBy(
-            () -> sut.project(source, destination, User.class, UserView.class))
+        ThrowingCallable action = () -> sut.project(
+            source,
+            destination,
+            User.class,
+            UserView.class
+        );
+
+        assertThatThrownBy(action)
             .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("destination");
     }
@@ -413,8 +427,14 @@ class Mapper_specs {
     ) {
         Class<User> sourceType = null;
 
-        assertThatThrownBy(
-            () -> sut.project(source, destination, sourceType, UserView.class))
+        ThrowingCallable action = () -> sut.project(
+            source,
+            destination,
+            sourceType,
+            UserView.class
+        );
+
+        assertThatThrownBy(action)
             .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("sourceType");
     }
@@ -427,8 +447,14 @@ class Mapper_specs {
     ) {
         Class<UserView> destinationType = null;
 
-        assertThatThrownBy(
-            () -> sut.project(source, destination, User.class, destinationType))
+        ThrowingCallable action = () -> sut.project(
+            source,
+            destination,
+            User.class,
+            destinationType
+        );
+
+        assertThatThrownBy(action)
             .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("destinationType");
     }
@@ -581,13 +607,14 @@ class Mapper_specs {
         Mapper sut,
         MutableBag<String> destination
     ) {
-        assertThatThrownBy(() -> sut.project(
+        ThrowingCallable action = () -> sut.project(
             null,
             destination,
             new TypeReference<MutableBag<UUID>>() { },
             new TypeReference<MutableBag<String>>() { }
-        ))
-            .isInstanceOf(NullPointerException.class);
+        );
+
+        assertThatThrownBy(action).isInstanceOf(NullPointerException.class);
     }
 
     @AutoParameterizedTest
@@ -595,13 +622,14 @@ class Mapper_specs {
         Mapper sut,
         MutableBag<UUID> source
     ) {
-        assertThatThrownBy(() -> sut.project(
+        ThrowingCallable action = () -> sut.project(
             source,
             null,
             new TypeReference<MutableBag<UUID>>() { },
             new TypeReference<MutableBag<String>>() { }
-        ))
-            .isInstanceOf(NullPointerException.class);
+        );
+
+        assertThatThrownBy(action).isInstanceOf(NullPointerException.class);
     }
 
     @AutoParameterizedTest
@@ -612,13 +640,14 @@ class Mapper_specs {
     ) {
         TypeReference<MutableBag<UUID>> sourceTypeReference = null;
 
-        assertThatThrownBy(() -> sut.project(
+        ThrowingCallable action = () -> sut.project(
             source,
             destination,
             sourceTypeReference,
             new TypeReference<MutableBag<String>>() { }
-        ))
-            .isInstanceOf(NullPointerException.class);
+        );
+
+        assertThatThrownBy(action).isInstanceOf(NullPointerException.class);
     }
 
     @AutoParameterizedTest
@@ -629,13 +658,14 @@ class Mapper_specs {
     ) {
         TypeReference<MutableBag<String>> destinationTypeReference = null;
 
-        assertThatThrownBy(() -> sut.project(
+        ThrowingCallable action = () -> sut.project(
             source,
             destination,
             new TypeReference<MutableBag<UUID>>() { },
             destinationTypeReference
-        ))
-            .isInstanceOf(NullPointerException.class);
+        );
+
+        assertThatThrownBy(action).isInstanceOf(NullPointerException.class);
     }
 
     @AutoParameterizedTest
