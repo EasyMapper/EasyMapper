@@ -1,27 +1,18 @@
 package easymapper;
 
-import java.beans.ConstructorProperties;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.List;
 import java.util.function.Consumer;
 
 import lombok.NonNull;
-
-import static easymapper.Collections.copyInReverseOrder;
-import static java.lang.System.lineSeparator;
-import static java.util.Comparator.comparingInt;
-import static java.util.stream.Collectors.toList;
+import lombok.val;
 
 public class Mapper {
 
-    private final ConstructorExtractor constructorExtractor;
-    private final ParameterNameResolver parameterNameResolver;
-    private final List<Mapping<Object, Object>> mappings;
+    private final MappingSettings settings;
 
+    @SuppressWarnings("unused")
     public Mapper() {
-        this(config -> {});
+        this(config -> { });
     }
 
     public Mapper(@NonNull Consumer<MapperConfiguration> configurer) {
@@ -29,30 +20,7 @@ public class Mapper {
             .apply(BaseConfiguration::configure)
             .apply(configurer);
 
-        constructorExtractor = config.getConstructorExtractor();
-        parameterNameResolver = config.getParameterNameResolver();
-        mappings = getMappings(config);
-    }
-
-    @SuppressWarnings("unchecked")
-    private static List<Mapping<Object, Object>> getMappings(
-        MapperConfiguration config
-    ) {
-        return copyInReverseOrder(config
-            .getMappings()
-            .stream()
-            .map(MappingBuilder::build)
-            .map(mapping -> (Mapping<Object, Object>) mapping)
-            .collect(toList()));
-    }
-
-    MappingContext createContext(Type sourceType, Type destinationType) {
-        Mapping<Object, Object> mapping = mappings
-            .stream()
-            .filter(m -> m.match(sourceType, destinationType))
-            .findFirst()
-            .orElse(Mapping.EMPTY);
-        return new MappingContext(this, sourceType, destinationType, mapping);
+        settings = MappingSettings.from(config);
     }
 
     @Deprecated
@@ -102,7 +70,7 @@ public class Mapper {
         Type sourceType,
         Type destinationType
     ) {
-        MappingContext context = createContext(sourceType, destinationType);
+        val context = new MappingContext(settings, sourceType, destinationType);
         return (D) context.convert(source);
     }
 
@@ -168,62 +136,7 @@ public class Mapper {
         Type sourceType,
         Type destinationType
     ) {
-        MappingContext context = createContext(sourceType, destinationType);
+        val context = new MappingContext(settings, sourceType, destinationType);
         context.project(source, destination);
-    }
-
-    Constructor<?> getConstructor(Type type) {
-        if (type instanceof ParameterizedType) {
-            return getConstructor(((ParameterizedType) type).getRawType());
-        } else if (type instanceof Class<?>) {
-            return getConstructor((Class<?>) type);
-        } else {
-            throw new RuntimeException(composeConstructorNotFoundMessage(type));
-        }
-    }
-
-    private static String composeConstructorNotFoundMessage(Type type) {
-        String newLine = lineSeparator();
-        return "Cannot provide constructor for the type: " + type
-            + newLine + "If you use Mapper to convert instances of generic classes, use the TypeReference<T> interface to specify the generic type."
-            + newLine
-            + newLine + "For example,"
-            + newLine
-            + newLine + "mapper.convert("
-            + newLine + "     source,"
-            + newLine + "     new TypeReference<DomainEvent<OrderPlaced>>() {},"
-            + newLine + "     new TypeReference<IntegrationEvent<OrderPlacedEvent>>() {});";
-    }
-
-    private Constructor<?> getConstructor(Class<?> type) {
-        return constructorExtractor
-            .extract(type)
-            .stream()
-            .max(comparingInt(Constructor::getParameterCount))
-            .orElseThrow(() -> {
-                String message = "No constructor found for " + type;
-                return new RuntimeException(message);
-            });
-    }
-
-    String[] getPropertyNames(Constructor<?> constructor) {
-        return parameterNameResolver
-            .tryResolveNames(constructor)
-            .orElseGet(() -> getAnnotatedPropertyNames(constructor));
-    }
-
-    private static String[] getAnnotatedPropertyNames(
-        Constructor<?> constructor
-    ) {
-        ConstructorProperties annotation = constructor
-            .getAnnotation(ConstructorProperties.class);
-
-        if (annotation == null) {
-            String message = "The constructor " + constructor
-                + " is not decorated with @ConstructorProperties annotation.";
-            throw new RuntimeException(message);
-        } else {
-            return annotation.value();
-        }
     }
 }

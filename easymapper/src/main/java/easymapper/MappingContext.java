@@ -1,17 +1,22 @@
 package easymapper;
 
+import java.beans.ConstructorProperties;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Parameter;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import static java.lang.System.lineSeparator;
+import static java.util.Comparator.comparingInt;
+
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
 public final class MappingContext {
 
-    private final Mapper mapper;
+    private final MappingSettings settings;
 
     @Getter(AccessLevel.PACKAGE)
     private final Type sourceType;
@@ -19,14 +24,17 @@ public final class MappingContext {
     @Getter(AccessLevel.PACKAGE)
     private final Type destinationType;
 
-    private final Mapping<Object, Object> mapping;
-
     MappingContext branchContext(Type sourceType, Type destinationType) {
-        return mapper.createContext(sourceType, destinationType);
+        return new MappingContext(settings, sourceType, destinationType);
     }
 
     Object convert(Object source) {
-        return mapping
+        return settings
+            .mappings()
+            .stream()
+            .filter(mapping -> mapping.match(sourceType, destinationType))
+            .findFirst()
+            .orElse(Mapping.EMPTY)
             .conversion()
             .map(conversion -> conversion.convert(this, source))
             .orElseGet(() -> convertInDefaultWay(source));
@@ -43,14 +51,49 @@ public final class MappingContext {
     }
 
     private Object construct(Object source) {
-        Constructor<?> constructor = mapper.getConstructor(destinationType);
+        Constructor<?> constructor = getConstructor(destinationType);
         Object[] arguments = buildArguments(source, constructor);
         return invoke(constructor, arguments);
     }
 
+    Constructor<?> getConstructor(Type type) {
+        if (type instanceof ParameterizedType) {
+            return getConstructor(((ParameterizedType) type).getRawType());
+        } else if (type instanceof Class<?>) {
+            return getConstructor((Class<?>) type);
+        } else {
+            throw new RuntimeException(composeConstructorNotFoundMessage(type));
+        }
+    }
+
+    private static String composeConstructorNotFoundMessage(Type type) {
+        String newLine = lineSeparator();
+        return "Cannot provide constructor for the type: " + type
+            + newLine + "If you use Mapper to convert instances of generic classes, use the TypeReference<T> interface to specify the generic type."
+            + newLine
+            + newLine + "For example,"
+            + newLine
+            + newLine + "mapper.convert("
+            + newLine + "     source,"
+            + newLine + "     new TypeReference<DomainEvent<OrderPlaced>>() {},"
+            + newLine + "     new TypeReference<IntegrationEvent<OrderPlacedEvent>>() {});";
+    }
+
+    private Constructor<?> getConstructor(Class<?> type) {
+        return settings
+            .constructorExtractor()
+            .extract(type)
+            .stream()
+            .max(comparingInt(Constructor::getParameterCount))
+            .orElseThrow(() -> {
+                String message = "No constructor found for " + type;
+                return new RuntimeException(message);
+            });
+    }
+
     private Object[] buildArguments(Object source, Constructor<?> constructor) {
         Parameter[] parameters = constructor.getParameters();
-        String[] propertyNames = mapper.getPropertyNames(constructor);
+        String[] propertyNames = getPropertyNames(constructor);
         Object[] arguments = new Object[parameters.length];
 
         for (int i = 0; i < parameters.length; i++) {
@@ -60,8 +103,35 @@ public final class MappingContext {
         return arguments;
     }
 
+    String[] getPropertyNames(Constructor<?> constructor) {
+        return settings
+            .parameterNameResolver()
+            .tryResolveNames(constructor)
+            .orElseGet(() -> getAnnotatedPropertyNames(constructor));
+    }
+
+    private static String[] getAnnotatedPropertyNames(
+        Constructor<?> constructor
+    ) {
+        ConstructorProperties annotation = constructor
+            .getAnnotation(ConstructorProperties.class);
+
+        if (annotation == null) {
+            String message = "The constructor " + constructor
+                + " is not decorated with @ConstructorProperties annotation.";
+            throw new RuntimeException(message);
+        } else {
+            return annotation.value();
+        }
+    }
+
     private Object computeOrConvert(Object source, String propertyName) {
-        return mapping
+        return settings
+            .mappings()
+            .stream()
+            .filter(mapping -> mapping.match(sourceType, destinationType))
+            .findFirst()
+            .orElse(Mapping.EMPTY)
             .computation(propertyName)
             .map(computation -> computation.bind(this, source))
             .orElse(() -> convertProperty(source, propertyName))
@@ -79,7 +149,8 @@ public final class MappingContext {
 
         MappingContext context = branchContext(
             sourceProperty.type(),
-            destinationProperty.type());
+            destinationProperty.type()
+        );
 
         return context.convert(sourceProperty.get(source));
     }
@@ -100,7 +171,12 @@ public final class MappingContext {
             return;
         }
 
-        mapping
+        settings
+            .mappings()
+            .stream()
+            .filter(mapping -> mapping.match(sourceType, destinationType))
+            .findFirst()
+            .orElse(Mapping.EMPTY)
             .projection()
             .map(projection -> projection.bind(this, source, destination))
             .orElse(() -> projectInDefaultWay(source, destination))
@@ -119,7 +195,12 @@ public final class MappingContext {
     }
 
     private void computeOrConvertProperty(Object source, Variable property) {
-        mapping
+        settings
+            .mappings()
+            .stream()
+            .filter(mapping -> mapping.match(sourceType, destinationType))
+            .findFirst()
+            .orElse(Mapping.EMPTY)
             .computation(property.name())
             .map(computation -> computation.bind(this, source))
             .<Runnable>map(factory -> () -> property.set(factory.get()))
@@ -129,12 +210,15 @@ public final class MappingContext {
 
     private void convertPropertyIfPresent(Object source, Variable destination) {
         Properties properties = Properties.get(sourceType);
-        properties.ifPresent(destination.name(), property -> {
-            MappingContext context = branchContext(
-                property.type(),
-                destination.type());
-            context.convertThenSet(property.bind(source), destination);
-        });
+        properties.ifPresent(
+            destination.name(), property -> {
+                MappingContext context = branchContext(
+                    property.type(),
+                    destination.type()
+                );
+                context.convertThenSet(property.bind(source), destination);
+            }
+        );
     }
 
     private void convertThenSet(Variable source, Variable destination) {
@@ -164,12 +248,15 @@ public final class MappingContext {
 
     private void projectPropertyIfPresent(Object source, Variable destination) {
         Properties properties = Properties.get(sourceType);
-        properties.ifPresent(destination.name(), property -> {
-            MappingContext context = branchContext(
-                property.type(),
-                destination.type());
-            context.project(property.bind(source), destination);
-        });
+        properties.ifPresent(
+            destination.name(), property -> {
+                MappingContext context = branchContext(
+                    property.type(),
+                    destination.type()
+                );
+                context.project(property.bind(source), destination);
+            }
+        );
     }
 
     private void project(Variable source, Variable destination) {
