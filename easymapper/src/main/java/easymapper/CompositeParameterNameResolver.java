@@ -28,7 +28,7 @@ public class CompositeParameterNameResolver implements ParameterNameResolver {
     }
 
     @Override
-    public Optional<String> tryResolveName(Parameter parameter) {
+    public Optional<String> tryResolveName(@NonNull Parameter parameter) {
         for (ParameterNameResolver resolver : resolvers) {
             Optional<String> name = resolver.tryResolveName(parameter);
             if (name.isPresent()) {
