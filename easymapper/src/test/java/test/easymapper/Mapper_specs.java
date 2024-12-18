@@ -1,5 +1,9 @@
 package test.easymapper;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import java.beans.ConstructorProperties;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -508,18 +512,18 @@ class Mapper_specs {
     @AllArgsConstructor
     @Getter
     public static class Pricing {
+
         private final double listPrice;
         private final double discountRate;
-
     }
 
     @Getter
     @Setter
     public static class PricingView {
+
         private double listPrice;
         private double discountRate;
         private double salePrice;
-
     }
 
     @AutoParameterizedTest
@@ -546,11 +550,11 @@ class Mapper_specs {
     @Getter
     @Setter
     public static class OrderView {
+
         private UUID id;
         private long itemId;
         private int quantity;
         private Shipment shipment;
-
     }
 
     @AutoParameterizedTest
@@ -700,5 +704,61 @@ class Mapper_specs {
 
         assertThat(destination.getValue().getValue())
             .isEqualTo(source.getValue().getValue().toString());
+    }
+
+    @SuppressWarnings("unused")
+    @NoArgsConstructor
+    @Getter
+    @Entity
+    public static class UserEntity {
+
+        @Id
+        private long id;
+
+        @Column(unique = true)
+        private String username;
+
+        @Column(unique = true)
+        @Setter
+        private String passwordHash;
+
+        @ConstructorProperties({ "username" })
+        public UserEntity(String username) {
+            this.username = username;
+        }
+
+        @ConstructorProperties({ "id", "username" })
+        public UserEntity(long id, String username) {
+            this.id = id;
+            this.username = username;
+        }
+    }
+
+    @AutoParameterizedTest
+    void convert_chooses_constructor_with_most_parameters(Mapper sut, User source) {
+        UserEntity actual = sut.convert(source, UserEntity.class);
+        assertThat(actual.getId()).isEqualTo(source.getId());
+    }
+
+    @Getter
+    public static class UserDto {
+
+        private final long id;
+        private final String name;
+
+        public UserDto(long id, String name) {
+            this.id = id;
+            this.name = name;
+        }
+    }
+
+    @AutoParameterizedTest
+    void convert_fails_with_useful_message_if_constructor_not_decorated_with_constructor_properties_annotation(
+        Mapper sut,
+        UserView source
+    ) {
+        assertThatThrownBy(() -> sut.convert(source, UserDto.class))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessageContainingAll("UserDto", "@ConstructorProperties");
     }
 }
