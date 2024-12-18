@@ -9,7 +9,12 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import autoparams.Repeat;
 import easymapper.Mapper;
@@ -18,6 +23,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.val;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.Test;
 
@@ -45,8 +51,7 @@ class Mapper_specs {
     @AutoParameterizedTest
     void convert_has_null_guard_for_source_type(Mapper sut, User source) {
         Class<User> sourceType = null;
-        assertThatThrownBy(
-            () -> sut.convert(source, sourceType, User.class))
+        assertThatThrownBy(() -> sut.convert(source, sourceType, User.class))
             .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("sourceType");
     }
@@ -54,8 +59,14 @@ class Mapper_specs {
     @AutoParameterizedTest
     void convert_has_null_guard_for_destination_type(Mapper sut, User source) {
         Class<User> destinationType = null;
-        assertThatThrownBy(
-            () -> sut.convert(source, User.class, destinationType))
+
+        ThrowingCallable action = () -> sut.convert(
+            source,
+            User.class,
+            destinationType
+        );
+
+        assertThatThrownBy(action)
             .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("destinationType");
     }
@@ -74,8 +85,7 @@ class Mapper_specs {
         User source
     ) {
         Class<User> destinationType = null;
-        assertThatThrownBy(
-            () -> sut.convert(source, destinationType))
+        assertThatThrownBy(() -> sut.convert(source, destinationType))
             .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("destinationType");
     }
@@ -236,7 +246,7 @@ class Mapper_specs {
         String title,
         String text
     ) {
-        Post source = new Post(null, authorId, title, text);
+        val source = new Post(null, authorId, title, text);
         PostView actual = sut.convert(source, PostView.class);
 
         assertThat(actual.getId()).isNull();
@@ -552,7 +562,7 @@ class Mapper_specs {
         Mapper sut,
         User source
     ) {
-        UserView destination = new UserView();
+        val destination = new UserView();
         sut.project(source, destination);
         assertThat(destination).usingRecursiveComparison().isEqualTo(source);
     }
@@ -593,7 +603,7 @@ class Mapper_specs {
         Mapper sut,
         User destination
     ) {
-        User source = new User(
+        val source = new User(
             destination.getId(),
             destination.getUsername(),
             null
@@ -609,7 +619,7 @@ class Mapper_specs {
         Mapper sut,
         User source
     ) {
-        User destination = new User(source.getId(), source.getUsername(), null);
+        val destination = new User(source.getId(), source.getUsername(), null);
 
         assertThatThrownBy(() -> sut.project(source, destination))
             .isInstanceOf(RuntimeException.class)
@@ -1224,7 +1234,7 @@ class Mapper_specs {
         Address address
     ) {
         Recipient recipient = null;
-        Shipment source = new Shipment(id, recipient, address);
+        val source = new Shipment(id, recipient, address);
 
         ShipmentEntity actual = sut.convert(source, ShipmentEntity.class);
 
@@ -1395,7 +1405,7 @@ class Mapper_specs {
     void convert_correctly_sets_inherited_properties_through_constructors(
         EmployeeView view
     ) {
-        Mapper sut = new Mapper(
+        val sut = new Mapper(
             config -> config.map(
                 EmployeeView.class,
                 Employee.class,
@@ -1409,5 +1419,96 @@ class Mapper_specs {
         Employee actual = sut.convert(view, Employee.class);
 
         assertThat(actual.getUsername()).isEqualTo(view.getUsername());
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class UUIDIterableBag {
+
+        private final Iterable<UUID> value;
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class StringIterableBag {
+
+        private final Iterable<String> value;
+    }
+
+    @AutoParameterizedTest
+    void convert_maps_null_iterable_to_null(Mapper sut) {
+        val source = new UUIDIterableBag(null);
+
+        StringIterableBag destination = sut.convert(
+            source,
+            StringIterableBag.class
+        );
+
+        assertThat(destination.getValue()).isNull();
+    }
+
+    @AutoParameterizedTest
+    void convert_correctly_maps_iterable_constructor_properties(
+        Mapper sut,
+        UUIDIterableBag source
+    ) {
+        StringIterableBag destination = sut.convert(
+            source,
+            StringIterableBag.class
+        );
+
+        Iterable<String> actual = destination.getValue();
+        assertThat(actual).isInstanceOf(ArrayList.class);
+        assertThat(actual).isEqualTo(StreamSupport
+            .stream(source.getValue().spliterator(), false)
+            .map(UUID::toString)
+            .collect(Collectors.toList()));
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class StringCollectionBag {
+
+        private final Collection<String> value;
+    }
+
+    @AutoParameterizedTest
+    void sut_correctly_maps_collection_constructor_properties(
+        Mapper sut,
+        UUIDIterableBag source
+    ) {
+        StringCollectionBag destination = sut.convert(
+            source,
+            StringCollectionBag.class
+        );
+
+        Iterable<String> actual = destination.getValue();
+        assertThat(actual).isInstanceOf(ArrayList.class);
+        assertThat(actual).isEqualTo(StreamSupport
+            .stream(source.getValue().spliterator(), false)
+            .map(UUID::toString)
+            .collect(Collectors.toList()));
+    }
+
+    @AllArgsConstructor
+    @Getter
+    public static class StringListBag {
+
+        private final List<String> value;
+    }
+
+    @AutoParameterizedTest
+    void convert_correctly_maps_list_constructor_properties(
+        Mapper sut,
+        UUIDIterableBag source
+    ) {
+        StringListBag destination = sut.convert(source, StringListBag.class);
+
+        Iterable<String> actual = destination.getValue();
+        assertThat(actual).isInstanceOf(ArrayList.class);
+        assertThat(actual).isEqualTo(StreamSupport
+            .stream(source.getValue().spliterator(), false)
+            .map(UUID::toString)
+            .collect(Collectors.toList()));
     }
 }
