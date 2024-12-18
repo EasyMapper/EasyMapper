@@ -101,6 +101,29 @@ public class MappingBuilder_specs {
         assertThatThrownBy(action).isInstanceOf(RuntimeException.class);
     }
 
+    @AllArgsConstructor
+    @Getter
+    public static class UserDto {
+
+        private final String id;
+        private final String username;
+    }
+
+    @Test
+    void convert_with_converter_that_returns_null_works_correctly() {
+        Mapper mapper = new Mapper(
+            config -> config.map(
+                int.class,
+                String.class,
+                mapping -> mapping.convert((context, source) -> null)
+            )
+        );
+
+        UserDto actual = mapper.convert(new User(1, "John"), UserDto.class);
+
+        assertThat(actual.getId()).isNull();
+    }
+
     @Test
     void project_has_null_guard_for_action() {
         ThrowingCallable action = () -> new Mapper(

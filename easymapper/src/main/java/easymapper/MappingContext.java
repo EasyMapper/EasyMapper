@@ -36,8 +36,9 @@ public final class MappingContext {
             .findFirst()
             .orElse(Mapping.EMPTY)
             .conversion()
-            .map(conversion -> conversion.convert(this, source))
-            .orElseGet(() -> convertInDefaultWay(source));
+            .map(conversion -> conversion.bind(this, source))
+            .orElse(() -> convertInDefaultWay(source))
+            .get();
     }
 
     private Object convertInDefaultWay(Object source) {

@@ -1,5 +1,7 @@
 package easymapper;
 
+import java.util.function.Supplier;
+
 @FunctionalInterface
 public interface Conversion<S, D> {
 
@@ -7,5 +9,9 @@ public interface Conversion<S, D> {
 
     static <T> Conversion<T, T> identity() {
         return (context, source) -> (T) source;
+    }
+
+    default Supplier<Object> bind(MappingContext context, S source) {
+        return () -> convert(context, source);
     }
 }
