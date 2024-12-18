@@ -23,15 +23,6 @@ public class Mapper {
         settings = MappingSettings.from(config);
     }
 
-    @Deprecated
-    public <S, D> D map(
-        S source,
-        @NonNull Class<S> sourceType,
-        @NonNull Class<D> destinationType
-    ) {
-        return convert(source, sourceType, destinationType);
-    }
-
     public <S, D> D convert(
         S source,
         @NonNull Class<S> sourceType,
@@ -43,15 +34,6 @@ public class Mapper {
     public <S, D> D convert(S source, @NonNull Class<D> destinationType) {
         Type sourceType = source.getClass();
         return convertObject(source, sourceType, destinationType);
-    }
-
-    @Deprecated
-    public <S, D> D map(
-        S source,
-        @NonNull TypeReference<S> sourceTypeReference,
-        @NonNull TypeReference<D> destinationTypeReference
-    ) {
-        return convert(source, sourceTypeReference, destinationTypeReference);
     }
 
     public <S, D> D convert(
@@ -74,16 +56,6 @@ public class Mapper {
         return (D) context.convert(source);
     }
 
-    @Deprecated
-    public <S, D> void map(
-        @NonNull S source,
-        @NonNull D destination,
-        @NonNull Class<S> sourceType,
-        @NonNull Class<D> destinationType
-    ) {
-        project(source, destination, sourceType, destinationType);
-    }
-
     public <S, D> void project(
         @NonNull S source,
         @NonNull D destination,
@@ -91,21 +63,6 @@ public class Mapper {
         @NonNull Class<D> destinationType
     ) {
         projectObject(source, destination, sourceType, destinationType);
-    }
-
-    @Deprecated
-    public <S, D> void map(
-        @NonNull S source,
-        @NonNull D destination,
-        @NonNull TypeReference<S> sourceTypeReference,
-        @NonNull TypeReference<D> destinationTypeReference
-    ) {
-        project(
-            source,
-            destination,
-            sourceTypeReference,
-            destinationTypeReference
-        );
     }
 
     public <S, D> void project(
@@ -117,11 +74,6 @@ public class Mapper {
         Type sourceType = sourceTypeReference.getType();
         Type destinationType = destinationTypeReference.getType();
         projectObject(source, destination, sourceType, destinationType);
-    }
-
-    @Deprecated
-    public void map(@NonNull Object source, @NonNull Object destination) {
-        project(source, destination);
     }
 
     public void project(@NonNull Object source, @NonNull Object destination) {

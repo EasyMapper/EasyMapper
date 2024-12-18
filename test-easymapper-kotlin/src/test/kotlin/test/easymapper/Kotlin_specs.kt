@@ -8,12 +8,14 @@ import java.beans.ConstructorProperties
 
 internal class Kotlin_specs {
 
+    @Suppress("unused")
     class User
     @ConstructorProperties(value = ["id", "username", "passwordHash"])
     constructor(
         val id: Long,
         val username: String,
-        val passwordHash: String)
+        val passwordHash: String
+    )
 
     @ParameterizedTest
     @AutoSource
@@ -21,7 +23,7 @@ internal class Kotlin_specs {
         sut: Mapper,
         source: User
     ) {
-        val actual: User = sut.map(source, User::class.java, User::class.java)
+        val actual: User = sut.convert(source, User::class.java)
         assertThat(actual).usingRecursiveComparison().isEqualTo(source)
     }
 }

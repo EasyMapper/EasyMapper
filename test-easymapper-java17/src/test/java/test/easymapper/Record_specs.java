@@ -22,7 +22,7 @@ public class Record_specs {
 
     @AutoParameterizedTest
     void sut_correctly_maps_to_record(Mapper sut, User source) {
-        var actual = sut.map(source, User.class, UserView.class);
+        UserView actual = sut.convert(source, UserView.class);
         assertThat(actual).usingRecursiveComparison().isEqualTo(source);
     }
 
@@ -38,12 +38,23 @@ public class Record_specs {
 
     @AutoParameterizedTest
     void sut_correctly_maps_from_record(Recipient recipient) {
-        var sut = new Mapper(config -> config
-            .map(Recipient.class, RecipientView.class, mapping -> mapping
-                .compute("recipientName", (context, source) -> source.name())
-                .compute("recipientPhoneNumber", (context, source) -> source.phoneNumber())));
+        var sut = new Mapper(
+            config -> config.map(
+                Recipient.class,
+                RecipientView.class,
+                mapping -> mapping
+                    .compute(
+                        "recipientName",
+                        (context, source) -> source.name()
+                    )
+                    .compute(
+                        "recipientPhoneNumber",
+                        (context, source) -> source.phoneNumber()
+                    )
+            )
+        );
 
-        var actual = sut.map(recipient, Recipient.class, RecipientView.class);
+        RecipientView actual = sut.convert(recipient, RecipientView.class);
 
         assertThat(actual.getRecipientName()).isEqualTo(recipient.name());
         assertThat(actual.getRecipientPhoneNumber()).isEqualTo(recipient.phoneNumber());
