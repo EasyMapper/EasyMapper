@@ -140,7 +140,11 @@ public final class MappingContext {
             .orElse(Mapping.EMPTY)
             .computation(propertyName)
             .map(computation -> computation.bind(this, source))
-            .orElse(() -> convertProperty(source, propertyName))
+            .orElseGet(() -> settings
+                .extractors()
+                .find(sourceType, destinationType, propertyName)
+                .<Supplier<Object>>map(extractor -> () -> extractor.extract(this, source))
+                .orElse(() -> convertProperty(source, propertyName)))
             .get();
     }
 
@@ -214,7 +218,11 @@ public final class MappingContext {
             .computation(property.name())
             .map(computation -> computation.bind(this, source))
             .<Runnable>map(factory -> () -> property.set(factory.get()))
-            .orElse(() -> convertPropertyIfPresent(source, property))
+            .orElseGet(() -> settings
+                .extractors()
+                .find(sourceType, destinationType, property.name())
+                .<Runnable>map(extractor -> () -> property.set(extractor.extract(this, source)))
+                .orElse(() -> convertPropertyIfPresent(source, property)))
             .run();
     }
 

@@ -333,6 +333,149 @@ public class MapperConfiguration_specs {
         assertThat(view.username()).isEqualTo(user.username());
     }
 
+    @Test
+    void addExtractor_has_null_guard_for_source_type() {
+        ThrowingCallable action = () -> new Mapper(
+            config -> config.addExtractor(
+                (Class<User>) null,
+                UserView.class,
+                "id",
+                (context, source) -> valueOf(source.id())
+            )
+        );
+
+        assertThatThrownBy(action)
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("sourceType");
+    }
+
+    @Test
+    void addExtractor_has_null_guard_for_target_type() {
+        ThrowingCallable action = () -> new Mapper(
+            config -> config.addExtractor(
+                User.class,
+                (Class<UserView>) null,
+                "id",
+                (context, source) -> valueOf(source.id())
+            )
+        );
+
+        assertThatThrownBy(action)
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("targetType");
+    }
+
+    @Test
+    void addExtractor_has_null_guard_for_target_property_name() {
+        ThrowingCallable action = () -> new Mapper(
+            config -> config.addExtractor(
+                User.class,
+                UserView.class,
+                null,
+                (context, source) -> valueOf(source.id())
+            )
+        );
+
+        assertThatThrownBy(action)
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("targetPropertyName");
+    }
+
+    @Test
+    void addExtractor_has_null_guard_for_extractor() {
+        ThrowingCallable action = () -> new Mapper(
+            config -> config.addExtractor(
+                User.class,
+                UserView.class,
+                "id",
+                null
+            )
+        );
+
+        assertThatThrownBy(action)
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("extractor");
+    }
+
+    @Test
+    void addExtractor_is_fluent() {
+        new Mapper(config -> {
+            MapperConfiguration actual = config.addExtractor(
+                User.class,
+                UserView.class,
+                "id",
+                (context, source) -> valueOf(source.id())
+            );
+            assertThat(actual).isSameAs(config);
+        });
+    }
+
+    @AllArgsConstructor
+    @Getter
+    @Accessors(fluent = true)
+    public static class UserDto {
+
+        private final int id;
+        private final String name;
+    }
+
+    @AutoParameterizedTest
+    void addExtractor_correctly_works_for_parameter(User user) {
+        val mapper = new Mapper(
+            config -> config.addExtractor(
+                User.class,
+                UserDto.class,
+                "name",
+                (context, source) -> source.username()
+            )
+        );
+
+        UserDto actual = mapper.convert(user, UserDto.class);
+
+        assertThat(actual.id()).isEqualTo(user.id());
+        assertThat(actual.name()).isEqualTo(user.username());
+    }
+
+    @AutoParameterizedTest
+    void addExtractor_correctly_works_for_property(User user) {
+        val mapper = new Mapper(
+            config -> config.addExtractor(
+                User.class,
+                UserView.class,
+                "id",
+                (context, source) -> valueOf(source.id())
+            )
+        );
+
+        UserView actual = mapper.convert(user, UserView.class);
+
+        assertThat(actual.id()).isEqualTo(valueOf(user.id()));
+        assertThat(actual.username()).isEqualTo(user.username());
+    }
+
+    @AutoParameterizedTest
+    void addExtractor_overrides_previous_extractor(User user) {
+        val mapper = new Mapper(config -> config
+            .addExtractor(
+                User.class,
+                UserView.class,
+                "id",
+                (context, source) -> null
+            )
+            .addExtractor(
+                User.class,
+                UserView.class,
+                "id",
+                (context, source) -> valueOf(source.id())
+            )
+        );
+
+        UserView actual = mapper.convert(user, UserView.class);
+
+        assertThat(actual.id()).isEqualTo(valueOf(user.id()));
+        assertThat(actual.username()).isEqualTo(user.username());
+    }
+
     @AllArgsConstructor
     @Getter
     public static class Pricing {

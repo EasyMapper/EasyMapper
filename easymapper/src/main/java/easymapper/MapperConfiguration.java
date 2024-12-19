@@ -27,6 +27,8 @@ public final class MapperConfiguration {
 
     private final Projectors projectors = new Projectors();
 
+    private final Extractors extractors = new Extractors();
+
     MapperConfiguration() {
         constructorExtractor = DefaultConstructorExtractor.INSTANCE;
         parameterNameResolver = DefaultParameterNameResolver.INSTANCE;
@@ -58,6 +60,12 @@ public final class MapperConfiguration {
         return projectors;
     }
 
+    Extractors extractors() {
+        val extractors = new Extractors();
+        extractors.addRange(this.extractors);
+        return extractors;
+    }
+
     public MapperConfiguration apply(
         @NonNull Consumer<MapperConfiguration> configurer
     ) {
@@ -80,6 +88,16 @@ public final class MapperConfiguration {
         @NonNull Projector<S, T> projector
     ) {
         projectors.add(sourceType, targetType, projector);
+        return this;
+    }
+
+    public <S, T> MapperConfiguration addExtractor(
+        @NonNull Class<S> sourceType,
+        @NonNull Class<T> targetType,
+        @NonNull String targetPropertyName,
+        @NonNull Extractor<S> extractor
+    ) {
+        extractors.add(sourceType, targetType, targetPropertyName, extractor);
         return this;
     }
 
