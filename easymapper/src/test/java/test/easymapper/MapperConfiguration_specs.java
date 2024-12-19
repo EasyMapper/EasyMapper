@@ -11,7 +11,6 @@ import easymapper.Mapper;
 import easymapper.MapperConfiguration;
 import easymapper.ParameterNameResolver;
 import easymapper.TypePredicate;
-import easymapper.TypeReference;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -740,206 +739,6 @@ public class MapperConfiguration_specs {
         private final double salePrice;
     }
 
-    @Test
-    void map_with_predicates_has_null_guard_for_source_type_predicate() {
-        ThrowingCallable action = () -> new Mapper(
-            config -> config.map(null, acceptAll, mapping -> { })
-        );
-
-        assertThatThrownBy(action)
-            .isInstanceOf(NullPointerException.class)
-            .hasMessageContaining("sourceTypePredicate");
-    }
-
-    @Test
-    void map_with_predicates_has_null_guard_for_destination_type_predicate() {
-        ThrowingCallable action = () -> new Mapper(
-            config -> config.map(acceptAll, null, mapping -> { })
-        );
-
-        assertThatThrownBy(action)
-            .isInstanceOf(NullPointerException.class)
-            .hasMessageContaining("destinationTypePredicate");
-    }
-
-    @Test
-    void map_with_predicates_has_null_guard_for_mapping_configurer() {
-        ThrowingCallable action = () -> new Mapper(
-            config -> config.map(acceptAll, acceptAll, null)
-        );
-
-        assertThatThrownBy(action)
-            .isInstanceOf(NullPointerException.class)
-            .hasMessageContaining("configurer");
-    }
-
-    @Test
-    void map_with_predicates_is_fluent() {
-        new Mapper(config -> {
-            MapperConfiguration actual = config.map(
-                acceptAll,
-                acceptAll,
-                mapping -> { }
-            );
-            assertThat(actual).isSameAs(config);
-        });
-    }
-
-    @AutoParameterizedTest
-    void map_with_predicates_correctly_works(User user) {
-        Mapper mapper = new Mapper(config ->
-            config.map(
-                type -> type.equals(User.class),
-                type -> type.equals(UserView.class),
-                mapping -> mapping.convert(
-                    (context, source) -> UserView.from((User) source)
-                )
-            )
-        );
-
-        UserView actual = mapper.convert(user, UserView.class);
-
-        assertThat(actual.id()).isEqualTo(valueOf(user.id()));
-        assertThat(actual.username()).isEqualTo(user.username());
-    }
-
-    @Test
-    void map_with_classes_has_null_guard_for_source_type() {
-        ThrowingCallable action = () -> new Mapper(
-            config -> config.map(null, int.class, mapping -> { })
-        );
-
-        assertThatThrownBy(action)
-            .isInstanceOf(NullPointerException.class)
-            .hasMessageContaining("sourceType");
-    }
-
-    @Test
-    void map_with_classes_has_null_guard_for_destination_type() {
-        ThrowingCallable action = () -> new Mapper(
-            config -> config.map(int.class, null, mapping -> { })
-        );
-
-        assertThatThrownBy(action)
-            .isInstanceOf(NullPointerException.class)
-            .hasMessageContaining("destinationType");
-    }
-
-    @Test
-    void map_with_classes_has_null_guard_for_mapping_configurer() {
-        ThrowingCallable action = () -> new Mapper(
-            config -> config.map(int.class, int.class, null)
-        );
-
-        assertThatThrownBy(action)
-            .isInstanceOf(NullPointerException.class)
-            .hasMessageContaining("configurer");
-    }
-
-    @Test
-    void map_with_classes_overwrites_existing_map() {
-        Mapper mapper = new Mapper(config -> config
-            .map(
-                String.class,
-                String.class,
-                mapping -> mapping.convert((context, source) -> source + "1")
-            )
-            .map(
-                String.class,
-                String.class,
-                mapping -> mapping.convert((context, source) -> source + "2")
-            )
-        );
-
-        String actual = mapper.convert("0", String.class);
-
-        assertThat(actual).isEqualTo("02");
-    }
-
-    @Test
-    void map_with_classes_is_fluent() {
-        new Mapper(config -> {
-            MapperConfiguration actual = config.map(
-                int.class,
-                int.class,
-                mapping -> { }
-            );
-            assertThat(actual).isSameAs(config);
-        });
-    }
-
-    @Test
-    void map_with_type_references_has_null_guard_for_source_type() {
-        ThrowingCallable action = () -> new Mapper(
-            config -> config.map(
-                null,
-                new TypeReference<Integer>() { },
-                mapping -> { }
-            )
-        );
-
-        assertThatThrownBy(action)
-            .isInstanceOf(NullPointerException.class)
-            .hasMessageContaining("sourceTypeReference");
-    }
-
-    @Test
-    void map_with_type_references_has_null_guard_for_destination_type() {
-        ThrowingCallable action = () -> new Mapper(
-            config -> config.map(
-                new TypeReference<Integer>() { },
-                null,
-                mapping -> { }
-            )
-        );
-
-        assertThatThrownBy(action)
-            .isInstanceOf(NullPointerException.class)
-            .hasMessageContaining("destinationTypeReference");
-    }
-
-    @Test
-    void map_with_type_references_has_null_guard_for_mapping_configurer() {
-        ThrowingCallable action = () -> new Mapper(
-            config -> config.map(
-                new TypeReference<Integer>() { },
-                new TypeReference<Integer>() { },
-                null
-            )
-        );
-
-        assertThatThrownBy(action)
-            .isInstanceOf(NullPointerException.class)
-            .hasMessageContaining("configurer");
-    }
-
-    @Test
-    void map_with_type_references_is_fluent() {
-        TypeReference<Integer> type = new TypeReference<Integer>() { };
-        new Mapper(config -> {
-            MapperConfiguration actual = config.map(type, type, mapping -> { });
-            assertThat(actual).isSameAs(config);
-        });
-    }
-
-    @AutoParameterizedTest
-    void map_with_type_references_correctly_works(User user) {
-        Mapper mapper = new Mapper(
-            config -> config.map(
-                new TypeReference<User>() { },
-                new TypeReference<UserView>() { },
-                mapping -> mapping.convert(
-                    (context, source) -> UserView.from(source)
-                )
-            )
-        );
-
-        UserView actual = mapper.convert(user, UserView.class);
-
-        assertThat(actual.id()).isEqualTo(valueOf(user.id()));
-        assertThat(actual.username()).isEqualTo(user.username());
-    }
-
     @AutoParameterizedTest
     void setConstructorExtractor_is_fluent() {
         new Mapper(config -> {
@@ -1086,14 +885,13 @@ public class MapperConfiguration_specs {
     @AutoParameterizedTest
     void apply_correctly_configures_mapper(Pricing pricing) {
         // Arrange
-        Consumer<MapperConfiguration> configurer = config -> config.map(
-            Pricing.class,
-            PricingView.class,
-            mapping -> mapping.compute(
+        Consumer<MapperConfiguration> configurer = config ->
+            config.addExtractor(
+                Pricing.class,
+                PricingView.class,
                 "salePrice",
                 (context, source) -> source.calculateSalePrice()
-            )
-        );
+            );
 
         Mapper mapper = new Mapper(config -> config.apply(configurer));
 

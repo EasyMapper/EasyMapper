@@ -1413,13 +1413,11 @@ class Mapper_specs {
         EmployeeView view
     ) {
         val sut = new Mapper(
-            config -> config.map(
+            config -> config.addExtractor(
                 EmployeeView.class,
                 Employee.class,
-                mapping -> mapping.compute(
-                    "passwordHash",
-                    (source, context) -> null
-                )
+                "passwordHash",
+                (source, context) -> null
             )
         );
 

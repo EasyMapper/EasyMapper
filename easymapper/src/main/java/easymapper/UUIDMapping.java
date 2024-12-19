@@ -5,10 +5,10 @@ import java.util.UUID;
 class UUIDMapping {
 
     public static void configure(MapperConfiguration config) {
-        config.map(
+        config.addConverter(
             UUID.class,
             String.class,
-            mapping -> mapping.convert((context, source) -> asString(source))
+            (context, source) -> asString(source)
         );
     }
 

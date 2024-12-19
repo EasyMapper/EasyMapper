@@ -5,7 +5,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.function.Supplier;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -31,18 +30,10 @@ public final class MappingContext {
 
     Object convert(Object source) {
         return settings
-            .mappings()
-            .stream()
-            .filter(mapping -> mapping.match(sourceType, destinationType))
-            .findFirst()
-            .orElse(Mapping.EMPTY)
-            .conversion()
-            .map(conversion -> conversion.bind(this, source))
-            .orElseGet(() -> settings
-                .converters()
-                .find(sourceType, destinationType)
-                .<Supplier<Object>>map(converter -> () -> converter.convert(this, source))
-                .orElse(() -> convertInDefaultWay(source)))
+            .converters()
+            .find(sourceType, destinationType)
+            .map(converter -> converter.bind(this, source))
+            .orElse(() -> convertInDefaultWay(source))
             .get();
     }
 
@@ -133,18 +124,10 @@ public final class MappingContext {
 
     private Object computeOrConvert(Object source, String propertyName) {
         return settings
-            .mappings()
-            .stream()
-            .filter(mapping -> mapping.match(sourceType, destinationType))
-            .findFirst()
-            .orElse(Mapping.EMPTY)
-            .computation(propertyName)
-            .map(computation -> computation.bind(this, source))
-            .orElseGet(() -> settings
-                .extractors()
-                .find(sourceType, destinationType, propertyName)
-                .<Supplier<Object>>map(extractor -> () -> extractor.extract(this, source))
-                .orElse(() -> convertProperty(source, propertyName)))
+            .extractors()
+            .find(sourceType, destinationType, propertyName)
+            .map(extractor -> extractor.bind(this, source))
+            .orElse(() -> convertProperty(source, propertyName))
             .get();
     }
 
@@ -182,18 +165,10 @@ public final class MappingContext {
         }
 
         settings
-            .mappings()
-            .stream()
-            .filter(mapping -> mapping.match(sourceType, destinationType))
-            .findFirst()
-            .orElse(Mapping.EMPTY)
-            .projection()
-            .map(projection -> projection.bind(this, source, destination))
-            .orElseGet(() -> settings
-                .projectors()
-                .find(sourceType, destinationType)
-                .<Runnable>map(projector -> () -> projector.project(this, source, destination))
-                .orElse(() -> projectInDefaultWay(source, destination)))
+            .projectors()
+            .find(sourceType, destinationType)
+            .map(projector -> projector.bind(this, source, destination))
+            .orElse(() -> projectInDefaultWay(source, destination))
             .run();
     }
 
@@ -210,19 +185,11 @@ public final class MappingContext {
 
     private void computeOrConvertProperty(Object source, Variable property) {
         settings
-            .mappings()
-            .stream()
-            .filter(mapping -> mapping.match(sourceType, destinationType))
-            .findFirst()
-            .orElse(Mapping.EMPTY)
-            .computation(property.name())
-            .map(computation -> computation.bind(this, source))
-            .<Runnable>map(factory -> () -> property.set(factory.get()))
-            .orElseGet(() -> settings
-                .extractors()
-                .find(sourceType, destinationType, property.name())
-                .<Runnable>map(extractor -> () -> property.set(extractor.extract(this, source)))
-                .orElse(() -> convertPropertyIfPresent(source, property)))
+            .extractors()
+            .find(sourceType, destinationType, property.name())
+            .<Runnable>map(extractor -> () ->
+                property.set(extractor.extract(this, source)))
+            .orElse(() -> convertPropertyIfPresent(source, property))
             .run();
     }
 

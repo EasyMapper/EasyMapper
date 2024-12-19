@@ -1,10 +1,7 @@
 package easymapper;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Consumer;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
@@ -19,9 +16,6 @@ public final class MapperConfiguration {
     @Getter
     @Accessors(fluent = true)
     private ParameterNameResolver parameterNameResolver;
-
-    @Getter(AccessLevel.PACKAGE)
-    private final List<MappingBuilder<?, ?>> mappings = new ArrayList<>();
 
     private final Converters converters = new Converters();
 
@@ -131,48 +125,6 @@ public final class MapperConfiguration {
             targetPropertyName,
             extractor
         );
-        return this;
-    }
-
-    public MapperConfiguration map(
-        @NonNull TypePredicate sourceTypePredicate,
-        @NonNull TypePredicate destinationTypePredicate,
-        @NonNull Consumer<MappingBuilder<Object, Object>> configurer
-    ) {
-        MappingBuilder<Object, Object> mapping = new MappingBuilder<>(
-            sourceTypePredicate,
-            destinationTypePredicate
-        );
-        configurer.accept(mapping);
-        mappings.add(mapping);
-        return this;
-    }
-
-    public <S, D> MapperConfiguration map(
-        @NonNull Class<S> sourceType,
-        @NonNull Class<D> destinationType,
-        @NonNull Consumer<MappingBuilder<S, D>> configurer
-    ) {
-        MappingBuilder<S, D> mapping = new MappingBuilder<>(
-            type -> type.equals(sourceType),
-            type -> type.equals(destinationType)
-        );
-        configurer.accept(mapping);
-        mappings.add(mapping);
-        return this;
-    }
-
-    public <S, D> MapperConfiguration map(
-        @NonNull TypeReference<S> sourceTypeReference,
-        @NonNull TypeReference<D> destinationTypeReference,
-        @NonNull Consumer<MappingBuilder<S, D>> configurer
-    ) {
-        MappingBuilder<S, D> mapping = new MappingBuilder<>(
-            type -> type.equals(sourceTypeReference.getType()),
-            type -> type.equals(destinationTypeReference.getType())
-        );
-        configurer.accept(mapping);
-        mappings.add(mapping);
         return this;
     }
 }

@@ -57,9 +57,10 @@ class PrimitiveObjectMapping {
         Class<S> sourceType,
         Class<D> destinationType
     ) {
-        config.map(
+        config.addConverter(
             sourceType,
             destinationType,
-            mapping -> mapping.convert((context, source) -> (D) source));
+            (context, source) -> (D) source
+        );
     }
 }

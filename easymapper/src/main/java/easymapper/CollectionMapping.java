@@ -9,10 +9,8 @@ class CollectionMapping {
 
     public static void configure(MapperConfiguration config) {
         TypePredicate isIterable = Collections::isIterable;
-        config.map(isIterable, isIterable, mapping -> mapping
-            .convert(CollectionMapping::convert)
-            .project(Projection.empty())
-        );
+        config.addConverter(isIterable, isIterable, CollectionMapping::convert);
+        config.addProjector(isIterable, isIterable, Projector.empty());
     }
 
     private static Object convert(MappingContext context, Object source) {

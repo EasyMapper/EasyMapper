@@ -1,14 +1,12 @@
 package easymapper;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.Accessors;
-
-import static easymapper.Collections.copyInReverseOrder;
-import static java.util.stream.Collectors.toList;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
@@ -29,19 +27,7 @@ class MappingSettings {
             config.converters(),
             config.projectors(),
             config.extractors(),
-            buildMappings(config)
+            new ArrayList<>()
         );
-    }
-
-    @SuppressWarnings("unchecked")
-    private static List<Mapping<Object, Object>> buildMappings(
-        MapperConfiguration config
-    ) {
-        return copyInReverseOrder(config
-            .getMappings()
-            .stream()
-            .map(MappingBuilder::build)
-            .map(mapping -> (Mapping<Object, Object>) mapping)
-            .collect(toList()));
     }
 }

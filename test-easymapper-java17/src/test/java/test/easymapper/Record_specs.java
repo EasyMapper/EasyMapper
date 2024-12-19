@@ -12,6 +12,7 @@ public class Record_specs {
     @AllArgsConstructor
     @Getter
     public static class User {
+
         private long id;
         private String username;
         private String passwordHash;
@@ -32,25 +33,25 @@ public class Record_specs {
     @Getter
     @Setter
     public static class RecipientView {
+
         private String recipientName;
         private String recipientPhoneNumber;
     }
 
     @AutoParameterizedTest
     void sut_correctly_maps_from_record(Recipient recipient) {
-        var sut = new Mapper(
-            config -> config.map(
+        var sut = new Mapper(config -> config
+            .addExtractor(
                 Recipient.class,
                 RecipientView.class,
-                mapping -> mapping
-                    .compute(
-                        "recipientName",
-                        (context, source) -> source.name()
-                    )
-                    .compute(
-                        "recipientPhoneNumber",
-                        (context, source) -> source.phoneNumber()
-                    )
+                "recipientName",
+                (context, source) -> source.name()
+            )
+            .addExtractor(
+                Recipient.class,
+                RecipientView.class,
+                "recipientPhoneNumber",
+                (context, source) -> source.phoneNumber()
             )
         );
 

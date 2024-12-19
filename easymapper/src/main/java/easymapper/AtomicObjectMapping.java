@@ -23,15 +23,13 @@ class AtomicObjectMapping {
         MapperConfiguration config,
         Class<T> type
     ) {
-        config.map(
+        config.addProjector(
             TypePredicate.ACCEPT_ALL_TYPES,
             TypePredicate.from(type),
-            mapping -> mapping.project(Projection.empty())
+            (context, source, target) -> { }
         );
 
-        config.map(type, type, mapping -> mapping
-            .convert(Conversion.identity())
-            .project(Projection.empty())
-        );
+        config.addConverter(type, type, (context, source) -> source);
+        config.addProjector(type, type, (context, source, target) -> { });
     }
 }
