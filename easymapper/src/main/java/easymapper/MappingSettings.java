@@ -1,8 +1,5 @@
 package easymapper;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,7 +15,6 @@ class MappingSettings {
     private final Converters converters;
     private final Projectors projectors;
     private final Extractors extractors;
-    private final List<Mapping<Object, Object>> mappings;
 
     public static MappingSettings from(MapperConfiguration config) {
         return new MappingSettings(
@@ -26,8 +22,7 @@ class MappingSettings {
             config.parameterNameResolver(),
             config.converters(),
             config.projectors(),
-            config.extractors(),
-            new ArrayList<>()
+            config.extractors()
         );
     }
 }
