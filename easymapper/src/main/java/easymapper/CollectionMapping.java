@@ -20,13 +20,13 @@ class CollectionMapping {
     private static Object convert(MappingContext context, Iterable<?> source) {
         MappingContext elementMappingContext = context.branch(
             resolveElementType(context.getSourceType()),
-            resolveElementType(context.getDestinationType()));
+            resolveElementType(context.getTargetType()));
 
-        List<Object> destination = new ArrayList<>();
+        List<Object> target = new ArrayList<>();
         for (Object item : source) {
-            destination.add(elementMappingContext.convert(item));
+            target.add(elementMappingContext.convert(item));
         }
 
-        return destination;
+        return target;
     }
 }

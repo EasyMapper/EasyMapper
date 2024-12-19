@@ -22,16 +22,16 @@ public final class MappingContext {
     private final Type sourceType;
 
     @Getter(AccessLevel.PACKAGE)
-    private final Type destinationType;
+    private final Type targetType;
 
-    MappingContext branch(Type sourceType, Type destinationType) {
-        return new MappingContext(settings, sourceType, destinationType);
+    MappingContext branch(Type sourceType, Type targetType) {
+        return new MappingContext(settings, sourceType, targetType);
     }
 
     Object convert(Object source) {
         return settings
             .converters()
-            .find(sourceType, destinationType)
+            .find(sourceType, targetType)
             .map(converter -> converter.bind(this, source))
             .orElse(() -> convertInDefaultWay(source))
             .get();
@@ -42,13 +42,13 @@ public final class MappingContext {
     }
 
     private Object constructThenProject(Object source) {
-        Object destination = construct(source);
-        project(source, destination);
-        return destination;
+        Object target = construct(source);
+        project(source, target);
+        return target;
     }
 
     private Object construct(Object source) {
-        Constructor<?> constructor = getConstructor(destinationType);
+        Constructor<?> constructor = getConstructor(targetType);
         Object[] arguments = buildArguments(source, constructor);
         return invoke(constructor, arguments);
     }
@@ -125,26 +125,19 @@ public final class MappingContext {
     private Object extractOrConvert(Object source, String propertyName) {
         return settings
             .extractors()
-            .find(sourceType, destinationType, propertyName)
+            .find(sourceType, targetType, propertyName)
             .map(extractor -> extractor.bind(this, source))
             .orElse(() -> convertProperty(source, propertyName))
             .get();
     }
 
     private Object convertProperty(Object source, String propertyName) {
-        Property sourceProperty = Properties
-            .get(sourceType)
-            .get(propertyName);
-
-        Property destinationProperty = Properties
-            .get(destinationType)
-            .get(propertyName);
-
+        Property sourceProperty = Properties.get(sourceType).get(propertyName);
+        Property targetProperty = Properties.get(targetType).get(propertyName);
         MappingContext context = branch(
             sourceProperty.type(),
-            destinationProperty.type()
+            targetProperty.type()
         );
-
         return context.convert(sourceProperty.get(source));
     }
 
@@ -159,57 +152,57 @@ public final class MappingContext {
         }
     }
 
-    void project(Object source, Object destination) {
-        if (source == destination) {
+    void project(Object source, Object target) {
+        if (source == target) {
             return;
         }
 
         settings
             .projectors()
-            .find(sourceType, destinationType)
-            .map(projector -> projector.bind(this, source, destination))
-            .orElse(() -> projectInDefaultWay(source, destination))
+            .find(sourceType, targetType)
+            .map(projector -> projector.bind(this, source, target))
+            .orElse(() -> projectInDefaultWay(source, target))
             .run();
     }
 
-    private void projectInDefaultWay(Object source, Object destination) {
-        setWritableProperties(source, destination);
-        projectToReadOnlyProperties(source, destination);
+    private void projectInDefaultWay(Object source, Object target) {
+        setWritableProperties(source, target);
+        projectToReadOnlyProperties(source, target);
     }
 
-    private void setWritableProperties(Object source, Object destination) {
-        Properties properties = Properties.get(destinationType);
+    private void setWritableProperties(Object source, Object target) {
+        Properties properties = Properties.get(targetType);
         properties.useWritableProperties(property ->
-            extractOrConvertProperty(source, property.bind(destination)));
+            extractOrConvertProperty(source, property.bind(target)));
     }
 
     private void extractOrConvertProperty(Object source, Variable property) {
         settings
             .extractors()
-            .find(sourceType, destinationType, property.name())
+            .find(sourceType, targetType, property.name())
             .<Runnable>map(extractor -> () ->
                 property.set(extractor.extract(this, source)))
             .orElse(() -> convertPropertyIfPresent(source, property))
             .run();
     }
 
-    private void convertPropertyIfPresent(Object source, Variable destination) {
+    private void convertPropertyIfPresent(Object source, Variable target) {
         Properties properties = Properties.get(sourceType);
         properties.ifPresent(
-            destination.name(), property -> {
+            target.name(), property -> {
                 MappingContext context = branch(
                     property.type(),
-                    destination.type()
+                    target.type()
                 );
-                context.convertThenSet(property.bind(source), destination);
+                context.convertThenSet(property.bind(source), target);
             }
         );
     }
 
-    private void convertThenSet(Variable source, Variable destination) {
+    private void convertThenSet(Variable source, Variable target) {
         Object sourceValue = source.get();
 
-        if (sourceValue == destination.get()) {
+        if (sourceValue == target.get()) {
             return;
         }
 
@@ -217,30 +210,27 @@ public final class MappingContext {
             String message = "The source '" + source.name() + "' is null.";
             throw new RuntimeException(message);
         } else {
-            Object destinationValue = convert(sourceValue);
-            destination.set(destinationValue);
+            Object targetValue = convert(sourceValue);
+            target.set(targetValue);
         }
     }
 
-    private void projectToReadOnlyProperties(
-        Object source,
-        Object destination
-    ) {
-        Properties properties = Properties.get(destinationType);
+    private void projectToReadOnlyProperties(Object source, Object target) {
+        Properties properties = Properties.get(targetType);
         properties.useReadOnlyProperties(property ->
-            projectPropertyIfPresent(source, property.bind(destination)));
+            projectPropertyIfPresent(source, property.bind(target)));
     }
 
-    private void projectPropertyIfPresent(Object source, Variable destination) {
+    private void projectPropertyIfPresent(Object source, Variable target) {
         Properties properties = Properties.get(sourceType);
         properties.ifPresent(
-            destination.name(),
+            target.name(),
             property -> {
                 MappingContext context = branch(
                     property.type(),
-                    destination.type()
+                    target.type()
                 );
-                context.project(property.bind(source).get(), destination.get());
+                context.project(property.bind(source).get(), target.get());
             }
         );
     }

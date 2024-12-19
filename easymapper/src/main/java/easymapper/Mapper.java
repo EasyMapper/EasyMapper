@@ -23,74 +23,68 @@ public class Mapper {
         settings = MappingSettings.from(config);
     }
 
-    public <S, D> D convert(
+    public <S, T> T convert(
         S source,
         @NonNull Class<S> sourceType,
-        @NonNull Class<D> destinationType
+        @NonNull Class<T> targetType
     ) {
-        return convertObject(source, sourceType, destinationType);
+        return convertObject(source, sourceType, targetType);
     }
 
-    public <S, D> D convert(
+    public <S, T> T convert(
         @NonNull S source,
-        @NonNull Class<D> destinationType
+        @NonNull Class<T> targetType
     ) {
-        return convertObject(source, source.getClass(), destinationType);
+        return convertObject(source, source.getClass(), targetType);
     }
 
-    public <S, D> D convert(
+    public <S, T> T convert(
         S source,
         @NonNull TypeReference<S> sourceTypeReference,
-        @NonNull TypeReference<D> destinationTypeReference
+        @NonNull TypeReference<T> targetTypeReference
     ) {
         Type sourceType = sourceTypeReference.getType();
-        Type destinationType = destinationTypeReference.getType();
-        return convertObject(source, sourceType, destinationType);
+        Type targetType = targetTypeReference.getType();
+        return convertObject(source, sourceType, targetType);
     }
 
     @SuppressWarnings("unchecked")
-    private <S, D> D convertObject(
-        S source,
-        Type sourceType,
-        Type destinationType
-    ) {
-        val context = new MappingContext(settings, sourceType, destinationType);
-        return (D) context.convert(source);
+    private <S, T> T convertObject(S source, Type sourceType, Type targetType) {
+        val context = new MappingContext(settings, sourceType, targetType);
+        return (T) context.convert(source);
     }
 
-    public <S, D> void project(
+    public <S, T> void project(
         @NonNull S source,
-        @NonNull D destination,
+        @NonNull T target,
         @NonNull Class<S> sourceType,
-        @NonNull Class<D> destinationType
+        @NonNull Class<T> targetType
     ) {
-        projectObject(source, destination, sourceType, destinationType);
+        projectObject(source, target, sourceType, targetType);
     }
 
-    public <S, D> void project(
+    public <S, T> void project(
         @NonNull S source,
-        @NonNull D destination,
+        @NonNull T target,
         @NonNull TypeReference<S> sourceTypeReference,
-        @NonNull TypeReference<D> destinationTypeReference
+        @NonNull TypeReference<T> targetTypeReference
     ) {
         Type sourceType = sourceTypeReference.getType();
-        Type destinationType = destinationTypeReference.getType();
-        projectObject(source, destination, sourceType, destinationType);
+        Type targetType = targetTypeReference.getType();
+        projectObject(source, target, sourceType, targetType);
     }
 
-    public void project(@NonNull Object source, @NonNull Object destination) {
-        Type sourceType = source.getClass();
-        Type destinationType = destination.getClass();
-        projectObject(source, destination, sourceType, destinationType);
+    public void project(@NonNull Object source, @NonNull Object target) {
+        projectObject(source, target, source.getClass(), target.getClass());
     }
 
     private void projectObject(
         Object source,
-        Object destination,
+        Object target,
         Type sourceType,
-        Type destinationType
+        Type targetType
     ) {
-        val context = new MappingContext(settings, sourceType, destinationType);
-        context.project(source, destination);
+        val context = new MappingContext(settings, sourceType, targetType);
+        context.project(source, target);
     }
 }

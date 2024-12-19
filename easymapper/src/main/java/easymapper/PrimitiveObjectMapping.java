@@ -52,15 +52,15 @@ class PrimitiveObjectMapping {
     }
 
     @SuppressWarnings("unchecked")
-    private static <S, D> void configure(
+    private static <S, T> void configure(
         MapperConfiguration config,
         Class<S> sourceType,
-        Class<D> destinationType
+        Class<T> targetType
     ) {
         config.addConverter(
             sourceType,
-            destinationType,
-            (context, source) -> (D) source
+            targetType,
+            (context, source) -> (T) source
         );
     }
 }

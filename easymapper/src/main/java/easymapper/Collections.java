@@ -38,12 +38,12 @@ class Collections {
         return false;
     }
 
-    public static Type resolveElementType(Type destinationType) {
-        if (destinationType instanceof ParameterizedType) {
-            return resolveElementType((ParameterizedType) destinationType);
+    public static Type resolveElementType(Type collectionType) {
+        if (collectionType instanceof ParameterizedType) {
+            return resolveElementType((ParameterizedType) collectionType);
         } else {
             throw new RuntimeException(
-                "Cannot resolve element type from the type: " + destinationType
+                "Cannot resolve element type from the type: " + collectionType
             );
         }
     }

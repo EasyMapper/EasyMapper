@@ -18,21 +18,21 @@ fun MapperConfiguration.useKotlin(): MapperConfiguration {
     return this
 }
 
-inline fun <reified S, reified D> MapperConfiguration.addTransform(
-    function: Function<S, D>,
+inline fun <reified S, reified T> MapperConfiguration.addTransform(
+    function: Function<S, T>,
 ): MapperConfiguration {
-    return this.addTransform(S::class.java, D::class.java, function)
+    return this.addTransform(S::class.java, T::class.java, function)
 }
 
-inline fun <reified S, reified D> MapperConfiguration.addMapping(
-    configurer: Consumer<MappingBuilder<S, D>>,
+inline fun <reified S, reified T> MapperConfiguration.addMapping(
+    configurer: Consumer<MappingBuilder<S, T>>,
 ): MapperConfiguration {
-    return this.addMapping(S::class.java, D::class.java, configurer)
+    return this.addMapping(S::class.java, T::class.java, configurer)
 }
 
-fun <S, D> MappingBuilder<S, D>.set(
+fun <S, T> MappingBuilder<S, T>.set(
     property: KProperty<*>,
     function: Function<S, Any>,
-): MappingBuilder<S, D> {
+): MappingBuilder<S, T> {
     return this.set(property.name, function)
 }
