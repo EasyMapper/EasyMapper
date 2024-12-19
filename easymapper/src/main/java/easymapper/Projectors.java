@@ -1,6 +1,6 @@
 package easymapper;
 
-final class Projectors extends TypeMapper<Projector<Object, Object>> {
+final class Projectors extends TypeMapper<ObjectProjector> {
 
     public <S, T> void add(
         Class<S> sourceType,

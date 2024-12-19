@@ -1,6 +1,6 @@
 package easymapper;
 
-final class Converters extends TypeMapper<Converter<Object, Object>> {
+final class Converters extends TypeMapper<ObjectConverter> {
 
     public <S, T> void add(
         Class<S> sourceType,

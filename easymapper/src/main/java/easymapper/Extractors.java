@@ -8,11 +8,11 @@ import java.util.Optional;
 
 final class Extractors {
 
-    private static class Container extends TypeMapper<Extractor<Object>> { }
+    private static class Container extends TypeMapper<ObjectExtractor> { }
 
     private final Map<String, Container> store = new HashMap<>();
 
-    public Optional<Extractor<Object>> find(
+    public Optional<ObjectExtractor> find(
         Type sourceType,
         Type targetType,
         String targetPropertyName
@@ -22,11 +22,11 @@ final class Extractors {
             .flatMap(container -> container.find(sourceType, targetType));
     }
 
-    public <S, T> void add(
+    public <S, P> void add(
         Class<S> sourceType,
-        Class<T> targetType,
+        Class<?> targetType,
         String targetPropertyName,
-        Extractor<S> extractor
+        Extractor<S, P> extractor
     ) {
         addExtractor(
             TypePredicate.from(sourceType),
@@ -36,11 +36,11 @@ final class Extractors {
         );
     }
 
-    public <S> void add(
+    public <S, P> void add(
         TypePredicate sourceTypePredicate,
         TypePredicate targetTypePredicate,
         String targetPropertyName,
-        Extractor<S> extractor
+        Extractor<S, P> extractor
     ) {
         addExtractor(
             sourceTypePredicate,
@@ -51,11 +51,11 @@ final class Extractors {
     }
 
     @SuppressWarnings("unchecked")
-    private <S> void addExtractor(
+    private <S, P> void addExtractor(
         TypePredicate sourceTypePredicate,
         TypePredicate targetTypePredicate,
         String targetPropertyName,
-        Extractor<S> extractor
+        Extractor<S, P> extractor
     ) {
         Container container = store.computeIfAbsent(
             targetPropertyName,

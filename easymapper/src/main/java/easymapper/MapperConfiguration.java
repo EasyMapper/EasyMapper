@@ -109,21 +109,21 @@ public final class MapperConfiguration {
         return this;
     }
 
-    public <S, T> MapperConfiguration addExtractor(
+    public <S, P> MapperConfiguration addExtractor(
         @NonNull Class<S> sourceType,
-        @NonNull Class<T> targetType,
+        @NonNull Class<?> targetType,
         @NonNull String targetPropertyName,
-        @NonNull Extractor<S> extractor
+        @NonNull Extractor<S, P> extractor
     ) {
         extractors.add(sourceType, targetType, targetPropertyName, extractor);
         return this;
     }
 
-    public <S> MapperConfiguration addExtractor(
+    public <S, P> MapperConfiguration addExtractor(
         @NonNull TypePredicate sourceTypePredicate,
         @NonNull TypePredicate targetTypePredicate,
         @NonNull String targetPropertyName,
-        @NonNull Extractor<S> extractor
+        @NonNull Extractor<S, P> extractor
     ) {
         extractors.add(
             sourceTypePredicate,

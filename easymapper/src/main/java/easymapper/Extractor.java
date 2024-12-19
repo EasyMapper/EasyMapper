@@ -1,7 +1,7 @@
 package easymapper;
 
 @FunctionalInterface
-public interface Extractor<S> {
+public interface Extractor<S, P> {
 
-    Object extract(MappingContext context, S source);
+    P extract(MappingContext context, S source);
 }

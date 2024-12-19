@@ -503,7 +503,7 @@ public class MapperConfiguration_specs {
         ThrowingCallable action = () -> new Mapper(
             config -> config.addExtractor(
                 User.class,
-                (Class<UserView>) null,
+                null,
                 "id",
                 (context, source) -> valueOf(source.id())
             )
@@ -605,7 +605,7 @@ public class MapperConfiguration_specs {
     @AutoParameterizedTest
     void addExtractor_overrides_previous_extractor(User user) {
         val mapper = new Mapper(config -> config
-            .addExtractor(
+            .<User, String>addExtractor(
                 User.class,
                 UserView.class,
                 "id",
@@ -656,7 +656,7 @@ public class MapperConfiguration_specs {
             .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("targetTypePredicate");
     }
-    
+
     @Test
     void addExtractor_with_predicate_has_null_guard_for_target_property_name() {
         ThrowingCallable action = () -> new Mapper(
@@ -672,7 +672,7 @@ public class MapperConfiguration_specs {
             .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("targetPropertyName");
     }
-    
+
     @Test
     void addExtractor_with_predicate_has_null_guard_for_extractor() {
         ThrowingCallable action = () -> new Mapper(
@@ -688,7 +688,7 @@ public class MapperConfiguration_specs {
             .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("extractor");
     }
-    
+
     @Test
     void addExtractor_with_predicate_is_fluent() {
         new Mapper(config -> {
@@ -701,11 +701,11 @@ public class MapperConfiguration_specs {
             assertThat(actual).isSameAs(config);
         });
     }
-    
+
     @AutoParameterizedTest
     void addExtractor_with_predicate_correctly_works(User user) {
         val mapper = new Mapper(
-            config -> config.<User>addExtractor(
+            config -> config.<User, String>addExtractor(
                 type -> type.equals(User.class),
                 type -> type.equals(UserView.class),
                 "id",
