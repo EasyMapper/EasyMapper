@@ -29,7 +29,7 @@ class AtomicObjectMapping {
             (context, source, target) -> { }
         );
 
-        config.addConverter(type, type, (context, source) -> source);
-        config.addProjector(type, type, (context, source, target) -> { });
+        config.addConverter(type, type, Converter.identity());
+        config.addProjector(type, type, Projector.empty());
     }
 }

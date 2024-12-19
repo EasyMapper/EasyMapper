@@ -10,4 +10,9 @@ public interface Converter<S, T> {
     default Supplier<T> bind(MappingContext context, S source) {
         return () -> convert(context, source);
     }
+
+    @SuppressWarnings("unchecked")
+    static <S, T> Converter<S, T> identity() {
+        return (context, source) -> (T) source;
+    }
 }
