@@ -215,7 +215,7 @@ public class MapperConfiguration_specs {
             .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("sourceTypePredicate");
     }
-    
+
     @Test
     void addConverter_with_predicate_has_null_guard_for_target_type_predicate() {
         ThrowingCallable action = () -> new Mapper(
@@ -230,7 +230,7 @@ public class MapperConfiguration_specs {
             .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("targetTypePredicate");
     }
-    
+
     @Test
     void addConverter_with_predicate_has_null_guard_for_converter() {
         ThrowingCallable action = () -> new Mapper(
@@ -245,7 +245,7 @@ public class MapperConfiguration_specs {
             .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("converter");
     }
-    
+
     @Test
     void addConverter_with_predicate_is_fluent() {
         new Mapper(config -> {
@@ -257,7 +257,7 @@ public class MapperConfiguration_specs {
             assertThat(actual).isSameAs(config);
         });
     }
-    
+
     @AutoParameterizedTest
     void addConverter_with_predicate_correctly_works(User user) {
         val mapper = new Mapper(
@@ -393,6 +393,82 @@ public class MapperConfiguration_specs {
             .addProjector(
                 User.class,
                 UserView.class,
+                (context, source, target) -> {
+                    target.id(valueOf(source.id()));
+                    target.username(source.username());
+                }
+            )
+        );
+
+        mapper.project(user, view);
+
+        assertThat(view.id()).isEqualTo(valueOf(user.id()));
+        assertThat(view.username()).isEqualTo(user.username());
+    }
+
+    @Test
+    void addProjector_with_predicate_has_null_guard_for_source_type_predicate() {
+        ThrowingCallable action = () -> new Mapper(
+            config -> config.addProjector(
+                null,
+                acceptAll,
+                (context, source, target) -> { }
+            )
+        );
+
+        assertThatThrownBy(action)
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("sourceTypePredicate");
+    }
+
+    @Test
+    void addProjector_with_predicate_has_null_guard_for_target_type_predicate() {
+        ThrowingCallable action = () -> new Mapper(
+            config -> config.addProjector(
+                acceptAll,
+                null,
+                (context, source, target) -> { }
+            )
+        );
+
+        assertThatThrownBy(action)
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("targetTypePredicate");
+    }
+
+    @Test
+    void addProjector_with_predicate_has_null_guard_for_projector() {
+        ThrowingCallable action = () -> new Mapper(
+            config -> config.addProjector(
+                acceptAll,
+                acceptAll,
+                null
+            )
+        );
+
+        assertThatThrownBy(action)
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("projector");
+    }
+    
+    @Test
+    void addProjector_with_predicate_is_fluent() {
+        new Mapper(config -> {
+            MapperConfiguration actual = config.addProjector(
+                acceptAll,
+                acceptAll,
+                (context, source, target) -> { }
+            );
+            assertThat(actual).isSameAs(config);
+        });
+    }
+    
+    @AutoParameterizedTest
+    void addProjector_with_predicate_correctly_works(User user, UserView view) {
+        val mapper = new Mapper(
+            config -> config.<User, UserView>addProjector(
+                type -> type.equals(User.class),
+                type -> type.equals(UserView.class),
                 (context, source, target) -> {
                     target.id(valueOf(source.id()));
                     target.username(source.username());

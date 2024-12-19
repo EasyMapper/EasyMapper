@@ -34,20 +34,6 @@ public final class MapperConfiguration {
         parameterNameResolver = DefaultParameterNameResolver.INSTANCE;
     }
 
-    public MapperConfiguration setConstructorExtractor(
-        @NonNull ConstructorExtractor value
-    ) {
-        this.constructorExtractor = value;
-        return this;
-    }
-
-    public MapperConfiguration setParameterNameResolver(
-        @NonNull ParameterNameResolver value
-    ) {
-        this.parameterNameResolver = value;
-        return this;
-    }
-
     Converters converters() {
         val converters = new Converters();
         converters.addRange(this.converters);
@@ -70,6 +56,20 @@ public final class MapperConfiguration {
         @NonNull Consumer<MapperConfiguration> configurer
     ) {
         configurer.accept(this);
+        return this;
+    }
+
+    public MapperConfiguration setConstructorExtractor(
+        @NonNull ConstructorExtractor value
+    ) {
+        this.constructorExtractor = value;
+        return this;
+    }
+
+    public MapperConfiguration setParameterNameResolver(
+        @NonNull ParameterNameResolver value
+    ) {
+        this.parameterNameResolver = value;
         return this;
     }
 
@@ -97,6 +97,15 @@ public final class MapperConfiguration {
         @NonNull Projector<S, T> projector
     ) {
         projectors.add(sourceType, targetType, projector);
+        return this;
+    }
+
+    public <S, T> MapperConfiguration addProjector(
+        @NonNull TypePredicate sourceTypePredicate,
+        @NonNull TypePredicate targetTypePredicate,
+        @NonNull Projector<S, T> projector
+    ) {
+        projectors.add(sourceTypePredicate, targetTypePredicate, projector);
         return this;
     }
 
