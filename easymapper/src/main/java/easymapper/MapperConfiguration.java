@@ -119,6 +119,21 @@ public final class MapperConfiguration {
         return this;
     }
 
+    public <S> MapperConfiguration addExtractor(
+        @NonNull TypePredicate sourceTypePredicate,
+        @NonNull TypePredicate targetTypePredicate,
+        @NonNull String targetPropertyName,
+        @NonNull Extractor<S> extractor
+    ) {
+        extractors.add(
+            sourceTypePredicate,
+            targetTypePredicate,
+            targetPropertyName,
+            extractor
+        );
+        return this;
+    }
+
     public MapperConfiguration map(
         @NonNull TypePredicate sourceTypePredicate,
         @NonNull TypePredicate destinationTypePredicate,

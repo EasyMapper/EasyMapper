@@ -22,10 +22,38 @@ final class Extractors {
             .flatMap(container -> container.find(sourceType, targetType));
     }
 
-    @SuppressWarnings("unchecked")
     public <S, T> void add(
         Class<S> sourceType,
         Class<T> targetType,
+        String targetPropertyName,
+        Extractor<S> extractor
+    ) {
+        addExtractor(
+            TypePredicate.from(sourceType),
+            TypePredicate.from(targetType),
+            targetPropertyName,
+            extractor
+        );
+    }
+
+    public <S> void add(
+        TypePredicate sourceTypePredicate,
+        TypePredicate targetTypePredicate,
+        String targetPropertyName,
+        Extractor<S> extractor
+    ) {
+        addExtractor(
+            sourceTypePredicate,
+            targetTypePredicate,
+            targetPropertyName,
+            extractor
+        );
+    }
+
+    @SuppressWarnings("unchecked")
+    private <S> void addExtractor(
+        TypePredicate sourceTypePredicate,
+        TypePredicate targetTypePredicate,
         String targetPropertyName,
         Extractor<S> extractor
     ) {
@@ -35,8 +63,8 @@ final class Extractors {
         );
 
         container.add(
-            sourceType,
-            targetType,
+            sourceTypePredicate,
+            targetTypePredicate,
             (context, source) -> extractor.extract(context, (S) source)
         );
     }

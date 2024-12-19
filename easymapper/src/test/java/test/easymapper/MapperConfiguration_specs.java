@@ -450,7 +450,7 @@ public class MapperConfiguration_specs {
             .isInstanceOf(NullPointerException.class)
             .hasMessageContaining("projector");
     }
-    
+
     @Test
     void addProjector_with_predicate_is_fluent() {
         new Mapper(config -> {
@@ -462,7 +462,7 @@ public class MapperConfiguration_specs {
             assertThat(actual).isSameAs(config);
         });
     }
-    
+
     @AutoParameterizedTest
     void addProjector_with_predicate_correctly_works(User user, UserView view) {
         val mapper = new Mapper(
@@ -614,6 +614,100 @@ public class MapperConfiguration_specs {
             .addExtractor(
                 User.class,
                 UserView.class,
+                "id",
+                (context, source) -> valueOf(source.id())
+            )
+        );
+
+        UserView actual = mapper.convert(user, UserView.class);
+
+        assertThat(actual.id()).isEqualTo(valueOf(user.id()));
+        assertThat(actual.username()).isEqualTo(user.username());
+    }
+
+    @Test
+    void addExtractor_with_predicate_has_null_guard_for_source_type_predicate() {
+        ThrowingCallable action = () -> new Mapper(
+            config -> config.addExtractor(
+                null,
+                acceptAll,
+                "id",
+                (context, source) -> null
+            )
+        );
+
+        assertThatThrownBy(action)
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("sourceTypePredicate");
+    }
+
+    @Test
+    void addExtractor_with_predicate_has_null_guard_for_target_type_predicate() {
+        ThrowingCallable action = () -> new Mapper(
+            config -> config.addExtractor(
+                acceptAll,
+                null,
+                "id",
+                (context, source) -> null
+            )
+        );
+
+        assertThatThrownBy(action)
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("targetTypePredicate");
+    }
+    
+    @Test
+    void addExtractor_with_predicate_has_null_guard_for_target_property_name() {
+        ThrowingCallable action = () -> new Mapper(
+            config -> config.addExtractor(
+                acceptAll,
+                acceptAll,
+                null,
+                (context, source) -> null
+            )
+        );
+
+        assertThatThrownBy(action)
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("targetPropertyName");
+    }
+    
+    @Test
+    void addExtractor_with_predicate_has_null_guard_for_extractor() {
+        ThrowingCallable action = () -> new Mapper(
+            config -> config.addExtractor(
+                acceptAll,
+                acceptAll,
+                "id",
+                null
+            )
+        );
+
+        assertThatThrownBy(action)
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("extractor");
+    }
+    
+    @Test
+    void addExtractor_with_predicate_is_fluent() {
+        new Mapper(config -> {
+            MapperConfiguration actual = config.addExtractor(
+                acceptAll,
+                acceptAll,
+                "id",
+                (context, source) -> null
+            );
+            assertThat(actual).isSameAs(config);
+        });
+    }
+    
+    @AutoParameterizedTest
+    void addExtractor_with_predicate_correctly_works(User user) {
+        val mapper = new Mapper(
+            config -> config.<User>addExtractor(
+                type -> type.equals(User.class),
+                type -> type.equals(UserView.class),
                 "id",
                 (context, source) -> valueOf(source.id())
             )

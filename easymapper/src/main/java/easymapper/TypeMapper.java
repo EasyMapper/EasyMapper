@@ -39,15 +39,6 @@ abstract class TypeMapper<V> {
         return Optional.empty();
     }
 
-    public <S, T> void add(Class<S> sourceType, Class<T> targetType, V value) {
-        val entry = new Entry<V>(
-            TypePredicate.from(sourceType),
-            TypePredicate.from(targetType),
-            value
-        );
-        entries.add(entry);
-    }
-
     public void add(
         TypePredicate sourceTypePredicate,
         TypePredicate targetTypePredicate,
