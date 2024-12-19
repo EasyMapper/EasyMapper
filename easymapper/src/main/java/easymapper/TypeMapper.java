@@ -48,6 +48,19 @@ abstract class TypeMapper<V> {
         entries.add(entry);
     }
 
+    public void add(
+        TypePredicate sourceTypePredicate,
+        TypePredicate targetTypePredicate,
+        V value
+    ) {
+        val entry = new Entry<V>(
+            sourceTypePredicate,
+            targetTypePredicate,
+            value
+        );
+        entries.add(entry);
+    }
+
     public void addRange(TypeMapper<V> other) {
         entries.addAll(other.entries);
     }

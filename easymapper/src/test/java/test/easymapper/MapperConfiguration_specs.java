@@ -202,6 +202,79 @@ public class MapperConfiguration_specs {
     }
 
     @Test
+    void addConverter_with_predicate_has_null_guard_for_source_type_predicate() {
+        ThrowingCallable action = () -> new Mapper(
+            config -> config.addConverter(
+                null,
+                acceptAll,
+                (context, source) -> source
+            )
+        );
+
+        assertThatThrownBy(action)
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("sourceTypePredicate");
+    }
+    
+    @Test
+    void addConverter_with_predicate_has_null_guard_for_target_type_predicate() {
+        ThrowingCallable action = () -> new Mapper(
+            config -> config.addConverter(
+                acceptAll,
+                null,
+                (context, source) -> source
+            )
+        );
+
+        assertThatThrownBy(action)
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("targetTypePredicate");
+    }
+    
+    @Test
+    void addConverter_with_predicate_has_null_guard_for_converter() {
+        ThrowingCallable action = () -> new Mapper(
+            config -> config.addConverter(
+                acceptAll,
+                acceptAll,
+                null
+            )
+        );
+
+        assertThatThrownBy(action)
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("converter");
+    }
+    
+    @Test
+    void addConverter_with_predicate_is_fluent() {
+        new Mapper(config -> {
+            MapperConfiguration actual = config.addConverter(
+                acceptAll,
+                acceptAll,
+                (context, source) -> source
+            );
+            assertThat(actual).isSameAs(config);
+        });
+    }
+    
+    @AutoParameterizedTest
+    void addConverter_with_predicate_correctly_works(User user) {
+        val mapper = new Mapper(
+            config -> config.<User, UserView>addConverter(
+                type -> type.equals(User.class),
+                type -> type.equals(UserView.class),
+                (context, source) -> UserView.from(source)
+            )
+        );
+
+        UserView actual = mapper.convert(user, UserView.class);
+
+        assertThat(actual.id()).isEqualTo(valueOf(user.id()));
+        assertThat(actual.username()).isEqualTo(user.username());
+    }
+
+    @Test
     void addProjector_has_null_guard_for_source_type() {
         ThrowingCallable action = () -> new Mapper(
             config -> config.addProjector(

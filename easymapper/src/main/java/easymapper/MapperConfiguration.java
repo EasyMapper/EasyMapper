@@ -82,6 +82,15 @@ public final class MapperConfiguration {
         return this;
     }
 
+    public <S, T> MapperConfiguration addConverter(
+        @NonNull TypePredicate sourceTypePredicate,
+        @NonNull TypePredicate targetTypePredicate,
+        @NonNull Converter<S, T> converter
+    ) {
+        converters.add(sourceTypePredicate, targetTypePredicate, converter);
+        return this;
+    }
+
     public <S, T> MapperConfiguration addProjector(
         @NonNull Class<S> sourceType,
         @NonNull Class<T> targetType,
