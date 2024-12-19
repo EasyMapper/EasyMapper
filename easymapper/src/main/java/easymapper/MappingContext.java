@@ -185,7 +185,11 @@ public final class MappingContext {
             .orElse(Mapping.EMPTY)
             .projection()
             .map(projection -> projection.bind(this, source, destination))
-            .orElse(() -> projectInDefaultWay(source, destination))
+            .orElseGet(() -> settings
+                .projectors()
+                .find(sourceType, destinationType)
+                .<Runnable>map(projector -> () -> projector.project(this, source, destination))
+                .orElse(() -> projectInDefaultWay(source, destination)))
             .run();
     }
 

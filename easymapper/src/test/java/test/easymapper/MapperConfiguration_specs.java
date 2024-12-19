@@ -201,6 +201,138 @@ public class MapperConfiguration_specs {
         assertThat(actual.authorId()).isEqualTo(valueOf(post.authorId()));
     }
 
+    @Test
+    void addProjector_has_null_guard_for_source_type() {
+        ThrowingCallable action = () -> new Mapper(
+            config -> config.addProjector(
+                (Class<User>) null,
+                User.class,
+                (context, source, target) -> { }
+            )
+        );
+
+        assertThatThrownBy(action)
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("sourceType");
+    }
+
+    @Test
+    void addProjector_has_null_guard_for_target_type() {
+        ThrowingCallable action = () -> new Mapper(
+            config -> config.addProjector(
+                User.class,
+                null,
+                (context, source, target) -> { }
+            )
+        );
+
+        assertThatThrownBy(action)
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("targetType");
+    }
+
+    @Test
+    void addProjector_has_null_guard_for_projector() {
+        ThrowingCallable action = () -> new Mapper(
+            config -> config.addProjector(User.class, User.class, null)
+        );
+
+        assertThatThrownBy(action)
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("projector");
+    }
+
+    @Test
+    void addProjector_is_fluent() {
+        new Mapper(config -> {
+            MapperConfiguration actual = config.addProjector(
+                User.class,
+                UserView.class,
+                (context, source, target) -> { }
+            );
+            assertThat(actual).isSameAs(config);
+        });
+    }
+
+    @AutoParameterizedTest
+    void addProjector_correctly_works(User user, UserView view) {
+        val mapper = new Mapper(
+            config -> config.addProjector(
+                User.class,
+                UserView.class,
+                (context, source, target) -> {
+                    target.id(valueOf(source.id()));
+                    target.username(source.username());
+                }
+            )
+        );
+
+        mapper.project(user, view);
+
+        assertThat(view.id()).isEqualTo(valueOf(user.id()));
+        assertThat(view.username()).isEqualTo(user.username());
+    }
+
+    @AllArgsConstructor
+    @Getter
+    @Accessors(fluent = true)
+    public static class UserBag {
+
+        public final User value;
+    }
+
+    @Getter
+    @Setter
+    @Accessors(fluent = true)
+    public static class UserViewBag {
+
+        private UserView value;
+    }
+
+    @AutoParameterizedTest
+    void addProjector_correctly_works_for_property(
+        UserBag userBag,
+        UserViewBag userViewBag
+    ) {
+        val mapper = new Mapper(
+            config -> config.addProjector(
+                User.class,
+                UserView.class,
+                (context, source, target) -> {
+                    target.id(valueOf(source.id()));
+                    target.username(source.username());
+                }
+            )
+        );
+
+        mapper.project(userBag, userViewBag);
+
+        assertThat(userViewBag.value().id())
+            .isEqualTo(valueOf(userBag.value().id()));
+        assertThat(userViewBag.value().username())
+            .isEqualTo(userBag.value().username());
+    }
+
+    @AutoParameterizedTest
+    void addProjector_overrides_previous_projector(User user, UserView view) {
+        val mapper = new Mapper(config -> config
+            .addProjector(User.class, UserView.class, (c, s, t) -> { })
+            .addProjector(
+                User.class,
+                UserView.class,
+                (context, source, target) -> {
+                    target.id(valueOf(source.id()));
+                    target.username(source.username());
+                }
+            )
+        );
+
+        mapper.project(user, view);
+
+        assertThat(view.id()).isEqualTo(valueOf(user.id()));
+        assertThat(view.username()).isEqualTo(user.username());
+    }
+
     @AllArgsConstructor
     @Getter
     public static class Pricing {

@@ -18,6 +18,7 @@ class MappingSettings {
     private final ConstructorExtractor constructorExtractor;
     private final ParameterNameResolver parameterNameResolver;
     private final Converters converters;
+    private final Projectors projectors;
     private final List<Mapping<Object, Object>> mappings;
 
     public static MappingSettings from(MapperConfiguration config) {
@@ -25,6 +26,7 @@ class MappingSettings {
             config.constructorExtractor(),
             config.parameterNameResolver(),
             config.converters(),
+            config.projectors(),
             buildMappings(config)
         );
     }

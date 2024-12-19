@@ -25,6 +25,8 @@ public final class MapperConfiguration {
 
     private final Converters converters = new Converters();
 
+    private final Projectors projectors = new Projectors();
+
     MapperConfiguration() {
         constructorExtractor = DefaultConstructorExtractor.INSTANCE;
         parameterNameResolver = DefaultParameterNameResolver.INSTANCE;
@@ -50,6 +52,12 @@ public final class MapperConfiguration {
         return converters;
     }
 
+    Projectors projectors() {
+        val projectors = new Projectors();
+        projectors.addRange(this.projectors);
+        return projectors;
+    }
+
     public MapperConfiguration apply(
         @NonNull Consumer<MapperConfiguration> configurer
     ) {
@@ -66,6 +74,15 @@ public final class MapperConfiguration {
         return this;
     }
 
+    public <S, T> MapperConfiguration addProjector(
+        @NonNull Class<S> sourceType,
+        @NonNull Class<T> targetType,
+        @NonNull Projector<S, T> projector
+    ) {
+        projectors.add(sourceType, targetType, projector);
+        return this;
+    }
+
     public MapperConfiguration map(
         @NonNull TypePredicate sourceTypePredicate,
         @NonNull TypePredicate destinationTypePredicate,
@@ -73,7 +90,8 @@ public final class MapperConfiguration {
     ) {
         MappingBuilder<Object, Object> mapping = new MappingBuilder<>(
             sourceTypePredicate,
-            destinationTypePredicate);
+            destinationTypePredicate
+        );
         configurer.accept(mapping);
         mappings.add(mapping);
         return this;
@@ -86,7 +104,8 @@ public final class MapperConfiguration {
     ) {
         MappingBuilder<S, D> mapping = new MappingBuilder<>(
             type -> type.equals(sourceType),
-            type -> type.equals(destinationType));
+            type -> type.equals(destinationType)
+        );
         configurer.accept(mapping);
         mappings.add(mapping);
         return this;
@@ -99,7 +118,8 @@ public final class MapperConfiguration {
     ) {
         MappingBuilder<S, D> mapping = new MappingBuilder<>(
             type -> type.equals(sourceTypeReference.getType()),
-            type -> type.equals(destinationTypeReference.getType()));
+            type -> type.equals(destinationTypeReference.getType())
+        );
         configurer.accept(mapping);
         mappings.add(mapping);
         return this;
