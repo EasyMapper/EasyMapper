@@ -94,7 +94,7 @@ public final class MappingContext {
         Object[] arguments = new Object[parameters.length];
 
         for (int i = 0; i < parameters.length; i++) {
-            arguments[i] = computeOrConvert(source, propertyNames[i]);
+            arguments[i] = extractOrConvert(source, propertyNames[i]);
         }
 
         return arguments;
@@ -122,7 +122,7 @@ public final class MappingContext {
         }
     }
 
-    private Object computeOrConvert(Object source, String propertyName) {
+    private Object extractOrConvert(Object source, String propertyName) {
         return settings
             .extractors()
             .find(sourceType, destinationType, propertyName)
@@ -180,10 +180,10 @@ public final class MappingContext {
     private void setWritableProperties(Object source, Object destination) {
         Properties properties = Properties.get(destinationType);
         properties.useWritableProperties(property ->
-            computeOrConvertProperty(source, property.bind(destination)));
+            extractOrConvertProperty(source, property.bind(destination)));
     }
 
-    private void computeOrConvertProperty(Object source, Variable property) {
+    private void extractOrConvertProperty(Object source, Variable property) {
         settings
             .extractors()
             .find(sourceType, destinationType, property.name())
