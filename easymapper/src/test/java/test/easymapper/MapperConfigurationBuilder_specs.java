@@ -8,7 +8,7 @@ import java.util.function.Consumer;
 
 import easymapper.ConstructorExtractor;
 import easymapper.Mapper;
-import easymapper.MapperConfiguration;
+import easymapper.MapperConfigurationBuilder;
 import easymapper.ParameterNameResolver;
 import easymapper.TypePredicate;
 import lombok.AccessLevel;
@@ -30,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SuppressWarnings("DataFlowIssue")
-public class MapperConfiguration_specs {
+public class MapperConfigurationBuilder_specs {
 
     private static final TypePredicate acceptAll = type -> true;
 
@@ -88,7 +88,7 @@ public class MapperConfiguration_specs {
     @Test
     void addConverter_is_fluent() {
         new Mapper(config -> {
-            MapperConfiguration actual = config.addConverter(
+            MapperConfigurationBuilder actual = config.addConverter(
                 User.class,
                 User.class,
                 (source, context) -> source
@@ -248,7 +248,7 @@ public class MapperConfiguration_specs {
     @Test
     void addConverter_with_predicate_is_fluent() {
         new Mapper(config -> {
-            MapperConfiguration actual = config.addConverter(
+            MapperConfigurationBuilder actual = config.addConverter(
                 acceptAll,
                 acceptAll,
                 (source, context) -> source
@@ -317,7 +317,7 @@ public class MapperConfiguration_specs {
     @Test
     void addProjector_is_fluent() {
         new Mapper(config -> {
-            MapperConfiguration actual = config.addProjector(
+            MapperConfigurationBuilder actual = config.addProjector(
                 User.class,
                 UserView.class,
                 (source, target, context) -> { }
@@ -453,7 +453,7 @@ public class MapperConfiguration_specs {
     @Test
     void addProjector_with_predicate_is_fluent() {
         new Mapper(config -> {
-            MapperConfiguration actual = config.addProjector(
+            MapperConfigurationBuilder actual = config.addProjector(
                 acceptAll,
                 acceptAll,
                 (source, target, context) -> { }
@@ -548,7 +548,7 @@ public class MapperConfiguration_specs {
     @Test
     void addExtractor_is_fluent() {
         new Mapper(config -> {
-            MapperConfiguration actual = config.addExtractor(
+            MapperConfigurationBuilder actual = config.addExtractor(
                 User.class,
                 UserView.class,
                 "id",
@@ -691,7 +691,7 @@ public class MapperConfiguration_specs {
     @Test
     void addExtractor_with_predicate_is_fluent() {
         new Mapper(config -> {
-            MapperConfiguration actual = config.addExtractor(
+            MapperConfigurationBuilder actual = config.addExtractor(
                 acceptAll,
                 acceptAll,
                 "id",
@@ -742,7 +742,7 @@ public class MapperConfiguration_specs {
     @AutoParameterizedTest
     void setConstructorExtractor_is_fluent() {
         new Mapper(config -> {
-            MapperConfiguration actual = config.setConstructorExtractor(
+            MapperConfigurationBuilder actual = config.setConstructorExtractor(
                 t -> emptyList()
             );
             assertThat(actual).isSameAs(config);
@@ -803,7 +803,7 @@ public class MapperConfiguration_specs {
     @AutoParameterizedTest
     void setParameterNameResolver_is_fluent(String name) {
         new Mapper(config -> {
-            MapperConfiguration actual = config.setParameterNameResolver(
+            MapperConfigurationBuilder actual = config.setParameterNameResolver(
                 parameter -> Optional.of(name)
             );
             assertThat(actual).isSameAs(config);
@@ -877,7 +877,7 @@ public class MapperConfiguration_specs {
     @Test
     void apply_is_fluent() {
         new Mapper(config -> {
-            MapperConfiguration actual = config.apply(m -> { });
+            MapperConfigurationBuilder actual = config.apply(m -> { });
             assertThat(actual).isSameAs(config);
         });
     }
@@ -885,7 +885,7 @@ public class MapperConfiguration_specs {
     @AutoParameterizedTest
     void apply_correctly_configures_mapper(Pricing pricing) {
         // Arrange
-        Consumer<MapperConfiguration> configurer = config ->
+        Consumer<MapperConfigurationBuilder> configurer = config ->
             config.addExtractor(
                 Pricing.class,
                 PricingView.class,

@@ -2,7 +2,7 @@ package easymapper;
 
 class PrimitiveObjectMapping {
 
-    public static void configure(MapperConfiguration config) {
+    public static void configure(MapperConfigurationBuilder config) {
         configure(config, boolean.class);
         configure(config, Boolean.class);
         configure(config, boolean.class, Boolean.class);
@@ -45,14 +45,14 @@ class PrimitiveObjectMapping {
     }
 
     private static <T> void configure(
-        MapperConfiguration config,
+        MapperConfigurationBuilder config,
         Class<T> type
     ) {
         configure(config, type, type);
     }
 
     private static <S, T> void configure(
-        MapperConfiguration config,
+        MapperConfigurationBuilder config,
         Class<S> sourceType,
         Class<T> targetType
     ) {

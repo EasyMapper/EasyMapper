@@ -9,7 +9,7 @@ import java.util.UUID;
 
 class AtomicObjectMapping {
 
-    public static void configure(MapperConfiguration config) {
+    public static void configure(MapperConfigurationBuilder config) {
         configure(config, String.class);
         configure(config, UUID.class);
         configure(config, BigInteger.class);
@@ -20,7 +20,7 @@ class AtomicObjectMapping {
     }
 
     private static <T> void configure(
-        MapperConfiguration config,
+        MapperConfigurationBuilder config,
         Class<T> type
     ) {
         config.addProjector(

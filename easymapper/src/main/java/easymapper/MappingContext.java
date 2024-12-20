@@ -16,7 +16,7 @@ import static java.util.Comparator.comparingInt;
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
 public final class MappingContext {
 
-    private final MappingSettings settings;
+    private final MappingConfiguration configuration;
 
     @Getter(AccessLevel.PACKAGE)
     private final Type sourceType;
@@ -25,11 +25,11 @@ public final class MappingContext {
     private final Type targetType;
 
     MappingContext branch(Type sourceType, Type targetType) {
-        return new MappingContext(settings, sourceType, targetType);
+        return new MappingContext(configuration, sourceType, targetType);
     }
 
     Object convert(Object source) {
-        return settings
+        return configuration
             .converters()
             .find(sourceType, targetType)
             .map(converter -> converter.bindContext(this))
@@ -77,7 +77,7 @@ public final class MappingContext {
     }
 
     private Constructor<?> getConstructor(Class<?> type) {
-        return settings
+        return configuration
             .constructorExtractor()
             .extract(type)
             .stream()
@@ -101,7 +101,7 @@ public final class MappingContext {
     }
 
     private String[] getPropertyNames(Constructor<?> constructor) {
-        return settings
+        return configuration
             .parameterNameResolver()
             .tryResolveNames(constructor)
             .orElseGet(() -> getAnnotatedPropertyNames(constructor));
@@ -123,7 +123,7 @@ public final class MappingContext {
     }
 
     private Object extractOrConvert(Object source, String propertyName) {
-        return settings
+        return configuration
             .extractors()
             .find(sourceType, targetType, propertyName)
             .map(extractor -> extractor.bindAll(this, source))
@@ -157,7 +157,7 @@ public final class MappingContext {
             return;
         }
 
-        settings
+        configuration
             .projectors()
             .find(sourceType, targetType)
             .map(projector -> projector.bindContext(this))
@@ -172,7 +172,7 @@ public final class MappingContext {
 
     private void setWritableProperties(Object source, Object target) {
         Properties targetProperties = Properties.get(targetType);
-        targetProperties.useWritableProperties(targetProperty -> settings
+        targetProperties.useWritableProperties(targetProperty -> configuration
             .extractors()
             .find(sourceType, targetType, targetProperty.name())
             .<Runnable>map(extractor -> () ->

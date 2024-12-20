@@ -8,19 +8,19 @@ import lombok.val;
 
 public class Mapper {
 
-    private final MappingSettings settings;
+    private final MappingConfiguration configuration;
 
     @SuppressWarnings("unused")
     public Mapper() {
         this(config -> { });
     }
 
-    public Mapper(@NonNull Consumer<MapperConfiguration> configurer) {
-        MapperConfiguration config = new MapperConfiguration()
+    public Mapper(@NonNull Consumer<MapperConfigurationBuilder> configurer) {
+        MapperConfigurationBuilder builder = new MapperConfigurationBuilder()
             .apply(BaseConfiguration::configure)
             .apply(configurer);
 
-        settings = MappingSettings.create(config);
+        configuration = builder.build();
     }
 
     public <S, T> T convert(
@@ -50,7 +50,7 @@ public class Mapper {
 
     @SuppressWarnings("unchecked")
     private <S, T> T convertObject(S source, Type sourceType, Type targetType) {
-        val context = new MappingContext(settings, sourceType, targetType);
+        val context = new MappingContext(configuration, sourceType, targetType);
         return (T) context.convert(source);
     }
 
@@ -84,7 +84,7 @@ public class Mapper {
         Type sourceType,
         Type targetType
     ) {
-        val context = new MappingContext(settings, sourceType, targetType);
+        val context = new MappingContext(configuration, sourceType, targetType);
         context.project(source, target);
     }
 }

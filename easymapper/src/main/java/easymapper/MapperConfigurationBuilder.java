@@ -9,7 +9,7 @@ import lombok.experimental.Accessors;
 
 @Getter(AccessLevel.PACKAGE)
 @Accessors(fluent = true)
-public final class MapperConfiguration {
+public final class MapperConfigurationBuilder {
 
     private ConstructorExtractor constructorExtractor;
     private ParameterNameResolver parameterNameResolver;
@@ -17,7 +17,7 @@ public final class MapperConfiguration {
     private final ProjectorContainerBuilder projectors;
     private final ExtractorContainerBuilder extractors;
 
-    MapperConfiguration() {
+    MapperConfigurationBuilder() {
         constructorExtractor = DefaultConstructorExtractor.INSTANCE;
         parameterNameResolver = DefaultParameterNameResolver.INSTANCE;
         converters = new ConverterContainerBuilder();
@@ -25,28 +25,28 @@ public final class MapperConfiguration {
         extractors = new ExtractorContainerBuilder();
     }
 
-    public MapperConfiguration apply(
-        @NonNull Consumer<MapperConfiguration> configurer
+    public MapperConfigurationBuilder apply(
+        @NonNull Consumer<MapperConfigurationBuilder> configurer
     ) {
         configurer.accept(this);
         return this;
     }
 
-    public MapperConfiguration setConstructorExtractor(
+    public MapperConfigurationBuilder setConstructorExtractor(
         @NonNull ConstructorExtractor value
     ) {
         constructorExtractor = value;
         return this;
     }
 
-    public MapperConfiguration setParameterNameResolver(
+    public MapperConfigurationBuilder setParameterNameResolver(
         @NonNull ParameterNameResolver value
     ) {
         parameterNameResolver = value;
         return this;
     }
 
-    public <S, T> MapperConfiguration addConverter(
+    public <S, T> MapperConfigurationBuilder addConverter(
         @NonNull Class<S> sourceType,
         @NonNull Class<T> targetType,
         @NonNull Converter<S, T> converter
@@ -59,7 +59,7 @@ public final class MapperConfiguration {
         return this;
     }
 
-    public <S, T> MapperConfiguration addConverter(
+    public <S, T> MapperConfigurationBuilder addConverter(
         @NonNull TypePredicate sourceTypePredicate,
         @NonNull TypePredicate targetTypePredicate,
         @NonNull Converter<S, T> converter
@@ -68,7 +68,7 @@ public final class MapperConfiguration {
         return this;
     }
 
-    public <S, T> MapperConfiguration addProjector(
+    public <S, T> MapperConfigurationBuilder addProjector(
         @NonNull Class<S> sourceType,
         @NonNull Class<T> targetType,
         @NonNull Projector<S, T> projector
@@ -81,7 +81,7 @@ public final class MapperConfiguration {
         return this;
     }
 
-    public <S, T> MapperConfiguration addProjector(
+    public <S, T> MapperConfigurationBuilder addProjector(
         @NonNull TypePredicate sourceTypePredicate,
         @NonNull TypePredicate targetTypePredicate,
         @NonNull Projector<S, T> projector
@@ -90,7 +90,7 @@ public final class MapperConfiguration {
         return this;
     }
 
-    public <S, P> MapperConfiguration addExtractor(
+    public <S, P> MapperConfigurationBuilder addExtractor(
         @NonNull Class<S> sourceType,
         @NonNull Class<?> targetType,
         @NonNull String targetPropertyName,
@@ -105,7 +105,7 @@ public final class MapperConfiguration {
         return this;
     }
 
-    public <S, P> MapperConfiguration addExtractor(
+    public <S, P> MapperConfigurationBuilder addExtractor(
         @NonNull TypePredicate sourceTypePredicate,
         @NonNull TypePredicate targetTypePredicate,
         @NonNull String targetPropertyName,
@@ -118,5 +118,9 @@ public final class MapperConfiguration {
             extractor
         );
         return this;
+    }
+
+    MappingConfiguration build() {
+        return MappingConfiguration.build(this);
     }
 }

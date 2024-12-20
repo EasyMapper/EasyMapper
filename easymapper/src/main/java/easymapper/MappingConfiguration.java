@@ -8,7 +8,7 @@ import lombok.experimental.Accessors;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
 @Accessors(fluent = true)
-class MappingSettings {
+class MappingConfiguration {
 
     private final ConstructorExtractor constructorExtractor;
     private final ParameterNameResolver parameterNameResolver;
@@ -16,8 +16,10 @@ class MappingSettings {
     private final ProjectorContainer projectors;
     private final ExtractorContainer extractors;
 
-    public static MappingSettings create(MapperConfiguration config) {
-        return new MappingSettings(
+    public static MappingConfiguration build(
+        MapperConfigurationBuilder config
+    ) {
+        return new MappingConfiguration(
             config.constructorExtractor(),
             config.parameterNameResolver(),
             config.converters().build(),

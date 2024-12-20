@@ -7,7 +7,7 @@ import static easymapper.Collections.resolveElementType;
 
 class CollectionMapping {
 
-    public static void configure(MapperConfiguration config) {
+    public static void configure(MapperConfigurationBuilder config) {
         TypePredicate isIterable = Collections::isIterable;
         config.addConverter(isIterable, isIterable, CollectionMapping::convert);
         config.addProjector(isIterable, isIterable, Projector.empty());
