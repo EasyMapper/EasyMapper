@@ -32,9 +32,9 @@ public final class MappingContext {
         return settings
             .converters()
             .find(sourceType, targetType)
-            .map(converter -> converter.bind(this, source))
-            .orElse(() -> convertInDefaultWay(source))
-            .get();
+            .map(converter -> converter.bindContext(this))
+            .orElse(this::convertInDefaultWay)
+            .apply(source);
     }
 
     private Object convertInDefaultWay(Object source) {
@@ -126,7 +126,7 @@ public final class MappingContext {
         return settings
             .extractors()
             .find(sourceType, targetType, propertyName)
-            .map(extractor -> extractor.bind(this, source))
+            .map(extractor -> extractor.bindAll(this, source))
             .orElse(() -> convertProperty(source, propertyName))
             .get();
     }
@@ -160,9 +160,9 @@ public final class MappingContext {
         settings
             .projectors()
             .find(sourceType, targetType)
-            .map(projector -> projector.bind(this, source, target))
-            .orElse(() -> projectInDefaultWay(source, target))
-            .run();
+            .map(projector -> projector.bindContext(this))
+            .orElse(this::projectInDefaultWay)
+            .accept(source, target);
     }
 
     private void projectInDefaultWay(Object source, Object target) {
@@ -181,7 +181,8 @@ public final class MappingContext {
             .extractors()
             .find(sourceType, targetType, property.name())
             .<Runnable>map(extractor -> () ->
-                property.set(extractor.extract(this, source)))
+                property.set(extractor.extract(this, source))
+            )
             .orElse(() -> convertPropertyIfPresent(source, property))
             .run();
     }
@@ -189,27 +190,16 @@ public final class MappingContext {
     private void convertPropertyIfPresent(Object source, Variable target) {
         Properties properties = Properties.get(sourceType);
         properties.ifPresent(
-            target.name(), property -> {
-                MappingContext context = branch(
-                    property.type(),
-                    target.type()
-                );
-                context.convertThenSet(property.bind(source), target);
+            target.name(),
+            property -> {
+                MappingContext context = branch(property.type(), target.type());
+                context.convertThenSet(property.get(source), target);
             }
         );
     }
 
-    private void convertThenSet(Variable source, Variable target) {
-        Object sourceValue = source.get();
-
-        if (sourceValue == target.get()) {
-            return;
-        }
-
-        if (sourceValue == null) {
-            String message = "The source '" + source.name() + "' is null.";
-            throw new RuntimeException(message);
-        } else {
+    private void convertThenSet(Object sourceValue, Variable target) {
+        if (sourceValue != target.get()) {
             Object targetValue = convert(sourceValue);
             target.set(targetValue);
         }
@@ -226,10 +216,7 @@ public final class MappingContext {
         properties.ifPresent(
             target.name(),
             property -> {
-                MappingContext context = branch(
-                    property.type(),
-                    target.type()
-                );
+                MappingContext context = branch(property.type(), target.type());
                 context.project(property.bind(source).get(), target.get());
             }
         );

@@ -22,11 +22,11 @@ class CollectionMapping {
             resolveElementType(context.getSourceType()),
             resolveElementType(context.getTargetType()));
 
-        List<Object> target = new ArrayList<>();
-        for (Object item : source) {
-            target.add(elementMappingContext.convert(item));
+        List<Object> list = new ArrayList<>();
+        for (Object element : source) {
+            list.add(elementMappingContext.convert(element));
         }
 
-        return target;
+        return list;
     }
 }

@@ -2,48 +2,27 @@ package easymapper;
 
 import java.util.function.Consumer;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
-import lombok.val;
 
+@Getter(AccessLevel.PACKAGE)
+@Accessors(fluent = true)
 public final class MapperConfiguration {
 
-    @Getter
-    @Accessors(fluent = true)
     private ConstructorExtractor constructorExtractor;
-
-    @Getter
-    @Accessors(fluent = true)
     private ParameterNameResolver parameterNameResolver;
-
-    private final Converters converters = new Converters();
-
-    private final Projectors projectors = new Projectors();
-
-    private final Extractors extractors = new Extractors();
+    private final ConverterSetBuilder converters;
+    private final ProjectorSetBuilder projectors;
+    private final ExtractorSetBuilder extractors;
 
     MapperConfiguration() {
         constructorExtractor = DefaultConstructorExtractor.INSTANCE;
         parameterNameResolver = DefaultParameterNameResolver.INSTANCE;
-    }
-
-    Converters converters() {
-        val converters = new Converters();
-        converters.addRange(this.converters);
-        return converters;
-    }
-
-    Projectors projectors() {
-        val projectors = new Projectors();
-        projectors.addRange(this.projectors);
-        return projectors;
-    }
-
-    Extractors extractors() {
-        val extractors = new Extractors();
-        extractors.addRange(this.extractors);
-        return extractors;
+        converters = new ConverterSetBuilder();
+        projectors = new ProjectorSetBuilder();
+        extractors = new ExtractorSetBuilder();
     }
 
     public MapperConfiguration apply(

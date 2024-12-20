@@ -8,8 +8,4 @@ public interface Projector<S, T> {
     static <S, T> Projector<S, T> empty() {
         return (context, source, target) -> {};
     }
-
-    default Runnable bind(MappingContext context, S source, T target) {
-        return () -> project(context, source, target);
-    }
 }

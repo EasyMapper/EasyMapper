@@ -20,7 +20,7 @@ public class Mapper {
             .apply(BaseConfiguration::configure)
             .apply(configurer);
 
-        settings = MappingSettings.from(config);
+        settings = MappingSettings.create(config);
     }
 
     public <S, T> T convert(

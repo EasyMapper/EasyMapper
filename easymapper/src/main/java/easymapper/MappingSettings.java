@@ -12,17 +12,17 @@ class MappingSettings {
 
     private final ConstructorExtractor constructorExtractor;
     private final ParameterNameResolver parameterNameResolver;
-    private final Converters converters;
-    private final Projectors projectors;
-    private final Extractors extractors;
+    private final ConverterSet converters;
+    private final ProjectorSet projectors;
+    private final ExtractorSet extractors;
 
-    public static MappingSettings from(MapperConfiguration config) {
+    public static MappingSettings create(MapperConfiguration config) {
         return new MappingSettings(
             config.constructorExtractor(),
             config.parameterNameResolver(),
-            config.converters(),
-            config.projectors(),
-            config.extractors()
+            config.converters().build(),
+            config.projectors().build(),
+            config.extractors().build()
         );
     }
 }
