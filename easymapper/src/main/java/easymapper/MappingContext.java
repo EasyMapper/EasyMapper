@@ -176,7 +176,7 @@ public final class MappingContext {
             .extractors()
             .find(sourceType, targetType, targetProperty.name())
             .<Runnable>map(extractor -> () ->
-                targetProperty.set(target, extractor.extract(this, source))
+                targetProperty.set(target, extractor.extract(source, this))
             )
             .orElse(() -> Properties.get(sourceType).ifPresent(
                 targetProperty.name(),

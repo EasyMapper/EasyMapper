@@ -488,7 +488,7 @@ public class MapperConfiguration_specs {
                 (Class<User>) null,
                 UserView.class,
                 "id",
-                (context, source) -> valueOf(source.id())
+                (source, context) -> valueOf(source.id())
             )
         );
 
@@ -504,7 +504,7 @@ public class MapperConfiguration_specs {
                 User.class,
                 null,
                 "id",
-                (context, source) -> valueOf(source.id())
+                (source, context) -> valueOf(source.id())
             )
         );
 
@@ -520,7 +520,7 @@ public class MapperConfiguration_specs {
                 User.class,
                 UserView.class,
                 null,
-                (context, source) -> valueOf(source.id())
+                (source, context) -> valueOf(source.id())
             )
         );
 
@@ -552,7 +552,7 @@ public class MapperConfiguration_specs {
                 User.class,
                 UserView.class,
                 "id",
-                (context, source) -> valueOf(source.id())
+                (source, context) -> valueOf(source.id())
             );
             assertThat(actual).isSameAs(config);
         });
@@ -574,7 +574,7 @@ public class MapperConfiguration_specs {
                 User.class,
                 UserDto.class,
                 "name",
-                (context, source) -> source.username()
+                (source, context) -> source.username()
             )
         );
 
@@ -591,7 +591,7 @@ public class MapperConfiguration_specs {
                 User.class,
                 UserView.class,
                 "id",
-                (context, source) -> valueOf(source.id())
+                (source, context) -> valueOf(source.id())
             )
         );
 
@@ -608,13 +608,13 @@ public class MapperConfiguration_specs {
                 User.class,
                 UserView.class,
                 "id",
-                (context, source) -> null
+                (source, context) -> null
             )
             .addExtractor(
                 User.class,
                 UserView.class,
                 "id",
-                (context, source) -> valueOf(source.id())
+                (source, context) -> valueOf(source.id())
             )
         );
 
@@ -631,7 +631,7 @@ public class MapperConfiguration_specs {
                 null,
                 acceptAll,
                 "id",
-                (context, source) -> null
+                (source, context) -> null
             )
         );
 
@@ -647,7 +647,7 @@ public class MapperConfiguration_specs {
                 acceptAll,
                 null,
                 "id",
-                (context, source) -> null
+                (source, context) -> null
             )
         );
 
@@ -663,7 +663,7 @@ public class MapperConfiguration_specs {
                 acceptAll,
                 acceptAll,
                 null,
-                (context, source) -> null
+                (source, context) -> null
             )
         );
 
@@ -695,7 +695,7 @@ public class MapperConfiguration_specs {
                 acceptAll,
                 acceptAll,
                 "id",
-                (context, source) -> null
+                (source, context) -> null
             );
             assertThat(actual).isSameAs(config);
         });
@@ -708,7 +708,7 @@ public class MapperConfiguration_specs {
                 type -> type.equals(User.class),
                 type -> type.equals(UserView.class),
                 "id",
-                (context, source) -> valueOf(source.id())
+                (source, context) -> valueOf(source.id())
             )
         );
 
@@ -890,7 +890,7 @@ public class MapperConfiguration_specs {
                 Pricing.class,
                 PricingView.class,
                 "salePrice",
-                (context, source) -> source.calculateSalePrice()
+                (source, context) -> source.calculateSalePrice()
             );
 
         Mapper mapper = new Mapper(config -> config.apply(configurer));

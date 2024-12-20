@@ -45,13 +45,13 @@ public class Record_specs {
                 Recipient.class,
                 RecipientView.class,
                 "recipientName",
-                (context, source) -> source.name()
+                (source, context) -> source.name()
             )
             .addExtractor(
                 Recipient.class,
                 RecipientView.class,
                 "recipientPhoneNumber",
-                (context, source) -> source.phoneNumber()
+                (source, context) -> source.phoneNumber()
             )
         );
 

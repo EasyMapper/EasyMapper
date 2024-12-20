@@ -7,10 +7,10 @@ interface ObjectExtractor extends Extractor<Object, Object> {
 
     @SuppressWarnings("unchecked")
     static <S, P> ObjectExtractor from(Extractor<S, P> extractor) {
-        return (context, source) -> extractor.extract(context, (S) source);
+        return (source, context) -> extractor.extract((S) source, context);
     }
 
     default Supplier<Object> bindAll(MappingContext context, Object source) {
-        return () -> extract(context, source);
+        return () -> extract(source, context);
     }
 }
