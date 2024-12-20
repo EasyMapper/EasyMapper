@@ -9,14 +9,14 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 class TupleType implements Type {
 
-    private final Map<String, Type> properties;
+    private final Map<String, Type> types;
 
     public Map<String, Getter> getGetters() {
-        return properties
+        return types
             .keySet()
             .stream()
             .map(name -> new Getter(
-                properties.get(name),
+                types.get(name),
                 name,
                 instance -> ((Tuple) instance).get(name)))
             .collect(Collectors.toMap(Getter::name, getter -> getter));

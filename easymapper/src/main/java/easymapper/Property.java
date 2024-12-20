@@ -7,31 +7,31 @@ import java.util.function.Function;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
-final class Property extends ValueContainer {
+final class Property {
 
     private final Type type;
     private final String name;
     private final Function<Object, Object> getter;
     private final BiConsumer<Object, Object> setter;
 
-    @Override
     public Type type() {
         return type;
     }
 
-    @Override
     public String name() {
         return name;
     }
 
-    @Override
     public boolean isReadable() {
         return getter != null;
     }
 
-    @Override
     public boolean isWritable() {
         return setter != null;
+    }
+
+    public boolean isReadOnly() {
+        return isReadable() && isWritable() == false;
     }
 
     public Object get(Object instance) {
@@ -43,12 +43,11 @@ final class Property extends ValueContainer {
         setter.accept(instance, value);
     }
 
-    public Variable bind(Object instance) {
-        return new Variable(
-            type,
-            name,
-            () -> get(instance),
-            value -> set(instance, value));
+    private void assertThatWritable() {
+        if (isReadOnly()) {
+            String message = "'" + name() + "' is read-only.";
+            throw new UnsupportedOperationException(message);
+        }
     }
 
     public Property withHeadTruncatedName(int length) {
@@ -57,5 +56,25 @@ final class Property extends ValueContainer {
 
     public boolean nameStartsWithIgnoreCase(String prefix) {
         return name.toLowerCase().startsWith(prefix.toLowerCase());
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder s = new StringBuilder(type().getTypeName())
+            .append(" ")
+            .append(name())
+            .append(" {");
+
+        if (isReadable()) {
+            s.append(" get;");
+        }
+
+        if (isWritable()) {
+            s.append(" set;");
+        }
+
+        s.append(" }");
+
+        return s.toString();
     }
 }

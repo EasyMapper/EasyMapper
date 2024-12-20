@@ -7,9 +7,9 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 class Tuple {
 
-    private final Map<String, Object> properties;
+    private final Map<String, Object> values;
 
     public Object get(String name) {
-        return properties.get(name);
+        return values.get(name);
     }
 }

@@ -40,20 +40,25 @@ class Properties {
             .keySet()
             .stream()
             .distinct()
-            .map(name -> new Property(
-                returnTypeResolver.apply(statedGetters.get(name)),
-                name,
-                getGetter(statedGetters.get(name)),
-                getSetter(statedSetters.getOrDefault(name, null))))
+            .map(name ->
+                new Property(
+                    returnTypeResolver.apply(statedGetters.get(name)),
+                    name,
+                    getGetter(statedGetters.get(name)),
+                    getSetter(statedSetters.getOrDefault(name, null))
+                )
+            )
             .collect(toMap(Property::name, identity()));
     }
 
     private static Function<Object, Object> getGetter(Getter statedGetter) {
-        return statedGetter == null
+        if (statedGetter == null) {
+            return null;
+        }
+
+        return instance -> instance == null
             ? null
-            : instance -> instance == null
-                ? null
-                : statedGetter.invoke(instance);
+            : statedGetter.invoke(instance);
     }
 
     private static BiConsumer<Object, Object> getSetter(Setter statedSetter) {
@@ -91,7 +96,7 @@ class Properties {
     public Optional<Property> find(String name) {
         Property statedProperty = statedProperties.getOrDefault(name, null);
         if (statedProperty == null) {
-            Property flattenedProperty = findFlattened(identity(), name, name);
+            Property flattenedProperty = findFlattened(name);
             if (flattenedProperty == null) {
                 return Optional.ofNullable(findUnflattened(name));
             } else {
@@ -100,6 +105,10 @@ class Properties {
         } else {
             return Optional.of(statedProperty);
         }
+    }
+
+    private Property findFlattened(String name) {
+        return findFlattened(identity(), name, name);
     }
 
     private Property findFlattened(
@@ -115,14 +124,16 @@ class Properties {
                     property.type(),
                     path,
                     instance -> property.get(resolver.apply(instance)),
-                    null);
+                    null
+                );
             }
 
             if (path.toLowerCase().startsWith(propertyName.toLowerCase())) {
                 return Properties.get(property.type()).findFlattened(
                     instance -> property.get(resolver.apply(instance)),
                     path,
-                    path.substring(propertyName.length()));
+                    path.substring(propertyName.length())
+                );
             }
         }
 
@@ -130,25 +141,26 @@ class Properties {
     }
 
     private Property findUnflattened(String name) {
-        List<Property> innerProperties = statedProperties
+        List<Property> flattenedProperties = statedProperties
             .values()
             .stream()
             .filter(property -> property.nameStartsWithIgnoreCase(name))
             .map(property -> property.withHeadTruncatedName(name.length()))
             .collect(toList());
 
-        if (innerProperties.isEmpty()) {
+        if (flattenedProperties.isEmpty()) {
             return null;
         }
 
-        TupleType type = new TupleType(innerProperties
+        TupleType type = new TupleType(flattenedProperties
             .stream()
             .collect(toMap(Property::name, Property::type)));
 
-        Function<Object, Object> getter = instance -> new Tuple(innerProperties
-            .stream()
-            .map(property -> property.bind(instance))
-            .collect(toMap(Variable::name, Variable::get)));
+        Function<Object, Object> getter = instance -> new Tuple(
+            flattenedProperties.stream().collect(
+                toMap(Property::name, property -> property.get(instance))
+            )
+        );
 
         return new Property(type, name, getter, null);
     }

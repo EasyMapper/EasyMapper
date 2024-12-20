@@ -171,54 +171,49 @@ public final class MappingContext {
     }
 
     private void setWritableProperties(Object source, Object target) {
-        Properties properties = Properties.get(targetType);
-        properties.useWritableProperties(property ->
-            extractOrConvertProperty(source, property.bind(target)));
-    }
-
-    private void extractOrConvertProperty(Object source, Variable property) {
-        settings
+        Properties targetProperties = Properties.get(targetType);
+        targetProperties.useWritableProperties(targetProperty -> settings
             .extractors()
-            .find(sourceType, targetType, property.name())
+            .find(sourceType, targetType, targetProperty.name())
             .<Runnable>map(extractor -> () ->
-                property.set(extractor.extract(this, source))
+                targetProperty.set(target, extractor.extract(this, source))
             )
-            .orElse(() -> convertPropertyIfPresent(source, property))
-            .run();
-    }
-
-    private void convertPropertyIfPresent(Object source, Variable target) {
-        Properties properties = Properties.get(sourceType);
-        properties.ifPresent(
-            target.name(),
-            property -> {
-                MappingContext context = branch(property.type(), target.type());
-                context.convertThenSet(property.get(source), target);
-            }
+            .orElse(() -> Properties.get(sourceType).ifPresent(
+                targetProperty.name(),
+                sourceProperty -> {
+                    MappingContext context = branch(
+                        sourceProperty.type(),
+                        targetProperty.type()
+                    );
+                    Object sourceValue = sourceProperty.get(source);
+                    if (sourceValue != targetProperty.get(target)) {
+                        targetProperty.set(
+                            target,
+                            context.convert(sourceValue)
+                        );
+                    }
+                }
+            ))
+            .run()
         );
     }
 
-    private void convertThenSet(Object sourceValue, Variable target) {
-        if (sourceValue != target.get()) {
-            Object targetValue = convert(sourceValue);
-            target.set(targetValue);
-        }
-    }
-
     private void projectToReadOnlyProperties(Object source, Object target) {
-        Properties properties = Properties.get(targetType);
-        properties.useReadOnlyProperties(property ->
-            projectPropertyIfPresent(source, property.bind(target)));
-    }
-
-    private void projectPropertyIfPresent(Object source, Variable target) {
-        Properties properties = Properties.get(sourceType);
-        properties.ifPresent(
-            target.name(),
-            property -> {
-                MappingContext context = branch(property.type(), target.type());
-                context.project(property.bind(source).get(), target.get());
-            }
+        Properties targetProperties = Properties.get(targetType);
+        targetProperties.useReadOnlyProperties(targetProperty ->
+            Properties.get(sourceType).ifPresent(
+                targetProperty.name(),
+                sourceProperty -> {
+                    MappingContext context = branch(
+                        sourceProperty.type(),
+                        targetProperty.type()
+                    );
+                    context.project(
+                        sourceProperty.get(source),
+                        targetProperty.get(target)
+                    );
+                }
+            )
         );
     }
 }
