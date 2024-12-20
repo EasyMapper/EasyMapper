@@ -51,7 +51,11 @@ public final class MapperConfiguration {
         @NonNull Class<T> targetType,
         @NonNull Converter<S, T> converter
     ) {
-        converters.add(sourceType, targetType, converter);
+        converters.add(
+            TypePredicate.from(sourceType),
+            TypePredicate.from(targetType),
+            converter
+        );
         return this;
     }
 
@@ -69,7 +73,11 @@ public final class MapperConfiguration {
         @NonNull Class<T> targetType,
         @NonNull Projector<S, T> projector
     ) {
-        projectors.add(sourceType, targetType, projector);
+        projectors.add(
+            TypePredicate.from(sourceType),
+            TypePredicate.from(targetType),
+            projector
+        );
         return this;
     }
 
@@ -88,7 +96,12 @@ public final class MapperConfiguration {
         @NonNull String targetPropertyName,
         @NonNull Extractor<S, P> extractor
     ) {
-        extractors.add(sourceType, targetType, targetPropertyName, extractor);
+        extractors.add(
+            TypePredicate.from(sourceType),
+            TypePredicate.from(targetType),
+            targetPropertyName,
+            extractor
+        );
         return this;
     }
 

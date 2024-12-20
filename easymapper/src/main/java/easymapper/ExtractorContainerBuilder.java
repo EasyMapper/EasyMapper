@@ -12,28 +12,6 @@ class ExtractorContainerBuilder {
     private final Map<String, List<Entry>> entries = new HashMap<>();
 
     public <S, P> void add(
-        Class<S> sourceType,
-        Class<?> propertyType,
-        String targetPropertyName,
-        Extractor<S, P> extractor
-    ) {
-        List<Entry> list = entries.computeIfAbsent(
-            targetPropertyName,
-            key -> new ArrayList<>()
-        );
-
-        list.add(
-            new Entry(
-                new MappingTypePredicate(
-                    TypePredicate.from(sourceType),
-                    TypePredicate.from(propertyType)
-                ),
-                ObjectExtractor.from(extractor)
-            )
-        );
-    }
-
-    public <S, P> void add(
         TypePredicate sourceTypePredicate,
         TypePredicate propertyTypePredicate,
         String targetPropertyName,
