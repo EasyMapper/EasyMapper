@@ -279,7 +279,7 @@ public class MapperConfiguration_specs {
             config -> config.addProjector(
                 (Class<User>) null,
                 User.class,
-                (context, source, target) -> { }
+                (source, target, context) -> { }
             )
         );
 
@@ -294,7 +294,7 @@ public class MapperConfiguration_specs {
             config -> config.addProjector(
                 User.class,
                 null,
-                (context, source, target) -> { }
+                (source, target, context) -> { }
             )
         );
 
@@ -320,7 +320,7 @@ public class MapperConfiguration_specs {
             MapperConfiguration actual = config.addProjector(
                 User.class,
                 UserView.class,
-                (context, source, target) -> { }
+                (source, target, context) -> { }
             );
             assertThat(actual).isSameAs(config);
         });
@@ -332,7 +332,7 @@ public class MapperConfiguration_specs {
             config -> config.addProjector(
                 User.class,
                 UserView.class,
-                (context, source, target) -> {
+                (source, target, context) -> {
                     target.id(valueOf(source.id()));
                     target.username(source.username());
                 }
@@ -370,7 +370,7 @@ public class MapperConfiguration_specs {
             config -> config.addProjector(
                 User.class,
                 UserView.class,
-                (context, source, target) -> {
+                (source, target, context) -> {
                     target.id(valueOf(source.id()));
                     target.username(source.username());
                 }
@@ -388,11 +388,11 @@ public class MapperConfiguration_specs {
     @AutoParameterizedTest
     void addProjector_overrides_previous_projector(User user, UserView view) {
         val mapper = new Mapper(config -> config
-            .addProjector(User.class, UserView.class, (c, s, t) -> { })
+            .addProjector(User.class, UserView.class, (s, t, c) -> { })
             .addProjector(
                 User.class,
                 UserView.class,
-                (context, source, target) -> {
+                (source, target, context) -> {
                     target.id(valueOf(source.id()));
                     target.username(source.username());
                 }
@@ -411,7 +411,7 @@ public class MapperConfiguration_specs {
             config -> config.addProjector(
                 null,
                 acceptAll,
-                (context, source, target) -> { }
+                (source, target, context) -> { }
             )
         );
 
@@ -426,7 +426,7 @@ public class MapperConfiguration_specs {
             config -> config.addProjector(
                 acceptAll,
                 null,
-                (context, source, target) -> { }
+                (source, target, context) -> { }
             )
         );
 
@@ -456,7 +456,7 @@ public class MapperConfiguration_specs {
             MapperConfiguration actual = config.addProjector(
                 acceptAll,
                 acceptAll,
-                (context, source, target) -> { }
+                (source, target, context) -> { }
             );
             assertThat(actual).isSameAs(config);
         });
@@ -468,7 +468,7 @@ public class MapperConfiguration_specs {
             config -> config.<User, UserView>addProjector(
                 type -> type.equals(User.class),
                 type -> type.equals(UserView.class),
-                (context, source, target) -> {
+                (source, target, context) -> {
                     target.id(valueOf(source.id()));
                     target.username(source.username());
                 }

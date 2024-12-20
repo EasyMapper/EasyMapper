@@ -3,9 +3,9 @@ package easymapper;
 @FunctionalInterface
 public interface Projector<S, T> {
 
-    void project(MappingContext context, S source, T target);
+    void project(S source, T target, MappingContext context);
 
     static <S, T> Projector<S, T> empty() {
-        return (context, source, target) -> {};
+        return (source, target, context) -> {};
     }
 }

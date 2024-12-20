@@ -26,7 +26,7 @@ class AtomicObjectMapping {
         config.addProjector(
             TypePredicate.ACCEPT_ALL_TYPES,
             TypePredicate.from(type),
-            (context, source, target) -> { }
+            (source, target, context) -> { }
         );
 
         config.addConverter(type, type, Converter.identity());
