@@ -50,7 +50,7 @@ public class MapperConfiguration_specs {
             config -> config.addConverter(
                 (Class<User>) null,
                 User.class,
-                (context, source) -> source
+                (source, context) -> source
             )
         );
 
@@ -65,7 +65,7 @@ public class MapperConfiguration_specs {
             config -> config.addConverter(
                 User.class,
                 null,
-                (context, source) -> source
+                (source, context) -> source
             )
         );
 
@@ -91,7 +91,7 @@ public class MapperConfiguration_specs {
             MapperConfiguration actual = config.addConverter(
                 User.class,
                 User.class,
-                (context, source) -> source
+                (source, context) -> source
             );
             assertThat(actual).isSameAs(config);
         });
@@ -118,7 +118,7 @@ public class MapperConfiguration_specs {
             config -> config.addConverter(
                 User.class,
                 UserView.class,
-                (context, source) -> UserView.from(source)
+                (source, context) -> UserView.from(source)
             )
         );
 
@@ -134,7 +134,7 @@ public class MapperConfiguration_specs {
             config -> config.addConverter(
                 int.class,
                 String.class,
-                (context, source) -> valueOf(source)
+                (source, context) -> valueOf(source)
             )
         );
 
@@ -172,7 +172,7 @@ public class MapperConfiguration_specs {
             config -> config.addConverter(
                 int.class,
                 String.class,
-                (context, source) -> valueOf(source)
+                (source, context) -> valueOf(source)
             )
         );
 
@@ -190,8 +190,8 @@ public class MapperConfiguration_specs {
         String anonymous
     ) {
         val mapper = new Mapper(config -> config
-            .addConverter(int.class, String.class, (c, s) -> anonymous)
-            .addConverter(int.class, String.class, (c, s) -> s.toString())
+            .addConverter(int.class, String.class, (s, c) -> anonymous)
+            .addConverter(int.class, String.class, (s, c) -> s.toString())
         );
 
         PostView actual = mapper.convert(post, PostView.class);
@@ -206,7 +206,7 @@ public class MapperConfiguration_specs {
             config -> config.addConverter(
                 null,
                 acceptAll,
-                (context, source) -> source
+                (source, context) -> source
             )
         );
 
@@ -221,7 +221,7 @@ public class MapperConfiguration_specs {
             config -> config.addConverter(
                 acceptAll,
                 null,
-                (context, source) -> source
+                (source, context) -> source
             )
         );
 
@@ -251,7 +251,7 @@ public class MapperConfiguration_specs {
             MapperConfiguration actual = config.addConverter(
                 acceptAll,
                 acceptAll,
-                (context, source) -> source
+                (source, context) -> source
             );
             assertThat(actual).isSameAs(config);
         });
@@ -263,7 +263,7 @@ public class MapperConfiguration_specs {
             config -> config.<User, UserView>addConverter(
                 type -> type.equals(User.class),
                 type -> type.equals(UserView.class),
-                (context, source) -> UserView.from(source)
+                (source, context) -> UserView.from(source)
             )
         );
 

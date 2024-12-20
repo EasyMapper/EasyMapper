@@ -7,10 +7,10 @@ interface ObjectConverter extends Converter<Object, Object> {
 
     @SuppressWarnings("unchecked")
     static <S, T> ObjectConverter from(Converter<S, T> converter) {
-        return (context, source) -> converter.convert(context, (S) source);
+        return (source, context) -> converter.convert((S) source, context);
     }
 
     default Function<Object, Object> bindContext(MappingContext context) {
-        return source -> convert(context, source);
+        return source -> convert(source, context);
     }
 }

@@ -3,10 +3,10 @@ package easymapper;
 @FunctionalInterface
 public interface Converter<S, T> {
 
-    T convert(MappingContext context, S source);
+    T convert(S source, MappingContext context);
 
     @SuppressWarnings("unchecked")
     static <S, T> Converter<S, T> identity() {
-        return (context, source) -> (T) source;
+        return (source, context) -> (T) source;
     }
 }

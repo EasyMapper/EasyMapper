@@ -8,7 +8,7 @@ class UUIDMapping {
         config.addConverter(
             UUID.class,
             String.class,
-            (context, source) -> asString(source)
+            (source, context) -> asString(source)
         );
     }
 

@@ -13,11 +13,11 @@ class CollectionMapping {
         config.addProjector(isIterable, isIterable, Projector.empty());
     }
 
-    private static Object convert(MappingContext context, Object source) {
-        return source == null ? null : convert(context, (Iterable<?>) source);
+    private static Object convert(Object source, MappingContext context) {
+        return source == null ? null : convert((Iterable<?>) source, context);
     }
 
-    private static Object convert(MappingContext context, Iterable<?> source) {
+    private static Object convert(Iterable<?> source, MappingContext context) {
         MappingContext elementMappingContext = context.branch(
             resolveElementType(context.getSourceType()),
             resolveElementType(context.getTargetType()));
