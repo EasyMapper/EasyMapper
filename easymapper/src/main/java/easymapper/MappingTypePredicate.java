@@ -9,13 +9,12 @@ import lombok.experimental.Accessors;
 @AllArgsConstructor
 @Getter
 @Accessors(fluent = true)
-class TypeMatchingEntry<V> {
-
+class MappingTypePredicate {
+    
     private final TypePredicate sourceTypePredicate;
     private final TypePredicate targetTypePredicate;
-    private final V value;
 
-    public boolean match(Type sourceType, Type targetType) {
+    public boolean test(Type sourceType, Type targetType) {
         return sourceTypePredicate.test(sourceType)
             && targetTypePredicate.test(targetType);
     }

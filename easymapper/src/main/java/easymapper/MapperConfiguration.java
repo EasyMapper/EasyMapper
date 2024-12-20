@@ -13,16 +13,16 @@ public final class MapperConfiguration {
 
     private ConstructorExtractor constructorExtractor;
     private ParameterNameResolver parameterNameResolver;
-    private final ConverterSetBuilder converters;
-    private final ProjectorSetBuilder projectors;
-    private final ExtractorSetBuilder extractors;
+    private final ConverterContainerBuilder converters;
+    private final ProjectorContainerBuilder projectors;
+    private final ExtractorContainerBuilder extractors;
 
     MapperConfiguration() {
         constructorExtractor = DefaultConstructorExtractor.INSTANCE;
         parameterNameResolver = DefaultParameterNameResolver.INSTANCE;
-        converters = new ConverterSetBuilder();
-        projectors = new ProjectorSetBuilder();
-        extractors = new ExtractorSetBuilder();
+        converters = new ConverterContainerBuilder();
+        projectors = new ProjectorContainerBuilder();
+        extractors = new ExtractorContainerBuilder();
     }
 
     public MapperConfiguration apply(
@@ -35,14 +35,14 @@ public final class MapperConfiguration {
     public MapperConfiguration setConstructorExtractor(
         @NonNull ConstructorExtractor value
     ) {
-        this.constructorExtractor = value;
+        constructorExtractor = value;
         return this;
     }
 
     public MapperConfiguration setParameterNameResolver(
         @NonNull ParameterNameResolver value
     ) {
-        this.parameterNameResolver = value;
+        parameterNameResolver = value;
         return this;
     }
 

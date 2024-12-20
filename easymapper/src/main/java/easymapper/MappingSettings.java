@@ -12,9 +12,9 @@ class MappingSettings {
 
     private final ConstructorExtractor constructorExtractor;
     private final ParameterNameResolver parameterNameResolver;
-    private final ConverterSet converters;
-    private final ProjectorSet projectors;
-    private final ExtractorSet extractors;
+    private final ConverterContainer converters;
+    private final ProjectorContainer projectors;
+    private final ExtractorContainer extractors;
 
     public static MappingSettings create(MapperConfiguration config) {
         return new MappingSettings(
