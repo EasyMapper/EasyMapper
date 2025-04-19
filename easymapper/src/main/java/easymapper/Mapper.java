@@ -15,10 +15,10 @@ public class Mapper {
         this(config -> { });
     }
 
-    public Mapper(@NonNull Consumer<MapperConfigurationBuilder> configurer) {
+    public Mapper(@NonNull Consumer<MapperConfigurationBuilder> configure) {
         MapperConfigurationBuilder builder = new MapperConfigurationBuilder()
             .apply(BaseConfiguration::configure)
-            .apply(configurer);
+            .apply(configure);
 
         configuration = builder.build();
     }

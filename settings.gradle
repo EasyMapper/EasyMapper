@@ -2,5 +2,6 @@ rootProject.name = "EasyMapper"
 
 include "easymapper"
 include "easymapper-kotlin"
+include "test-easymapper"
 include "test-easymapper-java17"
 include "test-easymapper-kotlin"
